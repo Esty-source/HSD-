@@ -8,6 +8,8 @@ import {
   PhoneIcon,
   PlusIcon,
   XMarkIcon,
+  LightBulbIcon,
+  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 
 const mockAppointments = [
@@ -52,6 +54,39 @@ const specialties = [
   "Orthopedics",
   "Dentistry",
   "Ophthalmology",
+];
+
+const quickTips = [
+  {
+    id: 1,
+    title: "Prepare for Your Visit",
+    tips: [
+      "Bring your ID and insurance information",
+      "List your current medications",
+      "Write down any questions for the doctor",
+      "Arrive 15 minutes before your appointment"
+    ]
+  },
+  {
+    id: 2,
+    title: "Scheduling Tips",
+    tips: [
+      "Morning appointments typically have shorter wait times",
+      "Book follow-ups right after your visit",
+      "Save emergency numbers in your phone",
+      "Set reminders for your appointments"
+    ]
+  },
+  {
+    id: 3,
+    title: "Cancellation Policy",
+    tips: [
+      "Cancel at least 24 hours in advance",
+      "Reschedule through the app or phone",
+      "Keep track of your appointment history",
+      "Update contact information if changed"
+    ]
+  }
 ];
 
 export default function Appointments() {
@@ -113,68 +148,99 @@ export default function Appointments() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4 sm:mb-0">My Appointments</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-0">My Appointments</h1>
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 transition duration-150 ease-in-out transform hover:scale-105"
+            className="w-full sm:w-auto flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold text-white shadow-md hover:from-blue-500 hover:to-blue-600 transform hover:scale-105 transition-all duration-200 ease-in-out"
           >
-            <PlusIcon className="mr-2 h-5 w-5" />
+            <PlusIcon className="h-5 w-5 mr-2" />
             Schedule Appointment
           </button>
         </div>
 
+        {/* Quick Tips Section */}
+        <div className="mt-4 sm:mt-6 mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center mb-4 bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+            <LightBulbIcon className="h-5 sm:h-6 w-5 sm:w-6 mr-2 text-yellow-400" />
+            Quick Tips for Your Visit
+          </h2>
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {quickTips.map((section) => (
+              <div
+                key={section.id}
+                className="rounded-lg bg-white p-3 sm:p-4 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-300 ease-in-out border border-gray-100 relative overflow-hidden group"
+              >
+                <div className="absolute top-0 right-0 w-16 sm:w-20 h-16 sm:h-20 bg-gradient-to-br from-blue-50 to-transparent opacity-50 rounded-bl-full"></div>
+                <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-2 flex items-center">
+                  {section.id === 1 && <UserIcon className="h-4 w-4 mr-2 text-blue-500" />}
+                  {section.id === 2 && <CalendarIcon className="h-4 w-4 mr-2 text-blue-500" />}
+                  {section.id === 3 && <ClockIcon className="h-4 w-4 mr-2 text-blue-500" />}
+                  {section.title}
+                </h3>
+                <ul className="space-y-1.5 sm:space-y-2">
+                  {section.tips.map((tip, index) => (
+                    <li key={index} className="flex items-start group cursor-pointer">
+                      <CheckCircleIcon className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-blue-400 mr-1.5 sm:mr-2 flex-shrink-0 mt-0.5 group-hover:text-blue-500 transition-colors duration-200" />
+                      <span className="text-xs sm:text-sm text-gray-600 leading-relaxed group-hover:text-gray-800 transition-colors duration-200">{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Appointments List */}
-        <div className="mt-8 grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 sm:mt-8 grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {appointments.map((appointment) => (
             <div
               key={appointment.id}
-              className="rounded-lg bg-white p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out border border-gray-100"
+              className="rounded-lg bg-white p-4 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out border border-gray-100"
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">
                   {appointment.doctorName}
                 </h3>
                 <span
-                  className={`rounded-full px-3 py-1 text-sm font-medium ${
+                  className={`rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium ${
                     appointment.status === "upcoming"
                       ? "bg-blue-100 text-blue-800"
                       : "bg-green-100 text-green-800"
                   }`}
                 >
-                  {appointment.status.charAt(0).toUpperCase() +
-                    appointment.status.slice(1)}
+                  {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                 </span>
               </div>
-              <p className="mt-1 text-sm text-gray-500">{appointment.specialty}</p>
-              <div className="mt-4 space-y-3">
-                <div className="flex items-center text-sm text-gray-500 hover:text-gray-700">
-                  <CalendarIcon className="mr-2 h-5 w-5 text-blue-500" />
+              <p className="mt-1 text-xs sm:text-sm text-gray-500">{appointment.specialty}</p>
+              <div className="mt-4 space-y-2 sm:space-y-3">
+                <div className="flex items-center text-xs sm:text-sm text-gray-500 hover:text-gray-700">
+                  <CalendarIcon className="mr-2 h-4 sm:h-5 w-4 sm:w-5 text-blue-500" />
                   {format(new Date(appointment.date), "MMMM d, yyyy")}
                 </div>
-                <div className="flex items-center text-sm text-gray-500 hover:text-gray-700">
-                  <ClockIcon className="mr-2 h-5 w-5 text-blue-500" />
+                <div className="flex items-center text-xs sm:text-sm text-gray-500 hover:text-gray-700">
+                  <ClockIcon className="mr-2 h-4 sm:h-5 w-4 sm:w-5 text-blue-500" />
                   {appointment.time}
                 </div>
-                <div className="flex items-center text-sm text-gray-500 hover:text-gray-700">
-                  <MapPinIcon className="mr-2 h-5 w-5 text-blue-500" />
+                <div className="flex items-center text-xs sm:text-sm text-gray-500 hover:text-gray-700">
+                  <MapPinIcon className="mr-2 h-4 sm:h-5 w-4 sm:w-5 text-blue-500" />
                   {appointment.location}
                 </div>
-                <div className="flex items-center text-sm text-gray-500 hover:text-gray-700">
-                  <PhoneIcon className="mr-2 h-5 w-5 text-blue-500" />
+                <div className="flex items-center text-xs sm:text-sm text-gray-500 hover:text-gray-700">
+                  <PhoneIcon className="mr-2 h-4 sm:h-5 w-4 sm:w-5 text-blue-500" />
                   {appointment.phone}
                 </div>
               </div>
               {appointment.status === "upcoming" && (
-                <div className="mt-6 flex justify-end space-x-3">
-                  <button className="rounded-md bg-red-100 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-200 transition duration-150 ease-in-out">
+                <div className="mt-4 sm:mt-6 flex justify-end space-x-2 sm:space-x-3">
+                  <button className="rounded-md bg-red-100 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-red-600 hover:bg-red-200 transition duration-150 ease-in-out">
                     Cancel
                   </button>
                   <button 
                     onClick={() => handleReschedule(appointment)}
-                    className="rounded-md bg-blue-100 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-200 transition duration-150 ease-in-out"
+                    className="rounded-md bg-blue-100 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-blue-600 hover:bg-blue-200 transition duration-150 ease-in-out"
                   >
                     Reschedule
                   </button>
