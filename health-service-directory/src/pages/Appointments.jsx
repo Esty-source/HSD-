@@ -11,6 +11,7 @@ import {
   XMarkIcon,
   LightBulbIcon,
   CheckCircleIcon,
+  BellIcon,
 } from '@heroicons/react/24/outline';
 
 const mockAppointments = [
@@ -94,6 +95,10 @@ export default function Appointments() {
   const location = useLocation();
   const [appointments, setAppointments] = useState(mockAppointments);
   const [showModal, setShowModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [newAppointment, setNewAppointment] = useState({
     doctorName: "",
     specialty: "",
@@ -102,8 +107,6 @@ export default function Appointments() {
     location: "",
     phone: "",
   });
-  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   // Handle incoming doctor data
   useEffect(() => {
@@ -153,6 +156,23 @@ export default function Appointments() {
     setShowRescheduleModal(true);
   };
 
+  const handleCancel = (appointment) => {
+    setSelectedAppointment(appointment);
+    setShowCancelModal(true);
+  };
+
+  const confirmCancel = () => {
+    if (selectedAppointment) {
+      setAppointments(appointments.filter(app => app.id !== selectedAppointment.id));
+      setShowCancelModal(false);
+      setSelectedAppointment(null);
+    }
+  };
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+  };
+
   const handleRescheduleSubmit = (e) => {
     e.preventDefault();
     const updatedAppointments = appointments.map((apt) =>
@@ -170,13 +190,55 @@ export default function Appointments() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-0">My Appointments</h1>
-          <button
-            onClick={() => setShowModal(true)}
-            className="w-full sm:w-auto flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold text-white shadow-md hover:from-blue-500 hover:to-blue-600 transform hover:scale-105 transition-all duration-200 ease-in-out"
-          >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            Schedule Appointment
-          </button>
+          <div className="flex items-center space-x-4">
+            {/* Notification Button */}
+            <div className="relative">
+              <button
+                onClick={toggleNotifications}
+                className="p-2 rounded-lg bg-white shadow-sm hover:shadow-md transition-all duration-200 relative"
+              >
+                <BellIcon className="h-6 w-6 text-gray-600" />
+                <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+              </button>
+              
+              {/* Notifications Dropdown */}
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-100 z-50">
+                  <div className="p-4">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Notifications</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <CalendarIcon className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-900">Upcoming appointment tomorrow</p>
+                          <p className="text-xs text-gray-500 mt-1">With Dr. Smith at 10:00 AM</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                          <CheckCircleIcon className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-900">Appointment confirmed</p>
+                          <p className="text-xs text-gray-500 mt-1">Your appointment has been confirmed</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowModal(true)}
+              className="w-full sm:w-auto flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold text-white shadow-md hover:from-blue-500 hover:to-blue-600 transform hover:scale-105 transition-all duration-200 ease-in-out"
+            >
+              <PlusIcon className="h-5 w-5 mr-2" />
+              Schedule Appointment
+            </button>
+          </div>
         </div>
 
         {/* Main content wrapper with flex layout */}
@@ -246,7 +308,10 @@ export default function Appointments() {
                     {/* Action buttons with gradient backgrounds */}
                     {appointment.status === "upcoming" && (
                       <div className="mt-6 flex justify-end space-x-3">
-                        <button className="rounded-lg px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 transform hover:scale-105 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md">
+                        <button
+                          onClick={() => handleCancel(appointment)}
+                          className="rounded-lg px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 transform hover:scale-105 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md"
+                        >
                           Cancel
                         </button>
                         <button 
@@ -431,6 +496,31 @@ export default function Appointments() {
                     </form>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showCancelModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Cancel Appointment</h3>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to cancel your appointment with {selectedAppointment?.doctorName}? This action cannot be undone.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowCancelModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200"
+                >
+                  Keep Appointment
+                </button>
+                <button
+                  onClick={confirmCancel}
+                  className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-rose-500 rounded-lg hover:from-red-600 hover:to-rose-600 transition-all duration-200"
+                >
+                  Yes, Cancel
+                </button>
               </div>
             </div>
           </div>
