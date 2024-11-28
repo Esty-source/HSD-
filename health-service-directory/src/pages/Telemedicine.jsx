@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   VideoCameraIcon,
@@ -8,30 +8,36 @@ import {
   XMarkIcon,
   PhoneIcon,
   ExclamationTriangleIcon,
+  ComputerDesktopIcon,
+  DocumentDuplicateIcon,
 } from '@heroicons/react/24/outline';
 
 export default function Telemedicine() {
   const location = useLocation();
   const navigate = useNavigate();
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const peerConnection = useRef(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [error, setError] = useState('');
   const [appointment, setAppointment] = useState(null);
   const [isCallActive, setIsCallActive] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [callQuality, setCallQuality] = useState('good');
 
   useEffect(() => {
     // Handle appointment state
     if (location.state?.appointment) {
       setAppointment(location.state.appointment);
-      // Load chat messages from localStorage
       const storedMessages = localStorage.getItem(`chat_${location.state.appointment.doctor.id}`);
       if (storedMessages) {
         setMessages(JSON.parse(storedMessages));
       } else {
-        // Initialize with a welcome message
         const initialMessage = {
           id: 1,
           sender: 'doctor',
@@ -47,7 +53,140 @@ export default function Telemedicine() {
     } else {
       setError('No appointment information found. Please schedule an appointment first.');
     }
+
+    // Cleanup function
+    return () => {
+      if (peerConnection.current) {
+        peerConnection.current.close();
+      }
+      stopMediaTracks();
+    };
   }, [location.state]);
+
+  const stopMediaTracks = () => {
+    if (localVideoRef.current && localVideoRef.current.srcObject) {
+      localVideoRef.current.srcObject.getTracks().forEach(track => track.stop());
+    }
+  };
+
+  const initializePeerConnection = () => {
+    const configuration = {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+      ]
+    };
+
+    peerConnection.current = new RTCPeerConnection(configuration);
+
+    peerConnection.current.onicecandidate = event => {
+      if (event.candidate) {
+        // Send candidate to signaling server
+        console.log('New ICE candidate:', event.candidate);
+      }
+    };
+
+    peerConnection.current.ontrack = event => {
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = event.streams[0];
+      }
+    };
+
+    peerConnection.current.onconnectionstatechange = () => {
+      setConnectionStatus(peerConnection.current.connectionState);
+    };
+  };
+
+  const startCall = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: isVideoEnabled, 
+        audio: isAudioEnabled 
+      });
+      
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+      }
+
+      initializePeerConnection();
+
+      stream.getTracks().forEach(track => {
+        peerConnection.current.addTrack(track, stream);
+      });
+
+      setIsCallActive(true);
+      setError('');
+      
+      // Monitor call quality
+      setInterval(() => {
+        if (peerConnection.current) {
+          peerConnection.current.getStats().then(stats => {
+            stats.forEach(report => {
+              if (report.type === 'media-source') {
+                const bitrate = report.bitrate;
+                if (bitrate < 1000000) setCallQuality('poor');
+                else if (bitrate < 2500000) setCallQuality('fair');
+                else setCallQuality('good');
+              }
+            });
+          });
+        }
+      }, 5000);
+
+    } catch (err) {
+      setError('Unable to access camera or microphone. Please check your permissions.');
+      console.error('Error starting call:', err);
+    }
+  };
+
+  const toggleScreenShare = async () => {
+    try {
+      if (!isScreenSharing) {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+          video: true,
+          audio: true
+        });
+        
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = screenStream;
+        }
+
+        screenStream.getTracks().forEach(track => {
+          const sender = peerConnection.current.getSenders().find(s => 
+            s.track.kind === track.kind
+          );
+          if (sender) {
+            sender.replaceTrack(track);
+          }
+        });
+
+        setIsScreenSharing(true);
+      } else {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: isVideoEnabled, 
+          audio: isAudioEnabled 
+        });
+        
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
+
+        stream.getTracks().forEach(track => {
+          const sender = peerConnection.current.getSenders().find(s => 
+            s.track.kind === track.kind
+          );
+          if (sender) {
+            sender.replaceTrack(track);
+          }
+        });
+
+        setIsScreenSharing(false);
+      }
+    } catch (err) {
+      console.error('Error toggling screen share:', err);
+      setError('Unable to share screen. Please check your permissions.');
+    }
+  };
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -105,19 +244,6 @@ export default function Telemedicine() {
     }
   };
 
-  const startCall = () => {
-    // Request both video and audio permissions
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
-      .then(() => {
-        setIsCallActive(true);
-        setError('');
-      })
-      .catch((err) => {
-        setError('Unable to access camera or microphone. Please check your permissions.');
-      });
-  };
-
   const endCall = () => {
     setIsCallActive(false);
     setIsVideoEnabled(true);
@@ -159,13 +285,51 @@ export default function Telemedicine() {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        {/* Connection Status Banner */}
+        <div className={`mb-4 rounded-md p-4 ${
+          connectionStatus === 'connected' ? 'bg-green-50' : 
+          connectionStatus === 'connecting' ? 'bg-yellow-50' : 'bg-red-50'
+        }`}>
+          <div className="flex items-center">
+            <div className={`h-2 w-2 rounded-full mr-2 ${
+              connectionStatus === 'connected' ? 'bg-green-400' :
+              connectionStatus === 'connecting' ? 'bg-yellow-400' : 'bg-red-400'
+            }`} />
+            <p className={`text-sm ${
+              connectionStatus === 'connected' ? 'text-green-700' :
+              connectionStatus === 'connecting' ? 'text-yellow-700' : 'text-red-700'
+            }`}>
+              {connectionStatus === 'connected' ? 'Connected' :
+               connectionStatus === 'connecting' ? 'Connecting...' : 'Disconnected'}
+            </p>
+            {callQuality !== 'good' && connectionStatus === 'connected' && (
+              <p className="ml-4 text-sm text-yellow-700">
+                Call quality: {callQuality}
+              </p>
+            )}
+          </div>
+        </div>
+
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Video Area */}
           <div className="lg:col-span-2">
             <div className="rounded-lg bg-white p-6 shadow">
               {isCallActive ? (
                 <div className="relative aspect-video w-full rounded-lg bg-gray-900">
-                  {!isVideoEnabled && (
+                  <video
+                    ref={remoteVideoRef}
+                    autoPlay
+                    playsInline
+                    className="absolute inset-0 h-full w-full object-cover rounded-lg"
+                  />
+                  <video
+                    ref={localVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="absolute bottom-4 right-20 h-32 w-48 rounded-lg object-cover shadow-lg"
+                  />
+                  {!isVideoEnabled && !isScreenSharing && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="h-24 w-24 rounded-full bg-gray-700">
                         <div className="flex h-full items-center justify-center text-3xl text-white">
@@ -180,6 +344,7 @@ export default function Telemedicine() {
                       className={`rounded-full p-2 ${
                         isVideoEnabled ? 'bg-gray-700' : 'bg-red-600'
                       }`}
+                      title={isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}
                     >
                       <VideoCameraIcon className="h-6 w-6 text-white" />
                     </button>
@@ -188,12 +353,23 @@ export default function Telemedicine() {
                       className={`rounded-full p-2 ${
                         isAudioEnabled ? 'bg-gray-700' : 'bg-red-600'
                       }`}
+                      title={isAudioEnabled ? 'Mute microphone' : 'Unmute microphone'}
                     >
                       <MicrophoneIcon className="h-6 w-6 text-white" />
                     </button>
                     <button
+                      onClick={toggleScreenShare}
+                      className={`rounded-full p-2 ${
+                        isScreenSharing ? 'bg-blue-600' : 'bg-gray-700'
+                      }`}
+                      title={isScreenSharing ? 'Stop sharing' : 'Share screen'}
+                    >
+                      <ComputerDesktopIcon className="h-6 w-6 text-white" />
+                    </button>
+                    <button
                       onClick={endCall}
                       className="rounded-full bg-red-600 p-2 hover:bg-red-700"
+                      title="End call"
                     >
                       <PhoneIcon className="h-6 w-6 text-white" />
                     </button>
