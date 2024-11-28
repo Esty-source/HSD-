@@ -187,54 +187,77 @@ export default function Appointments() {
               {appointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  className="rounded-lg bg-white p-4 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out border border-gray-100"
+                  className="rounded-xl bg-white p-5 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out border border-gray-100 relative overflow-hidden group"
                 >
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-                      {appointment.doctorName}
-                    </h3>
-                    <span
-                      className={`rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium ${
-                        appointment.status === "upcoming"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs sm:text-sm text-gray-500">{appointment.specialty}</p>
-                  <div className="mt-4 space-y-2 sm:space-y-3">
-                    <div className="flex items-center text-xs sm:text-sm text-gray-500 hover:text-gray-700">
-                      <CalendarIcon className="mr-2 h-4 sm:h-5 w-4 sm:w-5 text-blue-500" />
-                      {format(new Date(appointment.date), "MMMM d, yyyy")}
-                    </div>
-                    <div className="flex items-center text-xs sm:text-sm text-gray-500 hover:text-gray-700">
-                      <ClockIcon className="mr-2 h-4 sm:h-5 w-4 sm:w-5 text-blue-500" />
-                      {appointment.time}
-                    </div>
-                    <div className="flex items-center text-xs sm:text-sm text-gray-500 hover:text-gray-700">
-                      <MapPinIcon className="mr-2 h-4 sm:h-5 w-4 sm:w-5 text-blue-500" />
-                      {appointment.location}
-                    </div>
-                    <div className="flex items-center text-xs sm:text-sm text-gray-500 hover:text-gray-700">
-                      <PhoneIcon className="mr-2 h-4 sm:h-5 w-4 sm:w-5 text-blue-500" />
-                      {appointment.phone}
-                    </div>
-                  </div>
-                  {appointment.status === "upcoming" && (
-                    <div className="mt-4 sm:mt-6 flex justify-end space-x-2 sm:space-x-3">
-                      <button className="rounded-md bg-red-100 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-red-600 hover:bg-red-200 transition duration-150 ease-in-out">
-                        Cancel
-                      </button>
-                      <button 
-                        onClick={() => handleReschedule(appointment)}
-                        className="rounded-md bg-blue-100 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-blue-600 hover:bg-blue-200 transition duration-150 ease-in-out"
+                  {/* Decorative gradient element */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-50 via-indigo-50 to-transparent opacity-60 rounded-bl-full -mr-8 -mt-8"></div>
+                  
+                  <div className="relative">
+                    {/* Header with doctor name and status */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
+                          {appointment.doctorName}
+                        </h3>
+                        <p className="text-sm text-indigo-600 font-medium">{appointment.specialty}</p>
+                      </div>
+                      <span
+                        className={`rounded-full px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold ${
+                          appointment.status === "upcoming"
+                            ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white"
+                            : "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
+                        }`}
                       >
-                        Reschedule
-                      </button>
+                        {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                      </span>
                     </div>
-                  )}
+
+                    {/* Appointment details with improved icons */}
+                    <div className="space-y-3">
+                      <div className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200">
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center mr-3">
+                          <CalendarIcon className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <span className="font-medium">{format(new Date(appointment.date), "MMMM d, yyyy")}</span>
+                      </div>
+                      
+                      <div className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center mr-3">
+                          <ClockIcon className="h-4 w-4 text-indigo-600" />
+                        </div>
+                        <span className="font-medium">{appointment.time}</span>
+                      </div>
+                      
+                      <div className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200">
+                        <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center mr-3">
+                          <MapPinIcon className="h-4 w-4 text-purple-600" />
+                        </div>
+                        <span className="font-medium">{appointment.location}</span>
+                      </div>
+                      
+                      <div className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200">
+                        <div className="w-8 h-8 rounded-lg bg-pink-50 flex items-center justify-center mr-3">
+                          <PhoneIcon className="h-4 w-4 text-pink-600" />
+                        </div>
+                        <span className="font-medium">{appointment.phone}</span>
+                      </div>
+                    </div>
+
+                    {/* Action buttons with gradient backgrounds */}
+                    {appointment.status === "upcoming" && (
+                      <div className="mt-6 flex justify-end space-x-3">
+                        <button className="rounded-lg px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 transform hover:scale-105 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md">
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={() => handleReschedule(appointment)}
+                          className="rounded-lg px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transform hover:scale-105 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md"
+                        >
+                          Reschedule
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
