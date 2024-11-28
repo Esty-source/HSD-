@@ -99,6 +99,8 @@ export default function Appointments() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [newAppointment, setNewAppointment] = useState({
     doctorName: "",
     specialty: "",
@@ -110,36 +112,96 @@ export default function Appointments() {
 
   // Handle incoming doctor data
   useEffect(() => {
-    if (location.state?.selectedDoctor) {
-      const doctor = location.state.selectedDoctor;
+    if (location.state?.doctor) {
+      const { doctor } = location.state;
       setNewAppointment({
+        ...newAppointment,
         doctorName: doctor.name,
         specialty: doctor.specialty,
-        date: format(new Date(doctor.nextAvailable), "yyyy-MM-dd"),
-        time: format(new Date(doctor.nextAvailable), "HH:mm"),
-        location: doctor.location,
-        phone: "",
+        location: doctor.location || "",
       });
       setShowModal(true);
     }
   }, [location.state]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewAppointment((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  // Initialize notifications
+  useEffect(() => {
+    // Get upcoming appointments for next 24 hours
+    const upcomingNotifications = appointments
+      .filter(apt => {
+        const aptDate = new Date(apt.date);
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return aptDate <= tomorrow && apt.status === "upcoming";
+      })
+      .map(apt => ({
+        id: `apt-${apt.id}`,
+        type: "upcoming",
+        title: "Upcoming appointment tomorrow",
+        message: `With ${apt.doctorName} at ${apt.time}`,
+        timestamp: new Date(),
+        read: false,
+        icon: CalendarIcon,
+        iconBg: "bg-blue-100",
+        iconColor: "text-blue-600"
+      }));
+
+    // Add confirmation notifications for recently booked appointments
+    const confirmations = appointments
+      .filter(apt => apt.status === "upcoming")
+      .slice(-2)
+      .map(apt => ({
+        id: `conf-${apt.id}`,
+        type: "confirmation",
+        title: "Appointment confirmed",
+        message: `Your appointment with ${apt.doctorName} has been confirmed`,
+        timestamp: new Date(),
+        read: false,
+        icon: CheckCircleIcon,
+        iconBg: "bg-green-100",
+        iconColor: "text-green-600"
+      }));
+
+    setNotifications([...upcomingNotifications, ...confirmations]);
+    setUnreadCount(upcomingNotifications.length + confirmations.length);
+  }, [appointments]);
+
+  const handleNotificationClick = (notificationId) => {
+    setNotifications(prevNotifications =>
+      prevNotifications.map(notif =>
+        notif.id === notificationId ? { ...notif, read: true } : notif
+      )
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
   };
 
+  const markAllAsRead = () => {
+    setNotifications(prevNotifications =>
+      prevNotifications.map(notif => ({ ...notif, read: true }))
+    );
+    setUnreadCount(0);
+  };
+
+  const clearNotifications = () => {
+    setNotifications([]);
+    setUnreadCount(0);
+  };
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+  };
+
+  // Add notification when new appointment is created
   const handleSubmit = (e) => {
     e.preventDefault();
-    const appointment = {
-      id: appointments.length + 1,
+    const newId = appointments.length + 1;
+    const newApt = {
+      id: newId,
       ...newAppointment,
       status: "upcoming",
     };
-    setAppointments((prev) => [...prev, appointment]);
+    
+    setAppointments([...appointments, newApt]);
     setShowModal(false);
     setNewAppointment({
       doctorName: "",
@@ -149,6 +211,29 @@ export default function Appointments() {
       location: "",
       phone: "",
     });
+
+    // Add confirmation notification
+    const newNotification = {
+      id: `conf-new-${newId}`,
+      type: "confirmation",
+      title: "New appointment booked",
+      message: `Appointment with ${newAppointment.doctorName} has been scheduled`,
+      timestamp: new Date(),
+      read: false,
+      icon: CheckCircleIcon,
+      iconBg: "bg-green-100",
+      iconColor: "text-green-600"
+    };
+    setNotifications(prev => [newNotification, ...prev]);
+    setUnreadCount(prev => prev + 1);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewAppointment((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleReschedule = (appointment) => {
@@ -181,10 +266,6 @@ export default function Appointments() {
     setSelectedAppointment(null);
   };
 
-  const toggleNotifications = () => {
-    setShowNotifications(!showNotifications);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -198,33 +279,61 @@ export default function Appointments() {
                 className="p-2 rounded-lg bg-white shadow-sm hover:shadow-md transition-all duration-200 relative"
               >
                 <BellIcon className="h-6 w-6 text-gray-600" />
-                <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center">
+                    <span className="text-xs text-white font-medium">{unreadCount}</span>
+                  </span>
+                )}
               </button>
               
               {/* Notifications Dropdown */}
               {showNotifications && (
                 <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-100 z-50">
                   <div className="p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Notifications</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-200">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                          <CalendarIcon className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-900">Upcoming appointment tomorrow</p>
-                          <p className="text-xs text-gray-500 mt-1">With Dr. Smith at 10:00 AM</p>
-                        </div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={markAllAsRead}
+                          className="text-xs text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                        >
+                          Mark all as read
+                        </button>
+                        <button
+                          onClick={clearNotifications}
+                          className="text-xs text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                        >
+                          Clear all
+                        </button>
                       </div>
-                      <div className="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-200">
-                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                          <CheckCircleIcon className="h-4 w-4 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-900">Appointment confirmed</p>
-                          <p className="text-xs text-gray-500 mt-1">Your appointment has been confirmed</p>
-                        </div>
-                      </div>
+                    </div>
+                    <div className="space-y-3 max-h-80 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <p className="text-sm text-gray-500 text-center py-4">No new notifications</p>
+                      ) : (
+                        notifications.map((notification) => (
+                          <div
+                            key={notification.id}
+                            onClick={() => handleNotificationClick(notification.id)}
+                            className={`flex items-start space-x-3 p-2 rounded-lg transition-colors duration-200 cursor-pointer ${
+                              notification.read ? 'bg-white' : 'bg-blue-50 hover:bg-blue-100'
+                            }`}
+                          >
+                            <div className={`w-8 h-8 rounded-full ${notification.iconBg} flex items-center justify-center flex-shrink-0`}>
+                              <notification.icon className={`h-4 w-4 ${notification.iconColor}`} />
+                            </div>
+                            <div>
+                              <p className={`text-sm ${notification.read ? 'text-gray-600' : 'text-gray-900 font-medium'}`}>
+                                {notification.title}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">{notification.message}</p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                {new Date(notification.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
@@ -396,11 +505,11 @@ export default function Appointments() {
                             type="text"
                             name="doctorName"
                             required
-                            readOnly={location.state?.selectedDoctor}
+                            readOnly={location.state?.doctor}
                             value={newAppointment.doctorName}
                             onChange={handleInputChange}
                             className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
-                              location.state?.selectedDoctor ? 'bg-gray-50' : ''
+                              location.state?.doctor ? 'bg-gray-50' : ''
                             }`}
                           />
                         </div>
@@ -412,11 +521,11 @@ export default function Appointments() {
                             type="text"
                             name="specialty"
                             required
-                            readOnly={location.state?.selectedDoctor}
+                            readOnly={location.state?.doctor}
                             value={newAppointment.specialty}
                             onChange={handleInputChange}
                             className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
-                              location.state?.selectedDoctor ? 'bg-gray-50' : ''
+                              location.state?.doctor ? 'bg-gray-50' : ''
                             }`}
                           />
                         </div>
@@ -455,11 +564,11 @@ export default function Appointments() {
                             type="text"
                             name="location"
                             required
-                            readOnly={location.state?.selectedDoctor}
+                            readOnly={location.state?.doctor}
                             value={newAppointment.location}
                             onChange={handleInputChange}
                             className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
-                              location.state?.selectedDoctor ? 'bg-gray-50' : ''
+                              location.state?.doctor ? 'bg-gray-50' : ''
                             }`}
                           />
                         </div>
