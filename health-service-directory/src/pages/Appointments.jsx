@@ -10,6 +10,8 @@ import {
   XMarkIcon,
   LightBulbIcon,
   CheckCircleIcon,
+  BellIcon,
+  UserIcon,
 } from '@heroicons/react/24/outline';
 
 const mockAppointments = [
@@ -94,12 +96,14 @@ export default function Appointments() {
   const [appointments, setAppointments] = useState(mockAppointments);
   const [showModal, setShowModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [newAppointment, setNewAppointment] = useState({
     doctorName: "",
     specialty: "",
     date: "",
+    time: "",
     location: "",
     phone: "",
   });
@@ -141,6 +145,7 @@ export default function Appointments() {
       doctorName: "",
       specialty: "",
       date: "",
+      time: "",
       location: "",
       phone: "",
     });
@@ -176,18 +181,64 @@ export default function Appointments() {
     setSelectedAppointment(null);
   };
 
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-0">My Appointments</h1>
-          <button
-            onClick={() => setShowModal(true)}
-            className="w-full sm:w-auto flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold text-white shadow-md hover:from-blue-500 hover:to-blue-600 transform hover:scale-105 transition-all duration-200 ease-in-out"
-          >
-            <PlusIcon className="h-5 w-5 mr-2" />
-            Schedule Appointment
-          </button>
+          <div className="flex items-center space-x-4">
+            {/* Notification Button */}
+            <div className="relative">
+              <button
+                onClick={toggleNotifications}
+                className="p-2 rounded-lg bg-white shadow-sm hover:shadow-md transition-all duration-200 relative"
+              >
+                <BellIcon className="h-6 w-6 text-gray-600" />
+                <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+              </button>
+              
+              {/* Notifications Dropdown */}
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-100 z-50">
+                  <div className="p-4">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Notifications</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <CalendarIcon className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-900">Upcoming appointment tomorrow</p>
+                          <p className="text-xs text-gray-500 mt-1">With Dr. Smith at 10:00 AM</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors duration-200">
+                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                          <CheckCircleIcon className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-900">Appointment confirmed</p>
+                          <p className="text-xs text-gray-500 mt-1">Your appointment has been confirmed</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowModal(true)}
+              className="w-full sm:w-auto flex items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold text-white shadow-md hover:from-blue-500 hover:to-blue-600 transform hover:scale-105 transition-all duration-200 ease-in-out"
+            >
+              <PlusIcon className="h-5 w-5 mr-2" />
+              Schedule Appointment
+            </button>
+          </div>
         </div>
 
         {/* Main content wrapper with flex layout */}
