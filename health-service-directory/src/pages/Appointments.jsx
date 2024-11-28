@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { useLocation } from 'react-router-dom';
 import {
   CalendarIcon,
   ClockIcon,
@@ -90,6 +91,7 @@ const quickTips = [
 ];
 
 export default function Appointments() {
+  const location = useLocation();
   const [appointments, setAppointments] = useState(mockAppointments);
   const [showModal, setShowModal] = useState(false);
   const [newAppointment, setNewAppointment] = useState({
@@ -102,6 +104,22 @@ export default function Appointments() {
   });
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+
+  // Handle incoming doctor data
+  useEffect(() => {
+    if (location.state?.selectedDoctor) {
+      const doctor = location.state.selectedDoctor;
+      setNewAppointment({
+        doctorName: doctor.name,
+        specialty: doctor.specialty,
+        date: format(new Date(doctor.nextAvailable), "yyyy-MM-dd"),
+        time: format(new Date(doctor.nextAvailable), "HH:mm"),
+        location: doctor.location,
+        phone: "",
+      });
+      setShowModal(true);
+    }
+  }, [location.state]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -283,29 +301,29 @@ export default function Appointments() {
                             type="text"
                             name="doctorName"
                             required
+                            readOnly={location.state?.selectedDoctor}
                             value={newAppointment.doctorName}
                             onChange={handleInputChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
+                              location.state?.selectedDoctor ? 'bg-gray-50' : ''
+                            }`}
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700">
                             Specialty
                           </label>
-                          <select
+                          <input
+                            type="text"
                             name="specialty"
                             required
+                            readOnly={location.state?.selectedDoctor}
                             value={newAppointment.specialty}
                             onChange={handleInputChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                          >
-                            <option value="">Select Specialty</option>
-                            {specialties.map((specialty) => (
-                              <option key={specialty} value={specialty}>
-                                {specialty}
-                              </option>
-                            ))}
-                          </select>
+                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
+                              location.state?.selectedDoctor ? 'bg-gray-50' : ''
+                            }`}
+                          />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700">
@@ -317,6 +335,7 @@ export default function Appointments() {
                             required
                             value={newAppointment.date}
                             onChange={handleInputChange}
+                            min={format(new Date(), "yyyy-MM-dd")}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                           />
                         </div>
@@ -341,14 +360,17 @@ export default function Appointments() {
                             type="text"
                             name="location"
                             required
+                            readOnly={location.state?.selectedDoctor}
                             value={newAppointment.location}
                             onChange={handleInputChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm ${
+                              location.state?.selectedDoctor ? 'bg-gray-50' : ''
+                            }`}
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700">
-                            Phone
+                            Your Phone Number
                           </label>
                           <input
                             type="tel"
