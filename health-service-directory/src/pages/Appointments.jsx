@@ -181,28 +181,28 @@ export default function Appointments() {
 
         {/* Quick Tips Section */}
         <div className="mt-4 sm:mt-6 mb-6 sm:mb-8">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center mb-4 bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-            <LightBulbIcon className="h-5 sm:h-6 w-5 sm:w-6 mr-2 text-yellow-400" />
+          <h2 className="text-base sm:text-lg font-bold text-gray-900 flex items-center mb-3 bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+            <LightBulbIcon className="h-4 sm:h-5 w-4 sm:w-5 mr-2 text-yellow-400" />
             Quick Tips for Your Visit
           </h2>
-          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-3">
             {quickTips.map((section) => (
               <div
                 key={section.id}
-                className="rounded-lg bg-white p-3 sm:p-4 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-300 ease-in-out border border-gray-100 relative overflow-hidden group"
+                className="rounded-lg bg-white p-2.5 sm:p-3 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-300 ease-in-out border border-gray-100 relative overflow-hidden group"
               >
-                <div className="absolute top-0 right-0 w-16 sm:w-20 h-16 sm:h-20 bg-gradient-to-br from-blue-50 to-transparent opacity-50 rounded-bl-full"></div>
-                <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-2 flex items-center">
-                  {section.id === 1 && <UserIcon className="h-4 w-4 mr-2 text-blue-500" />}
-                  {section.id === 2 && <CalendarIcon className="h-4 w-4 mr-2 text-blue-500" />}
-                  {section.id === 3 && <ClockIcon className="h-4 w-4 mr-2 text-blue-500" />}
+                <div className="absolute top-0 right-0 w-12 sm:w-16 h-12 sm:h-16 bg-gradient-to-br from-blue-50 to-transparent opacity-50 rounded-bl-full"></div>
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-800 mb-1.5 flex items-center">
+                  {section.id === 1 && <UserIcon className="h-3 sm:h-4 w-3 sm:w-4 mr-1.5 text-blue-500" />}
+                  {section.id === 2 && <CalendarIcon className="h-3 sm:h-4 w-3 sm:w-4 mr-1.5 text-blue-500" />}
+                  {section.id === 3 && <ClockIcon className="h-3 sm:h-4 w-3 sm:w-4 mr-1.5 text-blue-500" />}
                   {section.title}
                 </h3>
-                <ul className="space-y-1.5 sm:space-y-2">
+                <ul className="space-y-1">
                   {section.tips.map((tip, index) => (
                     <li key={index} className="flex items-start group cursor-pointer">
-                      <CheckCircleIcon className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-blue-400 mr-1.5 sm:mr-2 flex-shrink-0 mt-0.5 group-hover:text-blue-500 transition-colors duration-200" />
-                      <span className="text-xs sm:text-sm text-gray-600 leading-relaxed group-hover:text-gray-800 transition-colors duration-200">{tip}</span>
+                      <CheckCircleIcon className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-blue-400 mr-1 sm:mr-1.5 flex-shrink-0 mt-0.5 group-hover:text-blue-500 transition-colors duration-200" />
+                      <span className="text-[10px] sm:text-xs text-gray-600 leading-tight group-hover:text-gray-800 transition-colors duration-200">{tip}</span>
                     </li>
                   ))}
                 </ul>
