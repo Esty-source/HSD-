@@ -3,9 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bars3Icon,
   XMarkIcon,
-  UserCircleIcon,
-  BellIcon,
-  UserIcon,
+  BellIcon
 } from '@heroicons/react/24/outline';
 import { useNotifications } from '../../context/NotificationsContext';
 
@@ -17,6 +15,7 @@ const navigation = [
   { name: 'Pharmacies', to: '/pharmacies' },
   { name: 'Health Records', to: '/health-records' },
   { name: 'Resources', to: '/resources' },
+  { name: 'Notifications', to: '/notifications' },
 ];
 
 export default function Header() {
@@ -58,40 +57,46 @@ export default function Header() {
 
         {/* Desktop navigation */}
         <div className="hidden lg:flex lg:gap-x-8">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              to={item.to}
-              className={`group relative text-sm font-semibold leading-6 transition-all duration-300 ${
-                isActive(item.to)
-                  ? 'text-blue-600'
-                  : 'text-gray-900 hover:text-blue-600'
-              }`}
-            >
-              {item.name}
-              <span 
-                className={`absolute -bottom-4 left-0 h-0.5 w-full transform bg-blue-600 transition-all duration-300 ${
-                  isActive(item.to) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-                }`}
-              ></span>
-            </Link>
+          {navigation.map((item, index) => (
+            <React.Fragment key={item.name}>
+              {item.name === 'Notifications' ? (
+                <Link
+                  to={item.to}
+                  className={`group relative text-sm font-semibold leading-6 transition-all duration-300 ${
+                    isActive(item.to)
+                      ? 'text-blue-600'
+                      : 'text-gray-900 hover:text-blue-600'
+                  }`}
+                >
+                  <BellIcon className="h-6 w-6 transition-colors duration-200" />
+                  <span className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 -bottom-8 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    Notifications
+                  </span>
+                </Link>
+              ) : (
+                <Link
+                  key={item.name}
+                  to={item.to}
+                  className={`group relative text-sm font-semibold leading-6 transition-all duration-300 ${
+                    isActive(item.to)
+                      ? 'text-blue-600'
+                      : 'text-gray-900 hover:text-blue-600'
+                  }`}
+                >
+                  {item.name}
+                  <span 
+                    className={`absolute -bottom-4 left-0 h-0.5 w-full transform bg-blue-600 transition-all duration-300 ${
+                      isActive(item.to) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                    }`}
+                  ></span>
+                </Link>
+              )}
+            </React.Fragment>
           ))}
         </div>
 
         {/* Desktop right section */}
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-6">
-          <Link
-            to="/notifications"
-            className="group relative rounded-full p-2 text-gray-600 transition-all duration-300 hover:bg-blue-50 hover:text-blue-600"
-          >
-            <span className="sr-only">Notifications</span>
-            <BellIcon className="h-6 w-6 transition-transform duration-300 group-hover:scale-110" />
-            {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white ring-2 ring-white transition-all duration-300 group-hover:ring-blue-50">
-                {unreadCount}
-              </span>
-            )}
-          </Link>
           <Link
             to="/profile"
             className="flex items-center gap-x-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-md"

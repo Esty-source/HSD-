@@ -42,6 +42,46 @@ export const mockNotifications = [
     date: new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(),
     read: true,
     type: 'pharmacy',
+  },
+  {
+    id: 6,
+    title: 'New Health Resource Available',
+    message: 'Check out our new guide on managing diabetes through diet and exercise',
+    date: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+    read: false,
+    type: 'resource',
+  },
+  {
+    id: 7,
+    title: 'Health Record Update',
+    message: 'Your health records have been updated with recent blood test results',
+    date: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString(),
+    read: false,
+    type: 'health-record',
+  },
+  {
+    id: 8,
+    title: 'System Maintenance',
+    message: 'The system will be undergoing maintenance on Sunday from 2 AM to 4 AM',
+    date: new Date(Date.now() - 96 * 60 * 60 * 1000).toISOString(),
+    read: true,
+    type: 'system',
+  },
+  {
+    id: 9,
+    title: 'New Feature Available',
+    message: 'You can now share your health records securely with your healthcare providers',
+    date: new Date(Date.now() - 120 * 60 * 60 * 1000).toISOString(),
+    read: true,
+    type: 'system',
+  },
+  {
+    id: 10,
+    title: 'Emergency Alert',
+    message: 'High pollution levels reported in Douala. Please take necessary precautions if you have respiratory conditions.',
+    date: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+    read: false,
+    type: 'emergency',
   }
 ];
 

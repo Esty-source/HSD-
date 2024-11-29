@@ -1,95 +1,177 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNotifications } from '../context/NotificationsContext';
 import { format } from 'date-fns';
 import {
   BellIcon,
   CalendarIcon,
-  PillIcon,
-  XMarkIcon,
-  CheckIcon,
+  ClockIcon,
+  ExclamationTriangleIcon,
+  DocumentTextIcon,
+  BeakerIcon,
+  CogIcon,
+  HeartIcon,
 } from '@heroicons/react/24/outline';
 
 const getNotificationIcon = (type) => {
   switch (type) {
     case 'appointment':
-      return CalendarIcon;
+      return <CalendarIcon className="h-6 w-6 text-blue-500" />;
     case 'pharmacy':
-      return PillIcon;
+      return <BeakerIcon className="h-6 w-6 text-green-500" />;
+    case 'resource':
+      return <DocumentTextIcon className="h-6 w-6 text-purple-500" />;
+    case 'health-record':
+      return <HeartIcon className="h-6 w-6 text-pink-500" />;
+    case 'system':
+      return <CogIcon className="h-6 w-6 text-gray-500" />;
+    case 'emergency':
+      return <ExclamationTriangleIcon className="h-6 w-6 text-red-500" />;
     default:
-      return BellIcon;
+      return <BellIcon className="h-6 w-6 text-blue-500" />;
   }
 };
 
-export default function Notifications() {
-  const { notifications, markAsRead, clearNotification, markAllAsRead } = useNotifications();
+const NotificationItem = ({ notification, onMarkAsRead }) => {
+  const timeAgo = (date) => {
+    const now = new Date();
+    const notificationDate = new Date(date);
+    const diffInHours = Math.floor((now - notificationDate) / (1000 * 60 * 60));
+
+    if (diffInHours < 1) {
+      const diffInMinutes = Math.floor((now - notificationDate) / (1000 * 60));
+      return `${diffInMinutes} minutes ago`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hours ago`;
+    } else {
+      return format(notificationDate, 'MMM d, yyyy');
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
-          {notifications.length > 0 && (
+    <div
+      className={`p-4 mb-2 rounded-lg ${
+        notification.read ? 'bg-gray-50' : 'bg-white border-l-4 border-blue-500'
+      } hover:bg-gray-50 transition-colors duration-150 ease-in-out`}
+    >
+      <div className="flex items-start space-x-3">
+        <div className="flex-shrink-0 group relative">
+          {getNotificationIcon(notification.type)}
+          <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 mt-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+            {notification.title}
+          </div>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <p className="text-sm text-gray-500">{notification.message}</p>
+            </div>
+            <div className="flex items-center">
+              <ClockIcon className="h-4 w-4 text-gray-400 mr-1" />
+              <p className="text-xs text-gray-500">{timeAgo(notification.date)}</p>
+            </div>
+          </div>
+          {!notification.read && (
             <button
-              onClick={markAllAsRead}
-              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
+              onClick={() => onMarkAsRead(notification.id)}
+              className="mt-2 text-xs text-blue-600 hover:text-blue-800"
             >
-              Mark all as read
+              Mark as read
             </button>
           )}
         </div>
+      </div>
+    </div>
+  );
+};
 
-        {notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl bg-white py-12">
-            <BellIcon className="h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-semibold text-gray-900">No notifications</h3>
-            <p className="mt-1 text-gray-500">You're all caught up!</p>
+export default function Notifications() {
+  const { notifications, markAsRead, clearNotifications } = useNotifications();
+  const [filter, setFilter] = useState('all');
+
+  const filteredNotifications = notifications.filter((notification) => {
+    if (filter === 'all') return true;
+    if (filter === 'unread') return !notification.read;
+    return notification.type === filter;
+  });
+
+  const notificationTypes = [
+    { value: 'all', label: 'All' },
+    { value: 'unread', label: 'Unread' },
+    { value: 'appointment', label: 'Appointments' },
+    { value: 'pharmacy', label: 'Pharmacy' },
+    { value: 'resource', label: 'Resources' },
+    { value: 'health-record', label: 'Health Records' },
+    { value: 'system', label: 'System' },
+    { value: 'emergency', label: 'Emergency' },
+  ];
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-2">
+          <div className="group relative">
+            <BellIcon className="h-8 w-8 text-blue-600 hover:text-blue-700 transition-colors duration-200 cursor-pointer" />
+            <div className="absolute left-1/2 -translate-x-1/2 -top-2">
+              {unreadCount > 0 && (
+                <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                  {unreadCount}
+                </span>
+              )}
+            </div>
+            <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              Notifications Center
+            </div>
           </div>
+          {unreadCount > 0 && (
+            <p className="text-sm text-gray-600">
+              You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
+        <button
+          onClick={clearNotifications}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        >
+          Clear all
+        </button>
+      </div>
+
+      <div className="mb-6 flex flex-wrap gap-2">
+        {notificationTypes.map((type) => (
+          <button
+            key={type.value}
+            onClick={() => setFilter(type.value)}
+            className={`px-3 py-1 text-sm rounded-full ${
+              filter === type.value
+                ? 'bg-blue-100 text-blue-800'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            {type.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-4">
+        {filteredNotifications.length > 0 ? (
+          filteredNotifications.map((notification) => (
+            <NotificationItem
+              key={notification.id}
+              notification={notification}
+              onMarkAsRead={markAsRead}
+            />
+          ))
         ) : (
-          <div className="space-y-4">
-            {notifications.map((notification) => {
-              const Icon = getNotificationIcon(notification.type);
-              return (
-                <div
-                  key={notification.id}
-                  className={`relative rounded-2xl bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md ${
-                    !notification.read ? 'ring-2 ring-blue-500' : ''
-                  }`}
-                >
-                  <div className="flex items-start space-x-4">
-                    <div
-                      className={`rounded-full p-2 ${
-                        !notification.read ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900">{notification.title}</h3>
-                      <p className="mt-1 text-gray-600">{notification.message}</p>
-                      <p className="mt-2 text-sm text-gray-500">
-                        {format(new Date(notification.date), 'MMM d, yyyy h:mm a')}
-                      </p>
-                    </div>
-                    <div className="flex space-x-2">
-                      {!notification.read && (
-                        <button
-                          onClick={() => markAsRead(notification.id)}
-                          className="rounded-full bg-blue-100 p-2 text-blue-600 hover:bg-blue-200"
-                        >
-                          <CheckIcon className="h-5 w-5" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => clearNotification(notification.id)}
-                        className="rounded-full bg-gray-100 p-2 text-gray-600 hover:bg-gray-200"
-                      >
-                        <XMarkIcon className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="text-center py-8">
+            <BellIcon className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No notifications</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {filter === 'all'
+                ? "You're all caught up!"
+                : `No ${filter} notifications at the moment.`}
+            </p>
           </div>
         )}
       </div>
