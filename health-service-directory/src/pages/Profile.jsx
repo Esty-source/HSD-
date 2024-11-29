@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   UserCircleIcon,
@@ -99,7 +98,6 @@ export default function Profile() {
         year: '2018',
       },
     ],
-    languages: ['English', 'French'],
     telemedAvailable: true,
     homeVisitsAvailable: true,
     rating: 4.8,
@@ -321,105 +319,109 @@ export default function Profile() {
           </nav>
         </div>
 
-        {/* Profile Information */}
+        {/* Profile Content */}
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          {/* Personal Information */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="flex items-center justify-between">
+          {/* Personal Information - Always visible */}
+          {activeTab === 'personal' && (
+            <div className="rounded-lg bg-white p-6 shadow">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <UserCircleIcon className="h-6 w-6 text-blue-600" />
+                  <h2 className="ml-2 text-xl font-semibold text-gray-900">
+                    Personal Information
+                  </h2>
+                </div>
+                <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                  {user.role === 'provider' ? 'Medical Provider' : 'Patient'}
+                </span>
+              </div>
+              <div className="mt-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Full Name
+                  </label>
+                  <p className="mt-1 text-gray-900">{user.name}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Email
+                  </label>
+                  <p className="mt-1 text-gray-900">{user.email}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Phone
+                  </label>
+                  <p className="mt-1 text-gray-900">{user.phone}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Date of Birth
+                  </label>
+                  <p className="mt-1 text-gray-900">{user.dateOfBirth}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Address
+                  </label>
+                  <p className="mt-1 text-gray-900">{user.address}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleEditPersonal}
+                className="mt-6 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
+              >
+                Edit Information
+              </button>
+            </div>
+          )}
+
+          {/* Medical Information - Only for patients */}
+          {activeTab === 'medical' && user.role === 'patient' && (
+            <div className="rounded-lg bg-white p-6 shadow">
               <div className="flex items-center">
-                <UserCircleIcon className="h-6 w-6 text-blue-600" />
+                <DocumentTextIcon className="h-6 w-6 text-blue-600" />
                 <h2 className="ml-2 text-xl font-semibold text-gray-900">
-                  Personal Information
+                  Medical Information
                 </h2>
               </div>
-              <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-                {user.role === 'provider' ? 'Medical Provider' : 'Patient'}
-              </span>
+              <div className="mt-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Blood Type
+                  </label>
+                  <p className="mt-1 text-gray-900">{user.bloodType}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Allergies
+                  </label>
+                  <p className="mt-1 text-gray-900">{user.allergies}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Current Medications
+                  </label>
+                  <p className="mt-1 text-gray-900">{user.medications}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Emergency Contact
+                  </label>
+                  <p className="mt-1 text-gray-900">{user.emergencyContact}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleEditMedical}
+                className="mt-6 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
+              >
+                Update Medical Info
+              </button>
             </div>
-            <div className="mt-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Full Name
-                </label>
-                <p className="mt-1 text-gray-900">{user.name}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <p className="mt-1 text-gray-900">{user.email}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Phone
-                </label>
-                <p className="mt-1 text-gray-900">{user.phone}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Date of Birth
-                </label>
-                <p className="mt-1 text-gray-900">{user.dateOfBirth}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Address
-                </label>
-                <p className="mt-1 text-gray-900">{user.address}</p>
-              </div>
-            </div>
-            <button
-              onClick={handleEditPersonal}
-              className="mt-6 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
-            >
-              Edit Information
-            </button>
-          </div>
+          )}
 
-          {/* Medical Information */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="flex items-center">
-              <DocumentTextIcon className="h-6 w-6 text-blue-600" />
-              <h2 className="ml-2 text-xl font-semibold text-gray-900">
-                Medical Information
-              </h2>
-            </div>
-            <div className="mt-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Blood Type
-                </label>
-                <p className="mt-1 text-gray-900">{user.bloodType}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Allergies
-                </label>
-                <p className="mt-1 text-gray-900">{user.allergies}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Current Medications
-                </label>
-                <p className="mt-1 text-gray-900">{user.medications}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Emergency Contact
-                </label>
-                <p className="mt-1 text-gray-900">{user.emergencyContact}</p>
-              </div>
-            </div>
-            <button
-              onClick={handleEditMedical}
-              className="mt-6 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
-            >
-              Update Medical Info
-            </button>
-          </div>
-
-          {/* Medical Provider Information */}
-          {user.role === 'provider' && (
+          {/* Professional Information - Only for providers */}
+          {activeTab === 'professional' && user.role === 'provider' && (
             <div className="rounded-lg bg-white p-6 shadow">
               <div className="flex items-center">
                 <UserCircleIcon className="h-6 w-6 text-green-600" />
@@ -450,37 +452,12 @@ export default function Profile() {
                   <label className="block text-sm font-medium text-gray-700">
                     Education
                   </label>
-                  <p className="mt-1 text-gray-900">{user.education}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Hospital Affiliation
-                  </label>
-                  <p className="mt-1 text-gray-900">{user.hospitalAffiliation}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Languages
-                  </label>
-                  <p className="mt-1 text-gray-900">{user.languages}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Consultation Fee
-                  </label>
-                  <p className="mt-1 text-gray-900">{user.consultationFee}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Availability
-                  </label>
-                  <p className="mt-1 text-gray-900">{user.availability}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Services
-                  </label>
-                  <p className="mt-1 text-gray-900">{user.services}</p>
+                  {user.education.map((edu, index) => (
+                    <div key={index} className="mt-1 text-gray-900">
+                      <p>{edu.degree}</p>
+                      <p className="text-sm text-gray-500">{edu.institution} ({edu.year})</p>
+                    </div>
+                  ))}
                 </div>
               </div>
               <button
@@ -492,38 +469,117 @@ export default function Profile() {
             </div>
           )}
 
-          {/* Security Settings */}
-          <div className="rounded-lg bg-white p-6 shadow">
-            <div className="flex items-center">
-              <ShieldCheckIcon className="h-6 w-6 text-blue-600" />
-              <h2 className="ml-2 text-xl font-semibold text-gray-900">
-                Security
-              </h2>
-            </div>
-            <div className="mt-4 space-y-4">
-              <button className="flex w-full items-center justify-between rounded-lg border border-gray-300 p-4 hover:bg-gray-50">
-                <div className="flex items-center">
-                  <KeyIcon className="h-5 w-5 text-gray-400" />
-                  <span className="ml-3 text-sm text-gray-900">
-                    Change Password
-                  </span>
+          {/* Practice Details - Only for providers */}
+          {activeTab === 'practice' && user.role === 'provider' && (
+            <div className="rounded-lg bg-white p-6 shadow">
+              <div className="flex items-center">
+                <DocumentTextIcon className="h-6 w-6 text-green-600" />
+                <h2 className="ml-2 text-xl font-semibold text-gray-900">
+                  Practice Details
+                </h2>
+              </div>
+              <div className="mt-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Hospital Affiliation
+                  </label>
+                  <p className="mt-1 text-gray-900">{user.hospitalAffiliation}</p>
                 </div>
-                <span className="text-sm text-blue-600">Update</span>
-              </button>
-              <button className="flex w-full items-center justify-between rounded-lg border border-gray-300 p-4 hover:bg-gray-50">
-                <div className="flex items-center">
-                  <BellIcon className="h-5 w-5 text-gray-400" />
-                  <span className="ml-3 text-sm text-gray-900">
-                    Notification Settings
-                  </span>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Clinic Address
+                  </label>
+                  <p className="mt-1 text-gray-900">{user.clinicAddress}</p>
                 </div>
-                <span className="text-sm text-blue-600">Configure</span>
-              </button>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Consultation Hours
+                  </label>
+                  {Object.entries(user.consultationHours).map(([day, hours]) => (
+                    <div key={day} className="mt-1">
+                      <span className="font-medium capitalize">{day}: </span>
+                      <span className="text-gray-900">{hours}</span>
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Consultation Fees
+                  </label>
+                  <p className="mt-1 text-gray-900">In-person: {user.consultationFee}</p>
+                  <p className="mt-1 text-gray-900">Online: {user.onlineConsultationFee}</p>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Achievements - Only for providers */}
+          {activeTab === 'achievements' && user.role === 'provider' && (
+            <div className="rounded-lg bg-white p-6 shadow">
+              <div className="flex items-center">
+                <ShieldCheckIcon className="h-6 w-6 text-green-600" />
+                <h2 className="ml-2 text-xl font-semibold text-gray-900">
+                  Achievements & Publications
+                </h2>
+              </div>
+              <div className="mt-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Awards & Recognition
+                  </label>
+                  {user.achievements.map((achievement, index) => (
+                    <p key={index} className="mt-1 text-gray-900">{achievement}</p>
+                  ))}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Publications
+                  </label>
+                  {user.publications.map((pub, index) => (
+                    <div key={index} className="mt-2">
+                      <p className="text-gray-900">{pub.title}</p>
+                      <p className="text-sm text-gray-500">{pub.journal}, {pub.year}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Settings - Always visible */}
+          {activeTab === 'settings' && (
+            <div className="rounded-lg bg-white p-6 shadow">
+              <div className="flex items-center">
+                <ShieldCheckIcon className="h-6 w-6 text-blue-600" />
+                <h2 className="ml-2 text-xl font-semibold text-gray-900">
+                  Security Settings
+                </h2>
+              </div>
+              <div className="mt-4 space-y-4">
+                <button className="flex w-full items-center justify-between rounded-lg border border-gray-300 p-4 hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <KeyIcon className="h-5 w-5 text-gray-400" />
+                    <span className="ml-3 text-sm text-gray-900">
+                      Change Password
+                    </span>
+                  </div>
+                  <span className="text-sm text-blue-600">Update</span>
+                </button>
+                <button className="flex w-full items-center justify-between rounded-lg border border-gray-300 p-4 hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <BellIcon className="h-5 w-5 text-gray-400" />
+                    <span className="ml-3 text-sm text-gray-900">
+                      Notification Settings
+                    </span>
+                  </div>
+                  <span className="text-sm text-blue-600">Configure</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Edit Personal Information Modal */}
+        {/* Edit Modals */}
         {showEditPersonal && (
           <div className="fixed inset-0 z-10 overflow-y-auto">
             <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -613,7 +669,7 @@ export default function Profile() {
                     </button>
                     <button
                       type="submit"
-                      className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+                      className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500"
                     >
                       Save Changes
                     </button>
@@ -624,7 +680,6 @@ export default function Profile() {
           </div>
         )}
 
-        {/* Edit Medical Information Modal */}
         {showEditMedical && (
           <div className="fixed inset-0 z-10 overflow-y-auto">
             <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -710,7 +765,7 @@ export default function Profile() {
                     </button>
                     <button
                       type="submit"
-                      className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+                      className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500"
                     >
                       Save Changes
                     </button>
@@ -721,7 +776,6 @@ export default function Profile() {
           </div>
         )}
 
-        {/* Edit Provider Information Modal */}
         {showEditProvider && (
           <div className="fixed inset-0 z-10 overflow-y-auto">
             <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
