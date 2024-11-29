@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Bars3Icon,
   XMarkIcon,
-  BellIcon
+  BellIcon,
+  UserIcon,
+  UserCircleIcon
 } from '@heroicons/react/24/outline';
 import { useNotifications } from '../../context/NotificationsContext';
 
@@ -57,41 +59,40 @@ export default function Header() {
 
         {/* Desktop navigation */}
         <div className="hidden lg:flex lg:gap-x-8">
-          {navigation.map((item, index) => (
-            <React.Fragment key={item.name}>
-              {item.name === 'Notifications' ? (
-                <Link
-                  to={item.to}
-                  className={`group relative text-sm font-semibold leading-6 transition-all duration-300 ${
-                    isActive(item.to)
-                      ? 'text-blue-600'
-                      : 'text-gray-900 hover:text-blue-600'
+          {navigation.map((item) => (
+            item.name === 'Notifications' ? (
+              <Link
+                key={item.name}
+                to={item.to}
+                className={`group relative text-sm font-semibold leading-6 transition-all duration-300 ${
+                  isActive(item.to)
+                    ? 'text-blue-600'
+                    : 'text-gray-900 hover:text-blue-600'
+                }`}
+              >
+                <BellIcon className="h-6 w-6 transition-colors duration-200" />
+                <span className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 -bottom-8 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  Notifications
+                </span>
+              </Link>
+            ) : (
+              <Link
+                key={item.name}
+                to={item.to}
+                className={`group relative text-sm font-semibold leading-6 transition-all duration-300 ${
+                  isActive(item.to)
+                    ? 'text-blue-600'
+                    : 'text-gray-900 hover:text-blue-600'
+                }`}
+              >
+                {item.name}
+                <span 
+                  className={`absolute -bottom-4 left-0 h-0.5 w-full transform bg-blue-600 transition-all duration-300 ${
+                    isActive(item.to) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                   }`}
-                >
-                  <BellIcon className="h-6 w-6 transition-colors duration-200" />
-                  <span className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 -bottom-8 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    Notifications
-                  </span>
-                </Link>
-              ) : (
-                <Link
-                  key={item.name}
-                  to={item.to}
-                  className={`group relative text-sm font-semibold leading-6 transition-all duration-300 ${
-                    isActive(item.to)
-                      ? 'text-blue-600'
-                      : 'text-gray-900 hover:text-blue-600'
-                  }`}
-                >
-                  {item.name}
-                  <span 
-                    className={`absolute -bottom-4 left-0 h-0.5 w-full transform bg-blue-600 transition-all duration-300 ${
-                      isActive(item.to) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-                    }`}
-                  ></span>
-                </Link>
-              )}
-            </React.Fragment>
+                ></span>
+              </Link>
+            )
           ))}
         </div>
 
@@ -150,7 +151,14 @@ export default function Header() {
                         }`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        {item.name}
+                        {item.name === 'Notifications' ? (
+                          <div className="flex items-center">
+                            <BellIcon className="h-6 w-6 mr-2" />
+                            <span>Notifications</span>
+                          </div>
+                        ) : (
+                          item.name
+                        )}
                       </Link>
                     ))}
                   </div>
