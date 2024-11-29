@@ -70,10 +70,17 @@ export default function Header() {
                     : 'text-gray-900 hover:text-blue-600'
                 }`}
               >
-                <BellIcon className="h-6 w-6 transition-colors duration-200" />
-                <span className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 -bottom-8 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  Notifications
-                </span>
+                <div className="relative">
+                  <BellIcon className="h-6 w-6 transition-colors duration-200" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                      {unreadCount}
+                    </span>
+                  )}
+                  <span className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 -bottom-8 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    Notifications
+                  </span>
+                </div>
               </Link>
             ) : (
               <Link
@@ -153,7 +160,14 @@ export default function Header() {
                       >
                         {item.name === 'Notifications' ? (
                           <div className="flex items-center">
-                            <BellIcon className="h-6 w-6 mr-2" />
+                            <div className="relative">
+                              <BellIcon className="h-6 w-6 mr-2" />
+                              {unreadCount > 0 && (
+                                <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                                  {unreadCount}
+                                </span>
+                              )}
+                            </div>
                             <span>Notifications</span>
                           </div>
                         ) : (

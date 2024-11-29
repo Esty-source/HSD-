@@ -113,12 +113,17 @@ export function NotificationsProvider({ children }) {
     setNotifications(notifications.filter(notification => notification.id !== notificationId));
   };
 
+  const clearNotifications = () => {
+    setNotifications([]);
+  };
+
   const value = {
     notifications,
     unreadCount,
     markAsRead,
     markAllAsRead,
     clearNotification,
+    clearNotifications,
   };
 
   return (
