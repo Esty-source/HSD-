@@ -99,6 +99,7 @@ export default function Appointments() {
   const [showModal, setShowModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showConsultations, setShowConsultations] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [notifications, setNotifications] = useState([]);
@@ -269,17 +270,17 @@ export default function Appointments() {
   };
 
   const startTelemedicine = (appointment) => {
-    // Add doctor image for telemedicine
     const appointmentWithDoctor = {
       ...appointment,
       doctor: {
-        ...appointment,
+        id: appointment.id,
         name: appointment.doctorName,
         specialty: appointment.specialty,
         image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80',
       }
     };
     navigate('/telemedicine', { state: { appointment: appointmentWithDoctor } });
+    setShowConsultations(false);
   };
 
   return (
@@ -288,6 +289,59 @@ export default function Appointments() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-0">My Appointments</h1>
           <div className="flex items-center space-x-4">
+            {/* Consultations Button */}
+            <div className="relative">
+              <button
+                onClick={() => setShowConsultations(!showConsultations)}
+                className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100 hover:text-blue-600"
+                title="Start Consultation"
+              >
+                <VideoCameraIcon className="h-6 w-6" />
+                {appointments.filter(apt => apt.status === 'upcoming').length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
+                    {appointments.filter(apt => apt.status === 'upcoming').length}
+                  </span>
+                )}
+              </button>
+
+              {/* Consultations Dropdown */}
+              {showConsultations && (
+                <div className="absolute right-0 mt-2 w-80 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
+                <div className="px-4 py-2 border-b">
+                  <h3 className="text-sm font-medium text-gray-900">Available Consultations</h3>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {appointments
+                    .filter(apt => apt.status === 'upcoming')
+                    .map(apt => (
+                      <div
+                        key={apt.id}
+                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => startTelemedicine(apt)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{apt.doctorName}</p>
+                            <p className="text-xs text-gray-500">{apt.specialty}</p>
+                            <div className="mt-1 flex items-center text-xs text-gray-500">
+                              <CalendarIcon className="mr-1 h-4 w-4" />
+                              {format(new Date(apt.date), 'MMM d, yyyy')} at {apt.time}
+                            </div>
+                          </div>
+                          <VideoCameraIcon className="h-5 w-5 text-blue-500" />
+                        </div>
+                      </div>
+                    ))}
+                  {appointments.filter(apt => apt.status === 'upcoming').length === 0 && (
+                    <div className="px-4 py-3 text-sm text-gray-500">
+                      No upcoming consultations available
+                    </div>
+                  )}
+                </div>
+              </div>
+              )}
+            </div>
+
             {/* Notification Button */}
             <div className="relative">
               <button
