@@ -52,6 +52,10 @@ export default function Telemedicine() {
       }
     } else {
       setError('No appointment information found. Please schedule an appointment first.');
+      // Redirect to appointments page after a short delay
+      setTimeout(() => {
+        navigate('/appointments');
+      }, 3000);
     }
 
     // Cleanup function
@@ -61,7 +65,7 @@ export default function Telemedicine() {
       }
       stopMediaTracks();
     };
-  }, [location.state]);
+  }, [location.state, navigate]);
 
   const stopMediaTracks = () => {
     if (localVideoRef.current && localVideoRef.current.srcObject) {
@@ -250,239 +254,226 @@ export default function Telemedicine() {
     setIsAudioEnabled(true);
   };
 
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-12 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md rounded-lg bg-white p-8 shadow">
-          <div className="flex items-center justify-center text-red-600">
-            <ExclamationTriangleIcon className="h-12 w-12" />
-          </div>
-          <h2 className="mt-4 text-center text-2xl font-bold text-gray-900">Error</h2>
-          <p className="mt-2 text-center text-gray-600">{error}</p>
-          <div className="mt-6">
-            <button
-              onClick={() => navigate('/appointments')}
-              className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-500"
-            >
-              Return to Appointments
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!appointment) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-100">
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-900">Loading...</h2>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Connection Status Banner */}
-        <div className={`mb-4 rounded-md p-4 ${
-          connectionStatus === 'connected' ? 'bg-green-50' : 
-          connectionStatus === 'connecting' ? 'bg-yellow-50' : 'bg-red-50'
-        }`}>
-          <div className="flex items-center">
-            <div className={`h-2 w-2 rounded-full mr-2 ${
-              connectionStatus === 'connected' ? 'bg-green-400' :
-              connectionStatus === 'connecting' ? 'bg-yellow-400' : 'bg-red-400'
-            }`} />
-            <p className={`text-sm ${
-              connectionStatus === 'connected' ? 'text-green-700' :
-              connectionStatus === 'connecting' ? 'text-yellow-700' : 'text-red-700'
-            }`}>
-              {connectionStatus === 'connected' ? 'Connected' :
-               connectionStatus === 'connecting' ? 'Connecting...' : 'Disconnected'}
-            </p>
-            {callQuality !== 'good' && connectionStatus === 'connected' && (
-              <p className="ml-4 text-sm text-yellow-700">
-                Call quality: {callQuality}
-              </p>
-            )}
+        {error ? (
+          <div className="rounded-md bg-red-50 p-4 mt-16">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <ExclamationTriangleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{error}</p>
+                  <p className="mt-1">Redirecting to appointments page...</p>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Connection Status Banner */}
+            <div className={`mb-4 rounded-md p-4 ${
+              connectionStatus === 'connected' ? 'bg-green-50' : 
+              connectionStatus === 'connecting' ? 'bg-yellow-50' : 'bg-red-50'
+            }`}>
+              <div className="flex items-center">
+                <div className={`h-2 w-2 rounded-full mr-2 ${
+                  connectionStatus === 'connected' ? 'bg-green-400' :
+                  connectionStatus === 'connecting' ? 'bg-yellow-400' : 'bg-red-400'
+                }`} />
+                <p className={`text-sm ${
+                  connectionStatus === 'connected' ? 'text-green-700' :
+                  connectionStatus === 'connecting' ? 'text-yellow-700' : 'text-red-700'
+                }`}>
+                  {connectionStatus === 'connected' ? 'Connected' :
+                   connectionStatus === 'connecting' ? 'Connecting...' : 'Disconnected'}
+                </p>
+                {callQuality !== 'good' && connectionStatus === 'connected' && (
+                  <p className="ml-4 text-sm text-yellow-700">
+                    Call quality: {callQuality}
+                  </p>
+                )}
+              </div>
+            </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Main Video Area */}
-          <div className="lg:col-span-2">
-            <div className="rounded-lg bg-white p-6 shadow">
-              {isCallActive ? (
-                <div className="relative aspect-video w-full rounded-lg bg-gray-900">
-                  <video
-                    ref={remoteVideoRef}
-                    autoPlay
-                    playsInline
-                    className="absolute inset-0 h-full w-full object-cover rounded-lg"
-                  />
-                  <video
-                    ref={localVideoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="absolute bottom-4 right-20 h-32 w-48 rounded-lg object-cover shadow-lg"
-                  />
-                  {!isVideoEnabled && !isScreenSharing && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="h-24 w-24 rounded-full bg-gray-700">
-                        <div className="flex h-full items-center justify-center text-3xl text-white">
-                          {appointment.doctor.name.charAt(0)}
+            <div className="grid gap-6 lg:grid-cols-3">
+              {/* Main Video Area */}
+              <div className="lg:col-span-2">
+                <div className="rounded-lg bg-white p-6 shadow">
+                  {isCallActive ? (
+                    <div className="relative aspect-video w-full rounded-lg bg-gray-900">
+                      <video
+                        ref={remoteVideoRef}
+                        autoPlay
+                        playsInline
+                        className="absolute inset-0 h-full w-full object-cover rounded-lg"
+                      />
+                      <video
+                        ref={localVideoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="absolute bottom-4 right-20 h-32 w-48 rounded-lg object-cover shadow-lg"
+                      />
+                      {!isVideoEnabled && !isScreenSharing && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="h-24 w-24 rounded-full bg-gray-700">
+                            <div className="flex h-full items-center justify-center text-3xl text-white">
+                              {appointment.doctor.name.charAt(0)}
+                            </div>
+                          </div>
                         </div>
+                      )}
+                      <div className="absolute bottom-4 right-4 flex space-x-2">
+                        <button
+                          onClick={toggleVideo}
+                          className={`rounded-full p-2 ${
+                            isVideoEnabled ? 'bg-gray-700' : 'bg-red-600'
+                          }`}
+                          title={isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}
+                        >
+                          <VideoCameraIcon className="h-6 w-6 text-white" />
+                        </button>
+                        <button
+                          onClick={toggleAudio}
+                          className={`rounded-full p-2 ${
+                            isAudioEnabled ? 'bg-gray-700' : 'bg-red-600'
+                          }`}
+                          title={isAudioEnabled ? 'Mute microphone' : 'Unmute microphone'}
+                        >
+                          <MicrophoneIcon className="h-6 w-6 text-white" />
+                        </button>
+                        <button
+                          onClick={toggleScreenShare}
+                          className={`rounded-full p-2 ${
+                            isScreenSharing ? 'bg-blue-600' : 'bg-gray-700'
+                          }`}
+                          title={isScreenSharing ? 'Stop sharing' : 'Share screen'}
+                        >
+                          <ComputerDesktopIcon className="h-6 w-6 text-white" />
+                        </button>
+                        <button
+                          onClick={endCall}
+                          className="rounded-full bg-red-600 p-2 hover:bg-red-700"
+                          title="End call"
+                        >
+                          <PhoneIcon className="h-6 w-6 text-white" />
+                        </button>
                       </div>
                     </div>
+                  ) : (
+                    <div className="flex aspect-video flex-col items-center justify-center rounded-lg bg-gray-100">
+                      <VideoCameraIcon className="h-16 w-16 text-gray-400" />
+                      <h3 className="mt-4 text-lg font-medium text-gray-900">
+                        Ready to start your consultation?
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        Click the button below to begin your video call
+                      </p>
+                      <button
+                        onClick={startCall}
+                        className="mt-4 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-500"
+                      >
+                        <VideoCameraIcon className="mr-2 h-5 w-5" />
+                        Start Video Call
+                      </button>
+                    </div>
                   )}
-                  <div className="absolute bottom-4 right-4 flex space-x-2">
-                    <button
-                      onClick={toggleVideo}
-                      className={`rounded-full p-2 ${
-                        isVideoEnabled ? 'bg-gray-700' : 'bg-red-600'
-                      }`}
-                      title={isVideoEnabled ? 'Turn off camera' : 'Turn on camera'}
-                    >
-                      <VideoCameraIcon className="h-6 w-6 text-white" />
-                    </button>
-                    <button
-                      onClick={toggleAudio}
-                      className={`rounded-full p-2 ${
-                        isAudioEnabled ? 'bg-gray-700' : 'bg-red-600'
-                      }`}
-                      title={isAudioEnabled ? 'Mute microphone' : 'Unmute microphone'}
-                    >
-                      <MicrophoneIcon className="h-6 w-6 text-white" />
-                    </button>
-                    <button
-                      onClick={toggleScreenShare}
-                      className={`rounded-full p-2 ${
-                        isScreenSharing ? 'bg-blue-600' : 'bg-gray-700'
-                      }`}
-                      title={isScreenSharing ? 'Stop sharing' : 'Share screen'}
-                    >
-                      <ComputerDesktopIcon className="h-6 w-6 text-white" />
-                    </button>
-                    <button
-                      onClick={endCall}
-                      className="rounded-full bg-red-600 p-2 hover:bg-red-700"
-                      title="End call"
-                    >
-                      <PhoneIcon className="h-6 w-6 text-white" />
-                    </button>
+                </div>
+              </div>
+
+              {/* Chat and Info Sidebar */}
+              <div className="space-y-6">
+                {/* Doctor Info */}
+                <div className="rounded-lg bg-white p-6 shadow">
+                  <div className="flex items-center space-x-4">
+                    <img
+                      src={appointment.doctor.image}
+                      alt={appointment.doctor.name}
+                      className="h-12 w-12 rounded-full"
+                    />
+                    <div>
+                      <h3 className="font-medium text-gray-900">{appointment.doctor.name}</h3>
+                      <p className="text-sm text-gray-500">{appointment.doctor.specialty}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-2 text-sm text-gray-600">
+                    <p>Appointment Time: {appointment.time}</p>
+                    <p>Date: {new Date(appointment.date).toLocaleDateString()}</p>
                   </div>
                 </div>
-              ) : (
-                <div className="flex aspect-video flex-col items-center justify-center rounded-lg bg-gray-100">
-                  <VideoCameraIcon className="h-16 w-16 text-gray-400" />
-                  <h3 className="mt-4 text-lg font-medium text-gray-900">
-                    Ready to start your consultation?
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Click the button below to begin your video call
-                  </p>
-                  <button
-                    onClick={startCall}
-                    className="mt-4 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-500"
-                  >
-                    <VideoCameraIcon className="mr-2 h-5 w-5" />
-                    Start Video Call
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Chat and Info Sidebar */}
-          <div className="space-y-6">
-            {/* Doctor Info */}
-            <div className="rounded-lg bg-white p-6 shadow">
-              <div className="flex items-center space-x-4">
-                <img
-                  src={appointment.doctor.image}
-                  alt={appointment.doctor.name}
-                  className="h-12 w-12 rounded-full"
-                />
-                <div>
-                  <h3 className="font-medium text-gray-900">{appointment.doctor.name}</h3>
-                  <p className="text-sm text-gray-500">{appointment.doctor.specialty}</p>
-                </div>
-              </div>
-              <div className="mt-4 space-y-2 text-sm text-gray-600">
-                <p>Appointment Time: {appointment.time}</p>
-                <p>Date: {new Date(appointment.date).toLocaleDateString()}</p>
-              </div>
-            </div>
-
-            {/* Chat */}
-            <div className="rounded-lg bg-white shadow">
-              <div className="flex items-center justify-between border-b p-4">
-                <h3 className="font-medium text-gray-900">Chat</h3>
-                <button
-                  onClick={() => setIsChatOpen(!isChatOpen)}
-                  className="rounded-md p-1 hover:bg-gray-100"
-                >
-                  {isChatOpen ? (
-                    <XMarkIcon className="h-5 w-5 text-gray-500" />
-                  ) : (
-                    <ChatBubbleLeftIcon className="h-5 w-5 text-gray-500" />
-                  )}
-                </button>
-              </div>
-              {isChatOpen && (
-                <>
-                  <div className="h-96 overflow-y-auto p-4">
-                    {messages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`mb-4 flex ${
-                          msg.sender === 'patient' ? 'justify-end' : 'justify-start'
-                        }`}
-                      >
-                        <div
-                          className={`rounded-lg px-4 py-2 ${
-                            msg.sender === 'patient'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 text-gray-900'
-                          }`}
-                        >
-                          <p className="text-sm">{msg.message}</p>
-                          <p
-                            className={`mt-1 text-xs ${
-                              msg.sender === 'patient' ? 'text-blue-100' : 'text-gray-500'
+                {/* Chat */}
+                <div className="rounded-lg bg-white shadow">
+                  <div className="flex items-center justify-between border-b p-4">
+                    <h3 className="font-medium text-gray-900">Chat</h3>
+                    <button
+                      onClick={() => setIsChatOpen(!isChatOpen)}
+                      className="rounded-md p-1 hover:bg-gray-100"
+                    >
+                      {isChatOpen ? (
+                        <XMarkIcon className="h-5 w-5 text-gray-500" />
+                      ) : (
+                        <ChatBubbleLeftIcon className="h-5 w-5 text-gray-500" />
+                      )}
+                    </button>
+                  </div>
+                  {isChatOpen && (
+                    <>
+                      <div className="h-96 overflow-y-auto p-4">
+                        {messages.map((msg) => (
+                          <div
+                            key={msg.id}
+                            className={`mb-4 flex ${
+                              msg.sender === 'patient' ? 'justify-end' : 'justify-start'
                             }`}
                           >
-                            {msg.time}
-                          </p>
-                        </div>
+                            <div
+                              className={`rounded-lg px-4 py-2 ${
+                                msg.sender === 'patient'
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-gray-100 text-gray-900'
+                              }`}
+                            >
+                              <p className="text-sm">{msg.message}</p>
+                              <p
+                                className={`mt-1 text-xs ${
+                                  msg.sender === 'patient' ? 'text-blue-100' : 'text-gray-500'
+                                }`}
+                              >
+                                {msg.time}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                  <div className="border-t p-4">
-                    <form onSubmit={handleSendMessage} className="flex space-x-2">
-                      <input
-                        type="text"
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        placeholder="Type your message..."
-                        className="flex-1 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600"
-                      />
-                      <button
-                        type="submit"
-                        className="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
-                      >
-                        Send
-                      </button>
-                    </form>
-                  </div>
-                </>
-              )}
+                      <div className="border-t p-4">
+                        <form onSubmit={handleSendMessage} className="flex space-x-2">
+                          <input
+                            type="text"
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            placeholder="Type your message..."
+                            className="flex-1 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600"
+                          />
+                          <button
+                            type="submit"
+                            className="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
+                          >
+                            Send
+                          </button>
+                        </form>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

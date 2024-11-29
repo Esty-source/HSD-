@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   PlusIcon,
   CalendarIcon,
@@ -12,6 +12,7 @@ import {
   CheckCircleIcon,
   BellIcon,
   UserIcon,
+  VideoCameraIcon,
 } from '@heroicons/react/24/outline';
 
 const mockAppointments = [
@@ -93,6 +94,7 @@ const quickTips = [
 
 export default function Appointments() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState(mockAppointments);
   const [showModal, setShowModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -266,6 +268,20 @@ export default function Appointments() {
     setSelectedAppointment(null);
   };
 
+  const startTelemedicine = (appointment) => {
+    // Add doctor image for telemedicine
+    const appointmentWithDoctor = {
+      ...appointment,
+      doctor: {
+        ...appointment,
+        name: appointment.doctorName,
+        specialty: appointment.specialty,
+        image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80',
+      }
+    };
+    navigate('/telemedicine', { state: { appointment: appointmentWithDoctor } });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -418,16 +434,25 @@ export default function Appointments() {
                     {appointment.status === "upcoming" && (
                       <div className="mt-6 flex justify-end space-x-3">
                         <button
-                          onClick={() => handleCancel(appointment)}
-                          className="rounded-lg px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 transform hover:scale-105 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md"
+                          onClick={() => startTelemedicine(appointment)}
+                          className="rounded-lg px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transform hover:scale-105 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md"
                         >
-                          Cancel
+                          <VideoCameraIcon className="h-5 w-5 mr-2" />
+                          Start Consultation
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleReschedule(appointment)}
                           className="rounded-lg px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transform hover:scale-105 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md"
                         >
+                          <CalendarIcon className="h-5 w-5 mr-2" />
                           Reschedule
+                        </button>
+                        <button
+                          onClick={() => handleCancel(appointment)}
+                          className="rounded-lg px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 transform hover:scale-105 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md"
+                        >
+                          <XMarkIcon className="h-5 w-5 mr-2" />
+                          Cancel
                         </button>
                       </div>
                     )}
