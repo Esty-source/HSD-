@@ -289,59 +289,6 @@ export default function Appointments() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-0">My Appointments</h1>
           <div className="flex items-center space-x-4">
-            {/* Consultations Button */}
-            <div className="relative">
-              <button
-                onClick={() => setShowConsultations(!showConsultations)}
-                className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100 hover:text-blue-600"
-                title="Start Consultation"
-              >
-                <VideoCameraIcon className="h-6 w-6" />
-                {appointments.filter(apt => apt.status === 'upcoming').length > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
-                    {appointments.filter(apt => apt.status === 'upcoming').length}
-                  </span>
-                )}
-              </button>
-
-              {/* Consultations Dropdown */}
-              {showConsultations && (
-                <div className="absolute right-0 mt-2 w-80 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
-                <div className="px-4 py-2 border-b">
-                  <h3 className="text-sm font-medium text-gray-900">Available Consultations</h3>
-                </div>
-                <div className="max-h-96 overflow-y-auto">
-                  {appointments
-                    .filter(apt => apt.status === 'upcoming')
-                    .map(apt => (
-                      <div
-                        key={apt.id}
-                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer"
-                        onClick={() => startTelemedicine(apt)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">{apt.doctorName}</p>
-                            <p className="text-xs text-gray-500">{apt.specialty}</p>
-                            <div className="mt-1 flex items-center text-xs text-gray-500">
-                              <CalendarIcon className="mr-1 h-4 w-4" />
-                              {format(new Date(apt.date), 'MMM d, yyyy')} at {apt.time}
-                            </div>
-                          </div>
-                          <VideoCameraIcon className="h-5 w-5 text-blue-500" />
-                        </div>
-                      </div>
-                    ))}
-                  {appointments.filter(apt => apt.status === 'upcoming').length === 0 && (
-                    <div className="px-4 py-3 text-sm text-gray-500">
-                      No upcoming consultations available
-                    </div>
-                  )}
-                </div>
-              </div>
-              )}
-            </div>
-
             {/* Notification Button */}
             <div className="relative">
               <button
@@ -407,6 +354,59 @@ export default function Appointments() {
                     </div>
                   </div>
                 </div>
+              )}
+            </div>
+
+            {/* Consultations Button */}
+            <div className="relative">
+              <button
+                onClick={() => setShowConsultations(!showConsultations)}
+                className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100 hover:text-blue-600"
+                title="Start Consultation"
+              >
+                <VideoCameraIcon className="h-6 w-6" />
+                {appointments.filter(apt => apt.status === 'upcoming').length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs text-white">
+                    {appointments.filter(apt => apt.status === 'upcoming').length}
+                  </span>
+                )}
+              </button>
+
+              {/* Consultations Dropdown */}
+              {showConsultations && (
+                <div className="absolute right-0 mt-2 w-80 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                <div className="px-4 py-2 border-b">
+                  <h3 className="text-sm font-medium text-gray-900">Available Consultations</h3>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {appointments
+                    .filter(apt => apt.status === 'upcoming')
+                    .map(apt => (
+                      <div
+                        key={apt.id}
+                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => startTelemedicine(apt)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{apt.doctorName}</p>
+                            <p className="text-xs text-gray-500">{apt.specialty}</p>
+                            <div className="mt-1 flex items-center text-xs text-gray-500">
+                              <CalendarIcon className="mr-1 h-4 w-4" />
+                              {format(new Date(apt.date), 'MMM d, yyyy')} at {apt.time}
+                            </div>
+                          </div>
+                          <VideoCameraIcon className="h-5 w-5 text-blue-500" />
+                        </div>
+                      </div>
+                    ))}
+                  {appointments.filter(apt => apt.status === 'upcoming').length === 0 && (
+                    <div className="px-4 py-3 text-sm text-gray-500">
+                      No upcoming consultations available
+                    </div>
+                  )}
+                </div>
+              </div>
               )}
             </div>
 
@@ -488,24 +488,23 @@ export default function Appointments() {
                     {appointment.status === "upcoming" && (
                       <div className="mt-6 flex justify-end space-x-3">
                         <button
-                          onClick={() => startTelemedicine(appointment)}
-                          className="rounded-lg px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transform hover:scale-105 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md"
+                          onClick={() => {
+                            setSelectedAppointment(appointment);
+                            setShowRescheduleModal(true);
+                          }}
+                          className="inline-flex items-center rounded-md bg-gray-100 px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-200"
                         >
-                          <VideoCameraIcon className="h-5 w-5 mr-2" />
-                          Start Consultation
-                        </button>
-                        <button
-                          onClick={() => handleReschedule(appointment)}
-                          className="rounded-lg px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 transform hover:scale-105 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md"
-                        >
-                          <CalendarIcon className="h-5 w-5 mr-2" />
+                          <CalendarIcon className="mr-2 h-5 w-5" />
                           Reschedule
                         </button>
                         <button
-                          onClick={() => handleCancel(appointment)}
-                          className="rounded-lg px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 transform hover:scale-105 transition-all duration-200 ease-in-out shadow-sm hover:shadow-md"
+                          onClick={() => {
+                            setSelectedAppointment(appointment);
+                            setShowCancelModal(true);
+                          }}
+                          className="inline-flex items-center rounded-md bg-red-100 px-3 py-2 text-sm font-semibold text-red-900 hover:bg-red-200"
                         >
-                          <XMarkIcon className="h-5 w-5 mr-2" />
+                          <XMarkIcon className="mr-2 h-5 w-5" />
                           Cancel
                         </button>
                       </div>
