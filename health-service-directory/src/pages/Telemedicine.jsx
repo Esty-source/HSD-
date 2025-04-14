@@ -426,7 +426,15 @@ export default function Telemedicine() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="w-full max-w-none">
+      <div className="w-full bg-white px-4 py-8 sm:px-6 lg:px-8">
+        <div className="w-full">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Telemedicine</h1>
+          <p className="mt-2 text-sm text-gray-700">
+            Connect with healthcare providers through video consultations
+          </p>
+        </div>
+      </div>
       {error && (
         <div className="mb-4 rounded-md bg-red-50 p-4">
           <div className="flex">
@@ -440,7 +448,7 @@ export default function Telemedicine() {
         </div>
       )}
 
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
         {/* Doctor Info Card */}
         <div className="mb-6 overflow-hidden rounded-lg bg-white shadow">
           <div className="px-4 py-5 sm:p-6">
@@ -527,9 +535,9 @@ export default function Telemedicine() {
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
           {/* Video Section */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-3">
             <div className="overflow-hidden rounded-lg bg-gray-900 shadow">
               <div className="relative aspect-video">
                 {isCallActive ? (

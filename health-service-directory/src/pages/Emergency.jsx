@@ -136,7 +136,7 @@ export default function Emergency() {
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50">
       {/* Emergency Alert Banner */}
       <div className="bg-gradient-to-r from-red-600 to-red-500 shadow-lg">
-        <div className="mx-auto max-w-7xl py-4 px-4 sm:px-6 lg:px-8">
+        <div className="w-full py-4 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between">
             <div className="flex w-0 flex-1 items-center">
               <span className="flex rounded-lg bg-red-800 p-2 shadow-inner">
@@ -162,7 +162,7 @@ export default function Emergency() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-12">
         {/* Emergency Contacts Section */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-gray-900 flex items-center mb-8">

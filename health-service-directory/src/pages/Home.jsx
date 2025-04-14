@@ -75,9 +75,9 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="w-full max-w-none">
       {/* Hero Section */}
-      <div className="relative">
+      <div className="relative w-full min-h-[600px]">
         {/* Background image */}
         <div className="absolute inset-0">
           <img
@@ -89,7 +89,7 @@ export default function Home() {
         </div>
 
         {/* Content */}
-        <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
+        <div className="relative w-full px-4 py-32 sm:px-6 sm:py-40 lg:px-8">
           <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
             Your Health, Our Priority
           </h1>
@@ -115,7 +115,7 @@ export default function Home() {
       </div>
 
       {/* Main Features */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="my-20">
           <h2 className="font-serif text-center text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
             Core Services
@@ -181,8 +181,8 @@ export default function Home() {
       </div>
 
       {/* CTA Section */}
-      <div className="mt-24 bg-gradient-to-r from-blue-600 to-indigo-600">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+      <div className="mt-24 bg-gradient-to-r from-blue-600 to-indigo-600 w-full">
+        <div className="w-full px-4 py-20 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="font-serif text-4xl font-bold tracking-tight text-white sm:text-5xl">
               Ready to take control of your health?

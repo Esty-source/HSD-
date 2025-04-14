@@ -8,7 +8,10 @@
   }
   
   body {
-    @apply antialiased text-gray-900;
+    @apply antialiased text-gray-900 w-full;
+    margin: 0;
+    min-width: 100%;
+    min-height: 100vh;
   }
 }
 

@@ -139,10 +139,18 @@ export default function Pharmacies() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="w-full max-w-none">
+      <div className="w-full bg-white px-4 py-8 sm:px-6 lg:px-8">
+        <div className="w-full">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Pharmacies</h1>
+          <p className="mt-2 text-sm text-gray-700">
+            Find pharmacies near you and check medication availability
+          </p>
+        </div>
+      </div>
       {/* Search Header */}
       <div className="bg-white shadow">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col space-y-4 md:flex-row md:items-center md:space-x-4 md:space-y-0">
             <div className="flex-1">
               <div className="relative">
@@ -205,7 +213,7 @@ export default function Pharmacies() {
       )}
 
       {/* Pharmacy List */}
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">
@@ -223,7 +231,7 @@ export default function Pharmacies() {
             <span>24/7 pharmacies available</span>
           </div>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {mockPharmacies.map((pharmacy) => (
             <div key={pharmacy.id} className="overflow-hidden rounded-lg bg-white shadow">
               <div className="h-48 w-full overflow-hidden">

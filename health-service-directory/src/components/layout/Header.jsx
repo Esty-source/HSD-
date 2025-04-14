@@ -33,8 +33,8 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 bg-white/90 shadow-lg backdrop-blur-md transition-all duration-300 ease-in-out">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8" aria-label="Global">
+    <header className="fixed left-0 right-0 top-0 z-50 bg-white/90 shadow-lg backdrop-blur-md transition-all duration-300 ease-in-out w-full">
+      <nav className="mx-auto flex items-center justify-between p-4 lg:px-8 w-full" aria-label="Global">
         <div className="flex lg:flex-1">
           <Link to="/" className="-m-1.5 p-1.5 transition duration-300 ease-in-out hover:scale-105">
             <span className="flex items-center text-xl font-bold">
