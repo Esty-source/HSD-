@@ -108,9 +108,9 @@ export default function Notifications() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="w-full">
-      <div className="w-full bg-white px-4 py-8">
-        <div className="w-full">
+    <div className="w-full min-h-screen bg-gray-50">
+      <div className="w-full bg-white shadow-sm">
+        <div className="w-full px-4 py-8">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Notifications</h1>
           <p className="mt-2 text-sm text-gray-700">
             Stay updated with your healthcare activities

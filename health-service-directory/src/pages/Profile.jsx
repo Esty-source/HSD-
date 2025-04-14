@@ -150,61 +150,185 @@ export default function Profile() {
   );
 
   return (
-    <div className="w-full max-w-none">
-      <div className="w-full bg-white px-4 py-8 sm:px-6 lg:px-8">
-        <div className="w-full">
+    <div className="w-full min-h-screen bg-gray-50">
+      <div className="w-full bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-8">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Profile</h1>
           <p className="mt-2 text-sm text-gray-700">
             Manage your personal and medical information
           </p>
         </div>
       </div>
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-8">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
-          {/* Profile Header */}
-          <div className="mb-8 text-center">
-            <div className="relative mx-auto h-32 w-32 overflow-hidden rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 p-1 shadow-xl">
-              {user.profileImage ? (
-                <img
-                  src={user.profileImage}
-                  alt={user.name}
-                  className="h-full w-full rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-white">
-                  <UserCircleIcon className="h-20 w-20 text-gray-400" />
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Profile Header */}
+        <div className="mb-8 text-center">
+          <div className="relative mx-auto h-32 w-32 overflow-hidden rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 p-1 shadow-xl">
+            {user.profileImage ? (
+              <img
+                src={user.profileImage}
+                alt={user.name}
+                className="h-full w-full rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center rounded-full bg-white">
+                <UserCircleIcon className="h-20 w-20 text-gray-400" />
+              </div>
+            )}
+          </div>
+          <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900">{user.name}</h1>
+          <div className="mt-2 flex items-center justify-center">
+            <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
+              user.role === 'provider' ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700'
+            }`}>
+              {user.role === 'provider' ? 'Healthcare Provider' : 'Patient'}
+            </span>
+            <button
+              onClick={() => setShowRoleModal(true)}
+              className="ml-2 inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Switch Role
+            </button>
+          </div>
+        </div>
+
+        {/* Profile Information */}
+        <div className="grid gap-8">
+          {/* Personal Information */}
+          <div className="overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:shadow-xl">
+            <div className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <IdentificationIcon className="h-6 w-6 text-blue-600" />
+                  <h2 className="ml-2 text-xl font-semibold text-gray-900">Personal Information</h2>
                 </div>
-              )}
+                {!editMode.personal ? (
+                  <button
+                    onClick={() => handleEdit('personal')}
+                    className="flex items-center rounded-md bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-100"
+                  >
+                    <PencilSquareIcon className="mr-1 h-4 w-4" />
+                    Edit
+                  </button>
+                ) : (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleSave('personal')}
+                      className="flex items-center rounded-md bg-green-50 px-3 py-1 text-sm font-medium text-green-600 hover:bg-green-100"
+                    >
+                      <CheckIcon className="mr-1 h-4 w-4" />
+                      Save
+                    </button>
+                    <button
+                      onClick={() => handleCancel('personal')}
+                      className="flex items-center rounded-md bg-red-50 px-3 py-1 text-sm font-medium text-red-600 hover:bg-red-100"
+                    >
+                      <XMarkIcon className="mr-1 h-4 w-4" />
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-            <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900">{user.name}</h1>
-            <div className="mt-2 flex items-center justify-center">
-              <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
-                user.role === 'provider' ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700'
-              }`}>
-                {user.role === 'provider' ? 'Healthcare Provider' : 'Patient'}
-              </span>
-              <button
-                onClick={() => setShowRoleModal(true)}
-                className="ml-2 inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Switch Role
-              </button>
+            <div className="p-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                {editMode.personal ? (
+                  <>
+                    <EditableField label="Full Name" field="name" value={editedData.name} />
+                    <EditableField label="Email" field="email" value={editedData.email} type="email" />
+                    <EditableField label="Phone" field="phone" value={editedData.phone} type="tel" />
+                    <EditableField label="Date of Birth" field="dateOfBirth" value={editedData.dateOfBirth} type="date" />
+                    <EditableField label="Address" field="address" value={editedData.address} />
+                  </>
+                ) : (
+                  <>
+                    <DisplayField label="Full Name" value={user.name} />
+                    <DisplayField label="Email" value={user.email} />
+                    <DisplayField label="Phone" value={user.phone} />
+                    <DisplayField label="Date of Birth" value={user.dateOfBirth} />
+                    <DisplayField label="Address" value={user.address} />
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Profile Information */}
-          <div className="grid gap-8">
-            {/* Personal Information */}
+          {/* Medical Information */}
+          <div className="overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:shadow-xl">
+            <div className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <DocumentTextIcon className="h-6 w-6 text-blue-600" />
+                  <h2 className="ml-2 text-xl font-semibold text-gray-900">Medical Information</h2>
+                </div>
+                {!editMode.medical ? (
+                  <button
+                    onClick={() => handleEdit('medical')}
+                    className="flex items-center rounded-md bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-100"
+                  >
+                    <PencilSquareIcon className="mr-1 h-4 w-4" />
+                    Edit
+                  </button>
+                ) : (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleSave('medical')}
+                      className="flex items-center rounded-md bg-green-50 px-3 py-1 text-sm font-medium text-green-600 hover:bg-green-100"
+                    >
+                      <CheckIcon className="mr-1 h-4 w-4" />
+                      Save
+                    </button>
+                    <button
+                      onClick={() => handleCancel('medical')}
+                      className="flex items-center rounded-md bg-red-50 px-3 py-1 text-sm font-medium text-red-600 hover:bg-red-100"
+                    >
+                      <XMarkIcon className="mr-1 h-4 w-4" />
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                {editMode.medical ? (
+                  <>
+                    <EditableField label="Blood Type" field="bloodType" value={editedData.bloodType} />
+                    <EditableField label="Allergies" field="allergies" value={editedData.allergies} />
+                    <EditableField label="Medications" field="medications" value={editedData.medications} />
+                    <EditableField label="Emergency Contact" field="emergencyContact" value={editedData.emergencyContact} />
+                    <EditableField label="Medical History" field="medicalHistory" value={editedData.medicalHistory} />
+                    <EditableField label="Last Checkup" field="lastCheckup" value={editedData.lastCheckup} type="date" />
+                    <EditableField label="Insurance Provider" field="insuranceProvider" value={editedData.insuranceProvider} />
+                    <EditableField label="Insurance Number" field="insuranceNumber" value={editedData.insuranceNumber} />
+                  </>
+                ) : (
+                  <>
+                    <DisplayField label="Blood Type" value={user.bloodType} />
+                    <DisplayField label="Allergies" value={user.allergies} />
+                    <DisplayField label="Medications" value={user.medications} />
+                    <DisplayField label="Emergency Contact" value={user.emergencyContact} />
+                    <DisplayField label="Medical History" value={user.medicalHistory} />
+                    <DisplayField label="Last Checkup" value={user.lastCheckup} />
+                    <DisplayField label="Insurance Provider" value={user.insuranceProvider} />
+                    <DisplayField label="Insurance Number" value={user.insuranceNumber} />
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Provider Information */}
+          {user.role === 'provider' && (
             <div className="overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:shadow-xl">
               <div className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <IdentificationIcon className="h-6 w-6 text-blue-600" />
-                    <h2 className="ml-2 text-xl font-semibold text-gray-900">Personal Information</h2>
+                    <BuildingOffice2Icon className="h-6 w-6 text-blue-600" />
+                    <h2 className="ml-2 text-xl font-semibold text-gray-900">Provider Information</h2>
                   </div>
-                  {!editMode.personal ? (
+                  {!editMode.provider ? (
                     <button
-                      onClick={() => handleEdit('personal')}
+                      onClick={() => handleEdit('provider')}
                       className="flex items-center rounded-md bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-100"
                     >
                       <PencilSquareIcon className="mr-1 h-4 w-4" />
@@ -213,14 +337,14 @@ export default function Profile() {
                   ) : (
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => handleSave('personal')}
+                        onClick={() => handleSave('provider')}
                         className="flex items-center rounded-md bg-green-50 px-3 py-1 text-sm font-medium text-green-600 hover:bg-green-100"
                       >
                         <CheckIcon className="mr-1 h-4 w-4" />
                         Save
                       </button>
                       <button
-                        onClick={() => handleCancel('personal')}
+                        onClick={() => handleCancel('provider')}
                         className="flex items-center rounded-md bg-red-50 px-3 py-1 text-sm font-medium text-red-600 hover:bg-red-100"
                       >
                         <XMarkIcon className="mr-1 h-4 w-4" />
@@ -232,234 +356,31 @@ export default function Profile() {
               </div>
               <div className="p-6">
                 <div className="grid gap-6 md:grid-cols-2">
-                  {editMode.personal ? (
+                  {editMode.provider ? (
                     <>
-                      <EditableField label="Full Name" field="name" value={editedData.name} />
-                      <EditableField label="Email" field="email" value={editedData.email} type="email" />
-                      <EditableField label="Phone" field="phone" value={editedData.phone} type="tel" />
-                      <EditableField label="Date of Birth" field="dateOfBirth" value={editedData.dateOfBirth} type="date" />
-                      <EditableField label="Address" field="address" value={editedData.address} />
+                      <EditableField label="Specialization" field="specialization" value={editedData.specialization} />
+                      <EditableField label="License Number" field="licenseNumber" value={editedData.licenseNumber} />
+                      <EditableField label="Years of Experience" field="yearsOfExperience" value={editedData.yearsOfExperience} />
+                      <EditableField label="Hospital Affiliation" field="hospitalAffiliation" value={editedData.hospitalAffiliation} />
+                      <EditableField label="Languages" field="languages" value={editedData.languages.join(', ')} />
+                      <EditableField label="Consultation Fee" field="consultationFee" value={editedData.consultationFee} />
                     </>
                   ) : (
                     <>
-                      <DisplayField label="Full Name" value={user.name} />
-                      <DisplayField label="Email" value={user.email} />
-                      <DisplayField label="Phone" value={user.phone} />
-                      <DisplayField label="Date of Birth" value={user.dateOfBirth} />
-                      <DisplayField label="Address" value={user.address} />
+                      <DisplayField label="Specialization" value={user.specialization} />
+                      <DisplayField label="License Number" value={user.licenseNumber} />
+                      <DisplayField label="Years of Experience" value={user.yearsOfExperience} />
+                      <DisplayField label="Hospital Affiliation" value={user.hospitalAffiliation} />
+                      <DisplayField label="Languages" value={user.languages.join(', ')} />
+                      <DisplayField label="Consultation Fee" value={user.consultationFee} />
                     </>
                   )}
                 </div>
               </div>
             </div>
-
-            {/* Patient Information */}
-            {user.role === 'patient' && (
-              <div className="overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:shadow-xl">
-                <div className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <DocumentTextIcon className="h-6 w-6 text-blue-600" />
-                      <h2 className="ml-2 text-xl font-semibold text-gray-900">Medical Information</h2>
-                    </div>
-                    {!editMode.medical ? (
-                      <button
-                        onClick={() => handleEdit('medical')}
-                        className="flex items-center rounded-md bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-100"
-                      >
-                        <PencilSquareIcon className="mr-1 h-4 w-4" />
-                        Edit
-                      </button>
-                    ) : (
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleSave('medical')}
-                          className="flex items-center rounded-md bg-green-50 px-3 py-1 text-sm font-medium text-green-600 hover:bg-green-100"
-                        >
-                          <CheckIcon className="mr-1 h-4 w-4" />
-                          Save
-                        </button>
-                        <button
-                          onClick={() => handleCancel('medical')}
-                          className="flex items-center rounded-md bg-red-50 px-3 py-1 text-sm font-medium text-red-600 hover:bg-red-100"
-                        >
-                          <XMarkIcon className="mr-1 h-4 w-4" />
-                          Cancel
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {editMode.medical ? (
-                      <>
-                        <div className="rounded-lg bg-blue-50 p-4">
-                          <EditableField label="Blood Type" field="bloodType" value={editedData.bloodType} />
-                        </div>
-                        <div className="rounded-lg bg-red-50 p-4">
-                          <EditableField label="Allergies" field="allergies" value={editedData.allergies} />
-                        </div>
-                        <div className="rounded-lg bg-green-50 p-4">
-                          <EditableField label="Current Medications" field="medications" value={editedData.medications} />
-                        </div>
-                        <div className="rounded-lg bg-yellow-50 p-4">
-                          <EditableField label="Emergency Contact" field="emergencyContact" value={editedData.emergencyContact} />
-                        </div>
-                        <div className="col-span-2 rounded-lg bg-purple-50 p-4">
-                          <EditableField label="Medical History" field="medicalHistory" value={editedData.medicalHistory} />
-                        </div>
-                        <div className="rounded-lg bg-indigo-50 p-4">
-                          <EditableField label="Last Checkup" field="lastCheckup" value={editedData.lastCheckup} type="date" />
-                        </div>
-                        <div className="rounded-lg bg-pink-50 p-4">
-                          <EditableField label="Insurance Provider" field="insuranceProvider" value={editedData.insuranceProvider} />
-                          <EditableField label="Insurance Number" field="insuranceNumber" value={editedData.insuranceNumber} />
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="rounded-lg bg-blue-50 p-4">
-                          <DisplayField label="Blood Type" value={user.bloodType} />
-                        </div>
-                        <div className="rounded-lg bg-red-50 p-4">
-                          <DisplayField label="Allergies" value={user.allergies} />
-                        </div>
-                        <div className="rounded-lg bg-green-50 p-4">
-                          <DisplayField label="Current Medications" value={user.medications} />
-                        </div>
-                        <div className="rounded-lg bg-yellow-50 p-4">
-                          <DisplayField label="Emergency Contact" value={user.emergencyContact} />
-                        </div>
-                        <div className="col-span-2 rounded-lg bg-purple-50 p-4">
-                          <DisplayField label="Medical History" value={user.medicalHistory} />
-                        </div>
-                        <div className="rounded-lg bg-indigo-50 p-4">
-                          <DisplayField label="Last Checkup" value={user.lastCheckup} />
-                        </div>
-                        <div className="rounded-lg bg-pink-50 p-4">
-                          <DisplayField label="Insurance Provider" value={user.insuranceProvider} />
-                          <DisplayField label="Insurance Number" value={user.insuranceNumber} />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Medical Provider Information */}
-            {user.role === 'provider' && (
-              <div className="overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:shadow-xl">
-                <div className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <BuildingOffice2Icon className="h-6 w-6 text-blue-600" />
-                      <h2 className="ml-2 text-xl font-semibold text-gray-900">Professional Information</h2>
-                    </div>
-                    {!editMode.provider ? (
-                      <button
-                        onClick={() => handleEdit('provider')}
-                        className="flex items-center rounded-md bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-100"
-                      >
-                        <PencilSquareIcon className="mr-1 h-4 w-4" />
-                        Edit
-                      </button>
-                    ) : (
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleSave('provider')}
-                          className="flex items-center rounded-md bg-green-50 px-3 py-1 text-sm font-medium text-green-600 hover:bg-green-100"
-                        >
-                          <CheckIcon className="mr-1 h-4 w-4" />
-                          Save
-                        </button>
-                        <button
-                          onClick={() => handleCancel('provider')}
-                          className="flex items-center rounded-md bg-red-50 px-3 py-1 text-sm font-medium text-red-600 hover:bg-red-100"
-                        >
-                          <XMarkIcon className="mr-1 h-4 w-4" />
-                          Cancel
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {editMode.provider ? (
-                      <>
-                        <div className="rounded-lg bg-blue-50 p-4">
-                          <EditableField label="Specialization" field="specialization" value={editedData.specialization} />
-                        </div>
-                        <div className="rounded-lg bg-green-50 p-4">
-                          <EditableField label="License Number" field="licenseNumber" value={editedData.licenseNumber} />
-                        </div>
-                        <div className="rounded-lg bg-yellow-50 p-4">
-                          <EditableField label="Experience" field="yearsOfExperience" value={editedData.yearsOfExperience} />
-                        </div>
-                        <div className="rounded-lg bg-indigo-50 p-4">
-                          <EditableField label="Hospital Affiliation" field="hospitalAffiliation" value={editedData.hospitalAffiliation} />
-                        </div>
-                        <div className="rounded-lg bg-purple-50 p-4">
-                          <EditableField label="Languages" field="languages" value={editedData.languages.join(', ')} />
-                        </div>
-                        <div className="rounded-lg bg-pink-50 p-4">
-                          <EditableField label="Consultation Fee" field="consultationFee" value={editedData.consultationFee} />
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="rounded-lg bg-blue-50 p-4">
-                          <DisplayField label="Specialization" value={user.specialization} />
-                        </div>
-                        <div className="rounded-lg bg-green-50 p-4">
-                          <DisplayField label="License Number" value={user.licenseNumber} />
-                        </div>
-                        <div className="rounded-lg bg-yellow-50 p-4">
-                          <DisplayField label="Experience" value={user.yearsOfExperience} />
-                        </div>
-                        <div className="rounded-lg bg-indigo-50 p-4">
-                          <DisplayField label="Hospital Affiliation" value={user.hospitalAffiliation} />
-                        </div>
-                        <div className="rounded-lg bg-purple-50 p-4">
-                          <DisplayField label="Languages" value={user.languages.join(', ')} />
-                        </div>
-                        <div className="rounded-lg bg-pink-50 p-4">
-                          <DisplayField label="Consultation Fee" value={user.consultationFee} />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Security Settings */}
-            <div className="overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:shadow-xl">
-              <div className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
-                <div className="flex items-center">
-                  <ShieldCheckIcon className="h-6 w-6 text-blue-600" />
-                  <h2 className="ml-2 text-xl font-semibold text-gray-900">Security Settings</h2>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="grid gap-4">
-                  <button className="flex items-center rounded-lg bg-gray-50 px-4 py-3 text-left transition-colors hover:bg-gray-100">
-                    <KeyIcon className="h-5 w-5 text-gray-600" />
-                    <span className="ml-3 font-medium text-gray-900">Change Password</span>
-                  </button>
-                  <button className="flex items-center rounded-lg bg-gray-50 px-4 py-3 text-left transition-colors hover:bg-gray-100">
-                    <BellIcon className="h-5 w-5 text-gray-600" />
-                    <span className="ml-3 font-medium text-gray-900">Notification Settings</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
-      {/* Show Role Switch Modal */}
       {showRoleModal && <RoleSwitchModal />}
     </div>
   );

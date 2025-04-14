@@ -17,6 +17,7 @@ const Notifications = lazy(() => import('./pages/Notifications'));
 const About = lazy(() => import('./pages/About'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Auth = lazy(() => import('./pages/Auth'));
+const PatientDashboard = lazy(() => import('./pages/dashboard/PatientDashboard'));
 
 // Loading spinner component
 const LoadingSpinner = () => (
@@ -45,6 +46,7 @@ function App() {
               <Route path="/health-records" element={<HealthRecords />} />
               <Route path="/resources" element={<HealthResources />} />
               <Route path="/notifications" element={<Notifications />} />
+              <Route path="/dashboard/patient" element={<PatientDashboard />} />
             </Routes>
           </Suspense>
         </Layout>

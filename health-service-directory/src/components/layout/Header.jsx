@@ -9,7 +9,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { useNotifications } from '../../context/NotificationsContext';
 
-const navigation = [
+// Base navigation items that are always visible
+const baseNavigation = [
   { name: 'Home', to: '/' },
   { name: 'Find Doctors', to: '/doctors' },
   { name: 'Appointments', to: '/appointments' },
@@ -20,10 +21,21 @@ const navigation = [
   { name: 'Notifications', to: '/notifications' },
 ];
 
+// Navigation items that require authentication
+const authNavigation = [
+  { name: 'Dashboard', to: '/dashboard/patient' },
+];
+
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { unreadCount } = useNotifications();
+  const isAuthenticated = false; // TODO: Replace with actual auth check
+
+  // Combine navigation items based on authentication status
+  const navigation = isAuthenticated 
+    ? [...baseNavigation, ...authNavigation]
+    : baseNavigation;
 
   const isActive = (path) => {
     if (path === '/' && location.pathname !== '/') {
@@ -97,7 +109,7 @@ export default function Header() {
                   className={`absolute -bottom-4 left-0 h-0.5 w-full transform bg-blue-600 transition-all duration-300 ${
                     isActive(item.to) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                   }`}
-                ></span>
+                />
               </Link>
             )
           ))}
@@ -126,14 +138,15 @@ export default function Header() {
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <div 
-              className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity duration-300" 
-              onClick={() => setMobileMenuOpen(false)} 
-            />
-            <div className="fixed inset-y-0 right-0 w-full overflow-y-auto bg-white px-6 py-6 shadow-2xl transition-transform duration-300 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
+            <div className="fixed inset-0 bg-gray-900/80" onClick={() => setMobileMenuOpen(false)} />
+            <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
               <div className="flex items-center justify-between">
                 <Link to="/" className="-m-1.5 p-1.5">
-                  <span className="text-xl font-bold text-blue-600">HealthConnect</span>
+                  <span className="sr-only">Health Service Directory</span>
+                  <span className="text-xl font-bold">
+                    <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Health</span>
+                    <span className="bg-gradient-to-r from-blue-400 to-indigo-600 bg-clip-text text-transparent">Connect</span>
+                  </span>
                 </Link>
                 <button
                   type="button"
@@ -153,46 +166,14 @@ export default function Header() {
                         to={item.to}
                         className={`-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 ${
                           isActive(item.to)
-                            ? 'bg-gray-50 text-blue-600'
+                            ? 'text-blue-600'
                             : 'text-gray-900 hover:bg-gray-50'
                         }`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        {item.name === 'Notifications' ? (
-                          <div className="flex items-center">
-                            <div className="relative">
-                              <BellIcon className="h-6 w-6 mr-2" />
-                              {unreadCount > 0 && (
-                                <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                                  {unreadCount}
-                                </span>
-                              )}
-                            </div>
-                            <span>Notifications</span>
-                          </div>
-                        ) : (
-                          item.name
-                        )}
+                        {item.name}
                       </Link>
                     ))}
-                  </div>
-                  <div className="py-6">
-                    <Link
-                      to="/profile"
-                      className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Profile
-                    </Link>
-                  </div>
-                  <div className="py-6">
-                    <Link
-                      to="/auth"
-                      className="-mx-3 block px-3 py-1.5 text-sm font-semibold leading-7 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 flex items-center"
-                    >
-                      <UserIcon className="h-5 w-5 mr-2" />
-                      Sign in
-                    </Link>
                   </div>
                 </div>
               </div>
