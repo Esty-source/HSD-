@@ -9,7 +9,8 @@ import {
   FunnelIcon,
   UserPlusIcon,
   EyeIcon,
-  PencilIcon
+  PencilIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 export default function PatientsSection() {
@@ -18,16 +19,8 @@ export default function PatientsSection() {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-
-  const filters = [
-    { id: 'all', name: 'All Patients' },
-    { id: 'active', name: 'Active' },
-    { id: 'new', name: 'New' },
-    { id: 'followup', name: 'Follow-up Required' },
-  ];
-
-  // Mock patient data
-  const patients = [
+  const [showAddPatientModal, setShowAddPatientModal] = useState(false);
+  const [patients, setPatients] = useState([
     {
       id: 1,
       name: 'John Doe',
@@ -64,6 +57,22 @@ export default function PatientsSection() {
       address: '789 Pine Rd, City, State',
       status: 'followup',
     },
+  ]);
+
+  const [newPatient, setNewPatient] = useState({
+    name: '',
+    age: '',
+    gender: '',
+    phone: '',
+    email: '',
+    address: '',
+  });
+
+  const filters = [
+    { id: 'all', name: 'All Patients' },
+    { id: 'active', name: 'Active' },
+    { id: 'new', name: 'New' },
+    { id: 'followup', name: 'Follow-up Required' },
   ];
 
   const handleSearch = (e) => {
@@ -98,6 +107,36 @@ export default function PatientsSection() {
     setShowScheduleModal(false);
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewPatient(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleAddPatient = (e) => {
+    e.preventDefault();
+    const newPatientData = {
+      id: patients.length + 1,
+      ...newPatient,
+      lastVisit: 'Not visited',
+      nextAppointment: null,
+      status: 'new',
+    };
+    
+    setPatients(prev => [...prev, newPatientData]);
+    setNewPatient({
+      name: '',
+      age: '',
+      gender: '',
+      phone: '',
+      email: '',
+      address: '',
+    });
+    setShowAddPatientModal(false);
+  };
+
   return (
     <div className="w-full">
       {/* Search and Filters */}
@@ -127,11 +166,118 @@ export default function PatientsSection() {
             </button>
           ))}
         </div>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium flex items-center">
+        <button 
+          onClick={() => setShowAddPatientModal(true)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium flex items-center"
+        >
           <UserPlusIcon className="h-5 w-5 mr-2" />
           Add New Patient
         </button>
       </div>
+
+      {/* Add Patient Modal */}
+      {showAddPatientModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Add New Patient</h3>
+              <button
+                onClick={() => setShowAddPatientModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleAddPatient} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={newPatient.name}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Age</label>
+                <input
+                  type="number"
+                  name="age"
+                  value={newPatient.age}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Gender</label>
+                <select
+                  name="gender"
+                  value={newPatient.gender}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Phone</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={newPatient.phone}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={newPatient.email}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Address</label>
+                <textarea
+                  name="address"
+                  value={newPatient.address}
+                  onChange={handleInputChange}
+                  required
+                  rows="3"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div className="flex justify-end space-x-3 mt-5">
+                <button
+                  type="button"
+                  onClick={() => setShowAddPatientModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Add Patient
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Patients List */}
       <div className="mt-6 space-y-4">

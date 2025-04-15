@@ -10,10 +10,11 @@ import {
   XCircleIcon,
   ClockIcon as ClockIconSolid,
   MicrophoneIcon,
-  MicrophoneOffIcon,
   VideoCameraSlashIcon,
   XMarkIcon,
-  CheckIcon
+  CheckIcon,
+  ChatBubbleLeftIcon,
+  SpeakerXMarkIcon
 } from '@heroicons/react/24/outline';
 import { EyeIcon } from '@heroicons/react/24/outline';
 
@@ -22,18 +23,11 @@ export default function TelemedicineSection() {
   const [selectedSession, setSelectedSession] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showNewConsultationModal, setShowNewConsultationModal] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isInCall, setIsInCall] = useState(false);
-
-  const filters = [
-    { id: 'upcoming', name: 'Upcoming' },
-    { id: 'completed', name: 'Completed' },
-    { id: 'cancelled', name: 'Cancelled' },
-  ];
-
-  // Mock consultation data
-  const consultations = [
+  const [consultations, setConsultations] = useState([
     {
       id: 1,
       patientName: 'John Doe',
@@ -67,6 +61,30 @@ export default function TelemedicineSection() {
       phone: '+1 (555) 456-7890',
       email: 'robert.johnson@example.com'
     },
+  ]);
+
+  const [newConsultation, setNewConsultation] = useState({
+    patientName: '',
+    date: '',
+    time: '',
+    duration: '30 minutes',
+    type: 'Initial Consultation',
+    phone: '',
+    email: ''
+  });
+
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [consultationToReschedule, setConsultationToReschedule] = useState(null);
+  const [rescheduleData, setRescheduleData] = useState({
+    date: '',
+    time: '',
+    duration: '30 minutes'
+  });
+
+  const filters = [
+    { id: 'upcoming', name: 'Upcoming' },
+    { id: 'completed', name: 'Completed' },
+    { id: 'cancelled', name: 'Cancelled' },
   ];
 
   const handleViewDetails = (session) => {
@@ -98,12 +116,104 @@ export default function TelemedicineSection() {
     setIsVideoOff(!isVideoOff);
   };
 
+  const getSessionIcon = (type) => {
+    switch (type) {
+      case 'Video Call':
+        return <VideoCameraIcon className="h-5 w-5" />;
+      case 'Audio Call':
+        return <PhoneIcon className="h-5 w-5" />;
+      case 'Chat':
+        return <ChatBubbleLeftIcon className="h-5 w-5" />;
+      default:
+        return null;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'scheduled':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleNewConsultation = (e) => {
+    e.preventDefault();
+    const consultation = {
+      id: Date.now(),
+      ...newConsultation,
+      status: 'Scheduled'
+    };
+    setConsultations(prev => [...prev, consultation]);
+    setNewConsultation({
+      patientName: '',
+      date: '',
+      time: '',
+      duration: '30 minutes',
+      type: 'Initial Consultation',
+      phone: '',
+      email: ''
+    });
+    setShowNewConsultationModal(false);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewConsultation(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleReschedule = (consultation) => {
+    setConsultationToReschedule(consultation);
+    setRescheduleData({
+      date: consultation.date,
+      time: consultation.time,
+      duration: consultation.duration
+    });
+    setShowRescheduleModal(true);
+  };
+
+  const handleRescheduleSubmit = (e) => {
+    e.preventDefault();
+    setConsultations(prev => prev.map(consultation => {
+      if (consultation.id === consultationToReschedule.id) {
+        return {
+          ...consultation,
+          date: rescheduleData.date,
+          time: rescheduleData.time,
+          duration: rescheduleData.duration
+        };
+      }
+      return consultation;
+    }));
+    setShowRescheduleModal(false);
+    setConsultationToReschedule(null);
+  };
+
+  const handleRescheduleInputChange = (e) => {
+    const { name, value } = e.target;
+    setRescheduleData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   return (
     <div className="w-full">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Video Consultations</h2>
-        <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+        <button 
+          onClick={() => setShowNewConsultationModal(true)}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+        >
           <VideoCameraIcon className="h-5 w-5 mr-2" />
           Start New Consultation
         </button>
@@ -143,13 +253,7 @@ export default function TelemedicineSection() {
                   <p className="text-sm text-gray-500">{consultation.type}</p>
                 </div>
               </div>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                consultation.status === 'Scheduled'
-                  ? 'bg-blue-100 text-blue-800'
-                  : consultation.status === 'Completed'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
-              }`}>
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(consultation.status)}`}>
                 {consultation.status}
               </span>
             </div>
@@ -194,7 +298,10 @@ export default function TelemedicineSection() {
                   >
                     Join Call
                   </button>
-                  <button className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                  <button 
+                    onClick={() => handleReschedule(consultation)}
+                    className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                  >
                     Reschedule
                   </button>
                   <button className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200">
@@ -304,7 +411,7 @@ export default function TelemedicineSection() {
                 } text-white hover:bg-opacity-80 transition-colors duration-200`}
               >
                 {isMuted ? (
-                  <MicrophoneOffIcon className="h-6 w-6" />
+                  <SpeakerXMarkIcon className="h-6 w-6" />
                 ) : (
                   <MicrophoneIcon className="h-6 w-6" />
                 )}
@@ -328,6 +435,197 @@ export default function TelemedicineSection() {
                 <XMarkIcon className="h-6 w-6" />
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Consultation Modal */}
+      {showNewConsultationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Schedule New Consultation</h3>
+              <button
+                onClick={() => setShowNewConsultationModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleNewConsultation} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Patient Name</label>
+                <input
+                  type="text"
+                  name="patientName"
+                  value={newConsultation.patientName}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Date</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={newConsultation.date}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Time</label>
+                <input
+                  type="time"
+                  name="time"
+                  value={newConsultation.time}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Duration</label>
+                <select
+                  name="duration"
+                  value={newConsultation.duration}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="15 minutes">15 minutes</option>
+                  <option value="30 minutes">30 minutes</option>
+                  <option value="45 minutes">45 minutes</option>
+                  <option value="60 minutes">60 minutes</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Consultation Type</label>
+                <select
+                  name="type"
+                  value={newConsultation.type}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="Initial Consultation">Initial Consultation</option>
+                  <option value="Follow-up">Follow-up</option>
+                  <option value="Emergency">Emergency</option>
+                  <option value="Specialist Consultation">Specialist Consultation</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Phone</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={newConsultation.phone}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={newConsultation.email}
+                  onChange={handleInputChange}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowNewConsultationModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Schedule Consultation
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Reschedule Modal */}
+      {showRescheduleModal && consultationToReschedule && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Reschedule Consultation</h3>
+              <button
+                onClick={() => setShowRescheduleModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleRescheduleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Patient Name</label>
+                <p className="mt-1 text-sm text-gray-500">{consultationToReschedule.patientName}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Date</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={rescheduleData.date}
+                  onChange={handleRescheduleInputChange}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Time</label>
+                <input
+                  type="time"
+                  name="time"
+                  value={rescheduleData.time}
+                  onChange={handleRescheduleInputChange}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Duration</label>
+                <select
+                  name="duration"
+                  value={rescheduleData.duration}
+                  onChange={handleRescheduleInputChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="15 minutes">15 minutes</option>
+                  <option value="30 minutes">30 minutes</option>
+                  <option value="45 minutes">45 minutes</option>
+                  <option value="60 minutes">60 minutes</option>
+                </select>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowRescheduleModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Confirm Reschedule
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

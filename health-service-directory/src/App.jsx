@@ -21,6 +21,7 @@ const Contact = lazy(() => import('./pages/Contact'));
 const Auth = lazy(() => import('./pages/Auth'));
 const PatientDashboard = lazy(() => import('./pages/dashboard/PatientDashboard'));
 const DoctorDashboard = lazy(() => import('./pages/dashboard/DoctorDashboard'));
+const AdminDashboard = lazy(() => import('./pages/dashboard/AdminDashboard'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Loading spinner component
@@ -52,6 +53,14 @@ function App() {
               <Route path="/notifications" element={<Notifications />} />
               
               {/* Protected Routes */}
+              <Route 
+                path="/dashboard/admin/*" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } 
+              />
               <Route 
                 path="/dashboard/doctor/*" 
                 element={

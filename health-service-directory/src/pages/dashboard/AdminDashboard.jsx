@@ -1,29 +1,27 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  CalendarIcon, 
   UserGroupIcon, 
   ClipboardDocumentListIcon, 
   UserCircleIcon, 
   ChartBarIcon, 
-  VideoCameraIcon,
+  BuildingOfficeIcon,
   DocumentTextIcon,
   BellIcon,
-  ArrowLeftOnRectangleIcon
+  ArrowLeftOnRectangleIcon,
+  Cog6ToothIcon
 } from '@heroicons/react/24/outline';
-import OverviewSection from '../../components/dashboard/doctor/OverviewSection';
-import AppointmentsSection from '../../components/dashboard/doctor/AppointmentsSection';
-import PatientsSection from '../../components/dashboard/doctor/PatientsSection';
-import MedicalRecordsSection from '../../components/dashboard/doctor/MedicalRecordsSection';
-import TelemedicineSection from '../../components/dashboard/doctor/TelemedicineSection';
-import PrescriptionsSection from '../../components/dashboard/doctor/PrescriptionsSection';
-import ProfileSection from '../../components/dashboard/doctor/ProfileSection';
-import NotificationsSection from '../../components/dashboard/doctor/NotificationsSection';
+import OverviewSection from '../../components/dashboard/admin/OverviewSection';
+import UsersSection from '../../components/dashboard/admin/UsersSection';
+import DoctorsSection from '../../components/dashboard/admin/DoctorsSection';
+import PatientsSection from '../../components/dashboard/admin/PatientsSection';
+import MedicalRecordsSection from '../../components/dashboard/admin/MedicalRecordsSection';
+import SettingsSection from '../../components/dashboard/admin/SettingsSection';
+import NotificationsSection from '../../components/dashboard/admin/NotificationsSection';
 
-export default function DoctorDashboard() {
+export default function AdminDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('overview');
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -34,7 +32,7 @@ export default function DoctorDashboard() {
     const storedUserData = JSON.parse(localStorage.getItem('userData') || '{}');
     const token = localStorage.getItem('token');
 
-    if (!token || !storedUserData || storedUserData.role !== 'doctor') {
+    if (!token || !storedUserData || storedUserData.role !== 'admin') {
       // Clear any existing data and redirect to auth
       localStorage.removeItem('token');
       localStorage.removeItem('userData');
@@ -44,12 +42,13 @@ export default function DoctorDashboard() {
 
     setUserData(storedUserData);
 
-    // Set active tab from URL search params
-    const tab = searchParams.get('tab');
-    if (tab) {
-      setActiveTab(tab);
+    // Set active tab from URL
+    const pathParts = location.pathname.split('/');
+    const tabFromUrl = pathParts[pathParts.length - 1];
+    if (tabFromUrl && tabFromUrl !== 'admin') {
+      setActiveTab(tabFromUrl);
     }
-  }, [navigate, location, searchParams]);
+  }, [navigate, location]);
 
   const handleLogout = () => {
     // Clear authentication data
@@ -60,26 +59,21 @@ export default function DoctorDashboard() {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    navigate(`/dashboard/doctor?tab=${tab}`);
+    navigate(`/dashboard/admin/${tab}`);
   };
 
   const sidebarItems = [
     { name: 'Overview', icon: ChartBarIcon, id: 'overview' },
-    { name: 'Appointments', icon: CalendarIcon, id: 'appointments' },
+    { name: 'Users', icon: UserGroupIcon, id: 'users' },
+    { name: 'Doctors', icon: UserCircleIcon, id: 'doctors' },
     { name: 'Patients', icon: UserGroupIcon, id: 'patients' },
     { name: 'Medical Records', icon: ClipboardDocumentListIcon, id: 'records' },
-    { name: 'Telemedicine', icon: VideoCameraIcon, id: 'telemedicine' },
-    { name: 'Prescriptions', icon: DocumentTextIcon, id: 'prescriptions' },
-    { name: 'Profile', icon: UserCircleIcon, id: 'profile' },
+    { name: 'Settings', icon: Cog6ToothIcon, id: 'settings' },
     { name: 'Notifications', icon: BellIcon, id: 'notifications' },
   ];
 
   if (!userData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return null; // or a loading spinner
   }
 
   return (
@@ -87,7 +81,7 @@ export default function DoctorDashboard() {
       {/* Sidebar */}
       <div className="w-72 bg-white border-r border-gray-200 shadow-sm">
         <div className="p-6 border-b border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-800">Doctor Dashboard</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
           <p className="text-sm text-gray-500 mt-1">Welcome back, {userData.name}</p>
         </div>
         <nav className="mt-4">
@@ -150,12 +144,11 @@ export default function DoctorDashboard() {
         {/* Content */}
         <div className="p-8">
           {activeTab === 'overview' && <OverviewSection onTabChange={handleTabChange} />}
-          {activeTab === 'appointments' && <AppointmentsSection />}
+          {activeTab === 'users' && <UsersSection />}
+          {activeTab === 'doctors' && <DoctorsSection />}
           {activeTab === 'patients' && <PatientsSection />}
           {activeTab === 'records' && <MedicalRecordsSection />}
-          {activeTab === 'telemedicine' && <TelemedicineSection />}
-          {activeTab === 'prescriptions' && <PrescriptionsSection />}
-          {activeTab === 'profile' && <ProfileSection />}
+          {activeTab === 'settings' && <SettingsSection />}
           {activeTab === 'notifications' && <NotificationsSection />}
         </div>
       </div>

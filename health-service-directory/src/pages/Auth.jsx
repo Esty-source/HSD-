@@ -19,7 +19,7 @@ const registerSchema = yup.object().shape({
     .string()
     .oneOf([yup.ref('password'), null], 'Passwords must match')
     .required('Confirm password is required'),
-  role: yup.string().oneOf(['patient', 'doctor'], 'Invalid role').required('Role is required'),
+  role: yup.string().oneOf(['patient', 'doctor', 'admin'], 'Invalid role').required('Role is required'),
 });
 
 export default function Auth() {
@@ -51,7 +51,8 @@ export default function Auth() {
             id: 1,
             name: data.email.split('@')[0],
             email: data.email,
-            role: data.email.toLowerCase().includes('doctor') ? 'doctor' : 'patient',
+            role: data.email.toLowerCase().includes('admin') ? 'admin' : 
+                  data.email.toLowerCase().includes('doctor') ? 'doctor' : 'patient',
           },
         };
 
@@ -61,7 +62,9 @@ export default function Auth() {
         toast.success('Login successful!');
         
         // Redirect to the appropriate dashboard
-        if (mockResponse.user.role === 'doctor') {
+        if (mockResponse.user.role === 'admin') {
+          navigate('/dashboard/admin');
+        } else if (mockResponse.user.role === 'doctor') {
           navigate('/dashboard/doctor');
         } else {
           navigate('/dashboard/patient');
@@ -87,7 +90,9 @@ export default function Auth() {
         toast.success('Registration successful!');
         
         // Redirect to the appropriate dashboard
-        if (data.role === 'doctor') {
+        if (data.role === 'admin') {
+          navigate('/dashboard/admin');
+        } else if (data.role === 'doctor') {
           navigate('/dashboard/doctor');
         } else {
           navigate('/dashboard/patient');
@@ -196,6 +201,7 @@ export default function Auth() {
                       <option value="">Select a role</option>
                       <option value="patient">Patient</option>
                       <option value="doctor">Doctor</option>
+                      <option value="admin">Admin</option>
                     </select>
                     {errors.role && (
                       <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>

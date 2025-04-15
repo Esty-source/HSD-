@@ -9,7 +9,8 @@ import {
   PencilIcon,
   TrashIcon,
   PrinterIcon,
-  EyeIcon
+  EyeIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 export default function PrescriptionsSection() {
@@ -19,6 +20,15 @@ export default function PrescriptionsSection() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showNewModal, setShowNewModal] = useState(false);
+  const [newPrescription, setNewPrescription] = useState({
+    patientName: '',
+    date: '',
+    time: '',
+    medications: [{ name: '', dosage: '', frequency: '', duration: '' }],
+    status: 'Active',
+    refills: 0,
+    notes: ''
+  });
 
   const filters = [
     { id: 'active', name: 'Active' },
@@ -155,12 +165,69 @@ export default function PrescriptionsSection() {
     }
   };
 
+  const handleAddMedication = () => {
+    setNewPrescription(prev => ({
+      ...prev,
+      medications: [...prev.medications, { name: '', dosage: '', frequency: '', duration: '' }]
+    }));
+  };
+
+  const handleRemoveMedication = (index) => {
+    setNewPrescription(prev => ({
+      ...prev,
+      medications: prev.medications.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleNewPrescriptionInputChange = (e, index) => {
+    const { name, value } = e.target;
+    if (name.startsWith('medication_')) {
+      const field = name.split('_')[1];
+      setNewPrescription(prev => ({
+        ...prev,
+        medications: prev.medications.map((med, i) => 
+          i === index ? { ...med, [field]: value } : med
+        )
+      }));
+    } else {
+      setNewPrescription(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleNewPrescriptionSubmit = (e) => {
+    e.preventDefault();
+    const prescriptionData = {
+      ...newPrescription,
+      id: Date.now(),
+      medications: newPrescription.medications.filter(med => 
+        med.name && med.dosage && med.frequency && med.duration
+      )
+    };
+    setPrescriptions(prev => [...prev, prescriptionData]);
+    setShowNewModal(false);
+    setNewPrescription({
+      patientName: '',
+      date: '',
+      time: '',
+      medications: [{ name: '', dosage: '', frequency: '', duration: '' }],
+      status: 'Active',
+      refills: 0,
+      notes: ''
+    });
+  };
+
   return (
     <div className="w-full">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Prescriptions</h2>
-        <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+        <button 
+          onClick={() => setShowNewModal(true)}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+        >
           <PlusIcon className="h-5 w-5 mr-2" />
           New Prescription
         </button>
@@ -367,60 +434,163 @@ export default function PrescriptionsSection() {
       {/* New Prescription Modal */}
       {showNewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">New Prescription</h3>
-            <div className="space-y-4">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">New Prescription</h3>
+              <button
+                onClick={() => setShowNewModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleNewPrescriptionSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Patient Name</label>
                 <input
                   type="text"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  name="patientName"
+                  value={newPrescription.patientName}
+                  onChange={handleNewPrescriptionInputChange}
+                  required
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Date</label>
-                <input
-                  type="date"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Date</label>
+                  <input
+                    type="date"
+                    name="date"
+                    value={newPrescription.date}
+                    onChange={handleNewPrescriptionInputChange}
+                    required
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Time</label>
+                  <input
+                    type="time"
+                    name="time"
+                    value={newPrescription.time}
+                    onChange={handleNewPrescriptionInputChange}
+                    required
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Medications</label>
-                <div className="space-y-2">
-                  <div className="flex space-x-2">
-                    <input
-                      type="text"
-                      placeholder="Medication name"
-                      className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Dosage"
-                      className="w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Instructions"
-                      className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    />
+                {newPrescription.medications.map((medication, index) => (
+                  <div key={index} className="mt-2 space-y-2 p-4 border border-gray-200 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-sm font-medium text-gray-700">Medication {index + 1}</h4>
+                      {index > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveMedication(index)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-500">Name</label>
+                        <input
+                          type="text"
+                          name={`medication_name`}
+                          value={medication.name}
+                          onChange={(e) => handleNewPrescriptionInputChange(e, index)}
+                          required
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500">Dosage</label>
+                        <input
+                          type="text"
+                          name={`medication_dosage`}
+                          value={medication.dosage}
+                          onChange={(e) => handleNewPrescriptionInputChange(e, index)}
+                          required
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-500">Frequency</label>
+                        <input
+                          type="text"
+                          name={`medication_frequency`}
+                          value={medication.frequency}
+                          onChange={(e) => handleNewPrescriptionInputChange(e, index)}
+                          required
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500">Duration</label>
+                        <input
+                          type="text"
+                          name={`medication_duration`}
+                          value={medication.duration}
+                          onChange={(e) => handleNewPrescriptionInputChange(e, index)}
+                          required
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleAddMedication}
+                  className="mt-2 text-sm text-blue-600 hover:text-blue-700"
+                >
+                  + Add Another Medication
+                </button>
               </div>
-            </div>
-            <div className="mt-6 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowNewModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleSavePrescription(newPrescriptionData)}
-                className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-              >
-                Create Prescription
-              </button>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Refills</label>
+                <input
+                  type="number"
+                  name="refills"
+                  value={newPrescription.refills}
+                  onChange={handleNewPrescriptionInputChange}
+                  min="0"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Notes</label>
+                <textarea
+                  name="notes"
+                  value={newPrescription.notes}
+                  onChange={handleNewPrescriptionInputChange}
+                  rows="3"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowNewModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Create Prescription
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
