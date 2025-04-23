@@ -413,7 +413,7 @@ export default function HealthRecords() {
         </div>
       )}
 
-      <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
+      <div className="w-full px-4 py-6">
         {/* Header */}
         <div className="mb-6">
           <div className="sm:flex sm:items-center sm:justify-between">

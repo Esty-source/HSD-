@@ -3,28 +3,26 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
-    <footer className="bg-white w-full">
-      <div className="w-full px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
-        <div className="mt-8 md:order-1 md:mt-0">
-          <p className="text-center text-xs leading-5 text-gray-500">
+    <footer className="bg-white w-full border-t border-gray-200 shadow-inner">
+      <div className="max-w-7xl mx-auto px-6 py-10 md:py-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <nav className="flex flex-wrap justify-center gap-4 md:gap-8 order-2 md:order-1">
+          <Link to="/about" className="footer-link">
+            About Us
+          </Link>
+          <Link to="/contact" className="footer-link">
+            Contact
+          </Link>
+          <Link to="/privacy" className="footer-link">
+            Privacy Policy
+          </Link>
+          <Link to="/terms" className="footer-link">
+            Terms of Service
+          </Link>
+        </nav>
+        <div className="order-1 md:order-2 w-full md:w-auto flex justify-center">
+          <p className="text-xs leading-5 text-gray-500 text-center">
             &copy; 2024 HealthConnect. All rights reserved.
           </p>
-        </div>
-        <div className="flex justify-center space-x-6 md:order-2">
-          <nav className="flex space-x-6">
-            <Link to="/about" className="text-sm leading-6 text-gray-600 hover:text-blue-600">
-              About Us
-            </Link>
-            <Link to="/contact" className="text-sm leading-6 text-gray-600 hover:text-blue-600">
-              Contact
-            </Link>
-            <Link to="/privacy" className="text-sm leading-6 text-gray-600 hover:text-blue-600">
-              Privacy Policy
-            </Link>
-            <Link to="/terms" className="text-sm leading-6 text-gray-600 hover:text-blue-600">
-              Terms of Service
-            </Link>
-          </nav>
         </div>
       </div>
     </footer>

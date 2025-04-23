@@ -119,10 +119,13 @@ export default function Header() {
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-6">
           <Link
             to="/profile"
-            className="flex items-center gap-x-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-md"
+            className="flex items-center gap-x-2 group"
+            title="Go to Profile"
           >
-            <UserCircleIcon className="h-5 w-5" />
-            Profile
+            <span className="flex items-center justify-center h-9 w-9 rounded-full bg-blue-100 text-blue-700 font-bold text-lg uppercase border-2 border-blue-300 shadow group-hover:bg-blue-200 transition-all">
+              p
+            </span>
+            <span className="ml-2 text-gray-800 font-semibold group-hover:text-blue-700 transition-all">patient</span>
           </Link>
           <div className="hidden lg:flex lg:items-center">
             <Link

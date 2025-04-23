@@ -202,13 +202,15 @@ export default function Profile() {
                   <h2 className="ml-2 text-xl font-semibold text-gray-900">Personal Information</h2>
                 </div>
                 {!editMode.personal ? (
-                  <button
-                    onClick={() => handleEdit('personal')}
-                    className="flex items-center rounded-md bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-100"
-                  >
-                    <PencilSquareIcon className="mr-1 h-4 w-4" />
-                    Edit
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleEdit('personal')}
+                      className="flex items-center rounded-md bg-yellow-50 px-3 py-1 text-sm font-medium text-yellow-600 hover:bg-yellow-100"
+                    >
+                      <PencilSquareIcon className="mr-1 h-4 w-4" />
+                      Edit Changes
+                    </button>
+                  </div>
                 ) : (
                   <div className="flex space-x-2">
                     <button
@@ -216,7 +218,7 @@ export default function Profile() {
                       className="flex items-center rounded-md bg-green-50 px-3 py-1 text-sm font-medium text-green-600 hover:bg-green-100"
                     >
                       <CheckIcon className="mr-1 h-4 w-4" />
-                      Save
+                      Save Changes
                     </button>
                     <button
                       onClick={() => handleCancel('personal')}
@@ -261,13 +263,15 @@ export default function Profile() {
                   <h2 className="ml-2 text-xl font-semibold text-gray-900">Medical Information</h2>
                 </div>
                 {!editMode.medical ? (
-                  <button
-                    onClick={() => handleEdit('medical')}
-                    className="flex items-center rounded-md bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-100"
-                  >
-                    <PencilSquareIcon className="mr-1 h-4 w-4" />
-                    Edit
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleEdit('medical')}
+                      className="flex items-center rounded-md bg-yellow-50 px-3 py-1 text-sm font-medium text-yellow-600 hover:bg-yellow-100"
+                    >
+                      <PencilSquareIcon className="mr-1 h-4 w-4" />
+                      Edit Changes
+                    </button>
+                  </div>
                 ) : (
                   <div className="flex space-x-2">
                     <button
@@ -275,7 +279,7 @@ export default function Profile() {
                       className="flex items-center rounded-md bg-green-50 px-3 py-1 text-sm font-medium text-green-600 hover:bg-green-100"
                     >
                       <CheckIcon className="mr-1 h-4 w-4" />
-                      Save
+                      Save Changes
                     </button>
                     <button
                       onClick={() => handleCancel('medical')}
@@ -327,13 +331,15 @@ export default function Profile() {
                     <h2 className="ml-2 text-xl font-semibold text-gray-900">Provider Information</h2>
                   </div>
                   {!editMode.provider ? (
-                    <button
-                      onClick={() => handleEdit('provider')}
-                      className="flex items-center rounded-md bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 hover:bg-blue-100"
-                    >
-                      <PencilSquareIcon className="mr-1 h-4 w-4" />
-                      Edit
-                    </button>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEdit('provider')}
+                        className="flex items-center rounded-md bg-yellow-50 px-3 py-1 text-sm font-medium text-yellow-600 hover:bg-yellow-100"
+                      >
+                        <PencilSquareIcon className="mr-1 h-4 w-4" />
+                        Edit Changes
+                      </button>
+                    </div>
                   ) : (
                     <div className="flex space-x-2">
                       <button
@@ -341,7 +347,7 @@ export default function Profile() {
                         className="flex items-center rounded-md bg-green-50 px-3 py-1 text-sm font-medium text-green-600 hover:bg-green-100"
                       >
                         <CheckIcon className="mr-1 h-4 w-4" />
-                        Save
+                        Save Changes
                       </button>
                       <button
                         onClick={() => handleCancel('provider')}

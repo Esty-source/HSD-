@@ -108,82 +108,80 @@ export default function Notifications() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="w-full min-h-screen bg-gray-50">
-      <div className="w-full bg-white shadow-sm">
-        <div className="w-full px-4 py-8">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Notifications</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Stay updated with your healthcare activities
-          </p>
-        </div>
-      </div>
-      <div className="w-full px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-2">
-            <div className="group relative">
-              <BellIcon className="h-8 w-8 text-blue-600 hover:text-blue-700 transition-colors duration-200 cursor-pointer" />
-              <div className="absolute left-1/2 -translate-x-1/2 -top-2">
+    <div className="min-h-screen bg-gradient-to-tr from-blue-50 via-white to-blue-100 py-8 px-2 sm:px-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl px-8 py-8 mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <BellIcon className="h-10 w-10 text-blue-600 drop-shadow" />
+            <div>
+              <h1 className="text-3xl font-extrabold text-blue-800 tracking-tight">Notifications</h1>
+              <p className="mt-1 text-sm text-gray-500">Stay updated with your healthcare activities</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 mb-6">
+            {notificationTypes.map((type) => (
+              <button
+                key={type.value}
+                onClick={() => setFilter(type.value)}
+                className={`px-4 py-1.5 text-sm rounded-full border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 ${
+                  filter === type.value
+                    ? 'bg-blue-100 text-blue-800 border-blue-300 shadow'
+                    : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
+                }`}
+              >
+                {type.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-2">
+              <div className="relative group">
+                <BellIcon className="h-8 w-8 text-blue-600 hover:text-blue-700 transition-colors duration-200 cursor-pointer" />
                 {unreadCount > 0 && (
-                  <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+                  <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
                     {unreadCount}
                   </span>
                 )}
+                <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  Notifications Center
+                </div>
               </div>
-              <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                Notifications Center
-              </div>
+              {unreadCount > 0 && (
+                <p className="text-sm text-gray-600">
+                  You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+                </p>
+              )}
             </div>
-            {unreadCount > 0 && (
-              <p className="text-sm text-gray-600">
-                You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
-              </p>
+            <button
+              onClick={clearNotifications}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition"
+            >
+              Clear all
+            </button>
+          </div>
+          <div className="w-full space-y-4">
+            {filteredNotifications.length > 0 ? (
+              filteredNotifications.map((notification) => (
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
+                  onMarkAsRead={markAsRead}
+                />
+              ))
+            ) : (
+              <div className="w-full text-center py-8">
+                <BellIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No notifications</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {filter === 'all'
+                    ? "You're all caught up!"
+                    : `No ${filter} notifications at the moment.`}
+                </p>
+              </div>
             )}
           </div>
-          <button
-            onClick={clearNotifications}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Clear all
-          </button>
         </div>
-
-        <div className="mb-6 flex flex-wrap gap-2">
-          {notificationTypes.map((type) => (
-            <button
-              key={type.value}
-              onClick={() => setFilter(type.value)}
-              className={`px-3 py-1 text-sm rounded-full ${
-                filter === type.value
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {type.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="w-full space-y-4">
-          {filteredNotifications.length > 0 ? (
-            filteredNotifications.map((notification) => (
-              <NotificationItem
-                key={notification.id}
-                notification={notification}
-                onMarkAsRead={markAsRead}
-              />
-            ))
-          ) : (
-            <div className="w-full text-center py-8">
-              <BellIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No notifications</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {filter === 'all'
-                  ? "You're all caught up!"
-                  : `No ${filter} notifications at the moment.`}
-              </p>
-            </div>
-          )}
-        </div>
+        <div className="text-xs text-gray-400 text-center mt-8">&copy; {new Date().getFullYear()} Health Service Directory Admin</div>
       </div>
     </div>
   );

@@ -74,7 +74,7 @@ export default function OverviewSection({ onTabChange }) {
   return (
     <div className="space-y-8">
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">
         {metrics.map((metric) => (
           <div
             key={metric.name}
@@ -103,7 +103,7 @@ export default function OverviewSection({ onTabChange }) {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-lg p-8 flex flex-col items-center border border-blue-100 hover:shadow-xl transition-shadow duration-300">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickActions.map((action) => (

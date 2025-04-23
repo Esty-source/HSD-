@@ -10,7 +10,7 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {!isDashboard && <Header />}
-      <main className={`flex-grow w-full mx-auto ${isDashboard ? 'h-screen' : ''}`}>
+      <main className={`flex-grow w-full ${isDashboard ? 'h-screen' : ''}${location.pathname === '/health-records' ? '' : ' mx-auto'}`}>
         {children}
       </main>
       {!isDashboard && <Footer />}
