@@ -188,10 +188,10 @@ export default function HealthRecords() {
       case 'Medical History':
         return (
           <div className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {mockRecords.medicalHistory.map((record) => (
                 <div key={record.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                  <div className="p-5">
+                  <div className="p-5 sm:p-3 md:p-5">
                     <div className="flex justify-between items-start">
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">{record.title}</h3>
                       <span
@@ -243,10 +243,10 @@ export default function HealthRecords() {
       case 'Lab Results':
         return (
           <div className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {mockRecords.labResults.map((result) => (
                 <div key={result.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                  <div className="p-5">
+                  <div className="p-5 sm:p-3 md:p-5">
                     <div className="flex justify-between items-start">
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">{result.title}</h3>
                       <span
@@ -303,10 +303,10 @@ export default function HealthRecords() {
       case 'Medications':
         return (
           <div className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {mockRecords.medications.map((medication) => (
                 <div key={medication.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                  <div className="p-5">
+                  <div className="p-5 sm:p-3 md:p-5">
                     <div className="flex justify-between items-start">
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">{medication.name}</h3>
                       <span

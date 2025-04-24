@@ -101,7 +101,7 @@ export default function Home() {
             Find and book appointments with qualified healthcare providers. Access emergency services
             and locate nearby pharmacies all in one place.
           </p>
-          <div className="mt-10 flex items-center gap-x-6">
+          <div className="mt-10 flex flex-col sm:flex-row items-center gap-4 sm:gap-x-6">
             <Link
               to="/doctors"
               className="rounded-xl bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
@@ -290,7 +290,7 @@ export default function Home() {
       {/* Stats Section */}
       <div className="w-full bg-white py-20 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="grid gap-10 md:grid-cols-4">
+          <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
             <div className="text-center">
               <div className="text-5xl font-bold text-blue-600">10k+</div>
               <p className="mt-2 text-gray-600">Registered Patients</p>
@@ -326,7 +326,7 @@ export default function Home() {
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-blue-100">
               Join thousands of satisfied patients who trust us with their healthcare needs.
             </p>
-            <div className="mt-10 flex flex-col sm:flex-row justify-center gap-6">
+            <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
               <Link
                 to="/doctors"
                 className="rounded-xl bg-white px-8 py-4 text-base font-semibold text-blue-600 shadow-lg transition-all duration-300 hover:bg-blue-50 hover:shadow-xl hover:translate-y-[-2px] flex items-center justify-center"

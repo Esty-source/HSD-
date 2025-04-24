@@ -217,9 +217,9 @@ export default function Profile() {
         </div>
 
         {/* Profile Information */}
-        <div className="grid gap-8">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-8">
           {/* Personal Information */}
-          <div className="overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:shadow-xl">
+          <div className="overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:shadow-xl w-full md:w-1/2 xl:w-1/3">
             <div className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">

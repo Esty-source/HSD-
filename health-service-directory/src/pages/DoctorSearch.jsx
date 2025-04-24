@@ -456,7 +456,7 @@ export default function DoctorSearch() {
 
       {/* Doctor Cards */}
       <div className="w-full px-4 py-8">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {doctors.map((doctor) => (
             <div
               key={doctor.id}

@@ -85,9 +85,24 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex flex-col md:flex-row h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className={`${sidebarCollapsed ? 'w-20' : 'w-72'} bg-white shadow-xl flex flex-col overflow-hidden transition-all duration-300 ease-in-out z-30 border-r border-gray-200`}>
+      {/* Sidebar - collapses to top bar on mobile */}
+      <div className={`
+        ${sidebarCollapsed ? 'w-16' : 'w-64'}
+        bg-white shadow-xl flex md:flex-col flex-row md:h-full h-16 md:overflow-hidden overflow-x-auto transition-all duration-300 ease-in-out z-30 border-r border-gray-200
+        fixed md:static top-0 left-0 right-0 md:relative
+        md:w-64 w-full
+      `}>
+        {/* Mobile menu button */}
+        <button
+          className="md:hidden absolute left-2 top-2 z-40 p-2 rounded-lg bg-indigo-600 text-white shadow"
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
         <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-indigo-600 to-blue-500 flex items-center justify-between">
           {!sidebarCollapsed && (
             <div>
@@ -180,10 +195,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto md:ml-64 mt-16 md:mt-0">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 p-4 shadow-sm sticky top-0 z-20">
-          <div className="flex justify-between items-center">
+        <div className="bg-white border-b border-gray-200 p-2 md:p-4 shadow-sm sticky top-0 z-20">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
             <div className="flex items-center">
               <h1 className="text-xl font-bold text-gray-900 tracking-tight">
                 {sidebarItems.find(item => item.id === activeTab)?.name}
@@ -228,7 +243,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-2 sm:p-4 md:p-6">
           {/* Breadcrumbs */}
           <div className="flex items-center text-sm text-gray-500 mb-6">
             <HomeIcon className="h-4 w-4 mr-2" />

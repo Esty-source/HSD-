@@ -184,6 +184,21 @@ export default function Telemedicine() {
   const startCall = async () => {
     try {
       setConnectionStatus('connecting');
+      // Check permissions before requesting
+      if (navigator.permissions) {
+        const camPerm = await navigator.permissions.query({ name: 'camera' });
+        const micPerm = await navigator.permissions.query({ name: 'microphone' });
+        if (camPerm.state === 'denied' || micPerm.state === 'denied') {
+          setError('Camera or microphone access has been denied. Please enable permissions in your browser settings and reload the page.');
+          setConnectionStatus('disconnected');
+          return;
+        }
+      }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setError('Your browser does not support video calls.');
+        setConnectionStatus('disconnected');
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: isVideoEnabled, 
         audio: isAudioEnabled 
@@ -219,7 +234,11 @@ export default function Telemedicine() {
       }, 1000);
 
     } catch (err) {
-      setError('Unable to access camera or microphone. Please check your permissions.');
+      if (err && err.name === 'NotAllowedError') {
+        setError('Camera or microphone access was denied. Please enable permissions in your browser settings (often a lock icon near the address bar) and reload the page.');
+      } else {
+        setError('Unable to access camera or microphone. Please check your permissions.');
+      }
       setConnectionStatus('disconnected');
       console.error('Error starting call:', err);
     }
@@ -227,26 +246,39 @@ export default function Telemedicine() {
 
   const toggleScreenShare = async () => {
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        setError('Your browser does not support screen sharing.');
+        return;
+      }
       if (!isScreenSharing) {
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
-          video: true,
-          audio: true
-        });
-        
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = screenStream;
-        }
-
-        screenStream.getTracks().forEach(track => {
-          const sender = peerConnection.current.getSenders().find(s => 
-            s.track.kind === track.kind
-          );
-          if (sender) {
-            sender.replaceTrack(track);
+        try {
+          const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+            video: true,
+            audio: true
+          });
+          
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = screenStream;
           }
-        });
 
-        setIsScreenSharing(true);
+          screenStream.getTracks().forEach(track => {
+            const sender = peerConnection.current.getSenders().find(s => 
+              s.track.kind === track.kind
+            );
+            if (sender) {
+              sender.replaceTrack(track);
+            }
+          });
+
+          setIsScreenSharing(true);
+        } catch (err) {
+          if (err && err.name === 'NotAllowedError') {
+            setError('Screen sharing was denied. Please enable permissions in your browser settings and try again.');
+          } else {
+            setError('Unable to share screen. Please check your permissions.');
+          }
+          return;
+        }
       } else {
         const stream = await navigator.mediaDevices.getUserMedia({ 
           video: isVideoEnabled, 
@@ -269,8 +301,12 @@ export default function Telemedicine() {
         setIsScreenSharing(false);
       }
     } catch (err) {
+      if (err && err.name === 'NotAllowedError') {
+        setError('Screen sharing was denied. Please enable permissions in your browser settings and try again.');
+      } else {
+        setError('Unable to share screen. Please check your permissions.');
+      }
       console.error('Error toggling screen share:', err);
-      setError('Unable to share screen. Please check your permissions.');
     }
   };
 

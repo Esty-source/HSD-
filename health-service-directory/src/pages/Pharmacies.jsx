@@ -559,7 +559,7 @@ export default function Pharmacies() {
                   </div>
                 </div>
                 
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
                   <div className="md:col-span-2 space-y-6">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-3">Services</h3>

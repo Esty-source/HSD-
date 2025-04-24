@@ -127,7 +127,7 @@ export default function Support() {
           </p>
         </div>
 
-        <div className="max-w-7xl mx-auto grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 md:gap-8 lg:grid-cols-4">
           {supportOptions.map((option) => (
             <div 
               key={option.title}
