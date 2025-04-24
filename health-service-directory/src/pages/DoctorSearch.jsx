@@ -42,7 +42,7 @@ const mockDoctors = [
     specialty: 'General Medicine',
     rating: 4.8,
     reviews: 128,
-    image: 'https://img.freepik.com/premium-photo/portrait-african-american-female-doctor-wearing-white-coat-stethoscope_219728-5645.jpg',
+    image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=987&q=80',
     distance: '0.8',
     nextAvailable: '2024-02-10T09:00:00',
     education: 'Faculty of Medicine and Biomedical Sciences, University of Yaoundé I',
@@ -58,7 +58,7 @@ const mockDoctors = [
     specialty: 'Cardiology',
     rating: 4.9,
     reviews: 256,
-    image: 'https://img.freepik.com/premium-photo/portrait-confident-african-american-male-doctor-medical-office_625516-1474.jpg',
+    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80',
     distance: '1.2',
     nextAvailable: '2024-02-11T14:30:00',
     education: 'Faculty of Health Sciences, University of Buea',
@@ -74,7 +74,7 @@ const mockDoctors = [
     specialty: 'Pediatrics',
     rating: 4.7,
     reviews: 189,
-    image: 'https://img.freepik.com/premium-photo/portrait-african-female-doctor-wearing-white-coat-stethoscope_219728-5641.jpg',
+    image: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2342&q=80',
     distance: '2.0',
     nextAvailable: '2024-02-10T11:15:00',
     education: 'Faculty of Medicine and Pharmaceutical Sciences, University of Douala',
@@ -90,7 +90,7 @@ const mockDoctors = [
     specialty: 'Surgery',
     rating: 4.9,
     reviews: 215,
-    image: 'https://img.freepik.com/premium-photo/portrait-african-male-doctor-wearing-white-coat-stethoscope_219728-5638.jpg',
+    image: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1964&q=80',
     distance: '1.5',
     nextAvailable: '2024-02-12T10:00:00',
     education: 'Faculty of Medicine and Biomedical Sciences, University of Yaoundé I',
@@ -106,7 +106,7 @@ const mockDoctors = [
     specialty: 'Internal Medicine',
     rating: 4.8,
     reviews: 178,
-    image: 'https://img.freepik.com/premium-photo/portrait-african-male-doctor-wearing-white-coat-stethoscope_219728-5639.jpg',
+    image: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80',
     distance: '2.5',
     nextAvailable: '2024-02-13T13:45:00',
     education: 'Faculty of Health Sciences, University of Bamenda',
@@ -138,7 +138,7 @@ const mockDoctors = [
     specialty: 'Infectious Diseases',
     rating: 4.7,
     reviews: 156,
-    image: 'https://img.freepik.com/premium-photo/portrait-african-male-doctor-wearing-white-coat-stethoscope_219728-5640.jpg',
+    image: 'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80',
     distance: '1.3',
     nextAvailable: '2024-02-15T15:00:00',
     education: 'Faculty of Medicine and Pharmaceutical Sciences, University of Douala',
@@ -170,7 +170,7 @@ const mockDoctors = [
     specialty: 'Family Medicine',
     rating: 4.9,
     reviews: 245,
-    image: 'https://img.freepik.com/premium-photo/portrait-african-female-doctor-wearing-white-coat-stethoscope_219728-5643.jpg',
+    image: 'https://images.unsplash.com/photo-1642391326410-a05a0fb1a1e5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1965&q=80',
     distance: '1.6',
     nextAvailable: '2024-02-17T11:45:00',
     education: 'Faculty of Medicine and Biomedical Sciences, University of Yaoundé I',
@@ -186,7 +186,7 @@ const mockDoctors = [
     specialty: 'General Medicine',
     rating: 4.7,
     reviews: 167,
-    image: 'https://img.freepik.com/premium-photo/portrait-african-male-doctor-wearing-white-coat-stethoscope_219728-5636.jpg',
+    image: 'https://images.unsplash.com/photo-1658204238967-3a81a063d162?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80',
     distance: '2.3',
     nextAvailable: '2024-02-18T14:15:00',
     education: 'Faculty of Health Sciences, University of Bamenda',
@@ -202,7 +202,7 @@ const mockDoctors = [
     specialty: 'Pediatrics',
     rating: 4.8,
     reviews: 189,
-    image: 'https://img.freepik.com/premium-photo/portrait-african-female-doctor-wearing-white-coat-stethoscope_219728-5644.jpg',
+    image: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=987&q=80',
     distance: '1.9',
     nextAvailable: '2024-02-19T09:45:00',
     education: 'Faculty of Medicine and Pharmaceutical Sciences, University of Douala',
@@ -218,7 +218,7 @@ const mockDoctors = [
     specialty: 'Surgery',
     rating: 4.9,
     reviews: 212,
-    image: 'https://img.freepik.com/premium-photo/portrait-african-male-doctor-wearing-white-coat-stethoscope_219728-5635.jpg',
+    image: 'https://images.unsplash.com/photo-1584467735815-f778f274e296?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80',
     distance: '2.4',
     nextAvailable: '2024-02-20T13:30:00',
     education: 'Faculty of Medicine and Biomedical Sciences, University of Yaoundé I',
@@ -279,7 +279,17 @@ export default function DoctorSearch() {
   }, [searchTerm, selectedSpecialty, selectedInsurance, sortBy]);
 
   const handleBookAppointment = (doctor) => {
-    navigate('/appointments', { state: { selectedDoctor: doctor } });
+    // Format the doctor data to match what the Appointments page expects
+    const formattedDoctor = {
+      id: doctor.id,
+      name: doctor.name,
+      specialty: doctor.specialty,
+      location: doctor.location,
+      image: doctor.image
+    };
+    
+    // Navigate to appointments page with the doctor information
+    navigate('/appointments', { state: { doctor: formattedDoctor } });
   };
 
   const renderRatingStars = (rating) => {
@@ -297,24 +307,21 @@ export default function DoctorSearch() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      {/* Search Section */}
-      <div className="w-full bg-white px-4 py-8 sm:px-6 lg:px-8">
-        <div className="w-full">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Find a Doctor</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Search for healthcare providers in your area
-          </p>
-        </div>
-      </div>
-
-      {/* Search Header */}
-      <div className="sticky top-16 z-10 bg-white/80 px-4 py-4 backdrop-blur-lg">
-        <div className="w-full">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            {/* Search Bar */}
-            <div className="relative flex-1">
-              <div className="relative rounded-full shadow-sm">
+    <div className="w-full min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white w-full">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-12 sm:py-16 max-w-[1600px] mx-auto">
+          <div className="flex flex-col items-center text-center">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+              Find a Doctor
+            </h1>
+            <p className="mt-2 text-blue-100 max-w-2xl">
+              Connect with trusted healthcare professionals for your medical needs
+            </p>
+          
+            {/* Search Bar in Hero Section */}
+            <div className="mt-8 w-full max-w-2xl mx-auto">
+              <div className="relative rounded-full shadow-lg overflow-hidden">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
                   <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
                 </div>
@@ -322,61 +329,126 @@ export default function DoctorSearch() {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full rounded-full border-0 py-3 pl-12 pr-4 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 sm:text-sm"
+                  className="block w-full border-0 py-4 pl-12 pr-4 bg-white/90 backdrop-blur-sm text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-white/50 sm:text-sm"
                   placeholder="Search by name, specialty, or location..."
                 />
               </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            {/* Filter Button */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-200 transition-all duration-300 hover:bg-gray-50 hover:shadow md:w-auto"
-            >
-              <AdjustmentsHorizontalIcon className="h-5 w-5" />
-              Filters
-            </button>
+      {/* Filters Section */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-[1600px] mx-auto">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-300 ${showFilters ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              >
+                <AdjustmentsHorizontalIcon className="h-5 w-5" />
+                {showFilters ? 'Hide Filters' : 'Show Filters'}
+              </button>
+              
+              <div className="text-sm text-gray-500">
+                Showing <span className="font-medium text-gray-900">{doctors.length}</span> doctors
+              </div>
+            </div>
+            
+            {/* Sort Options */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700">Sort by:</span>
+              <div className="flex rounded-lg overflow-hidden border border-gray-200">
+                <button
+                  onClick={() => setSortBy('rating')}
+                  className={`px-3 py-1.5 text-sm font-medium ${sortBy === 'rating' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                >
+                  Top Rated
+                </button>
+                <button
+                  onClick={() => setSortBy('distance')}
+                  className={`px-3 py-1.5 text-sm font-medium ${sortBy === 'distance' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                >
+                  Nearest
+                </button>
+                <button
+                  onClick={() => setSortBy('availability')}
+                  className={`px-3 py-1.5 text-sm font-medium ${sortBy === 'availability' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                >
+                  Soonest Available
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Filters Section */}
-          <div className={`mt-4 transform transition-all duration-300 ease-in-out ${showFilters ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 md:hidden'}`}>
-            <div className="grid gap-4 md:grid-cols-3">
+          {/* Expanded Filters Section */}
+          <div className={`transform transition-all duration-300 ease-in-out overflow-hidden ${showFilters ? 'max-h-96 border-t border-gray-200' : 'max-h-0'}`}>
+            <div className="p-4 sm:p-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {/* Specialty Filter */}
-              <select
-                value={selectedSpecialty}
-                onChange={(e) => setSelectedSpecialty(e.target.value)}
-                className="w-full rounded-lg border-gray-200 px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                {specialties.map((specialty) => (
-                  <option key={specialty} value={specialty}>
-                    {specialty}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Specialty</label>
+                <div className="relative">
+                  <select
+                    value={selectedSpecialty}
+                    onChange={(e) => setSelectedSpecialty(e.target.value)}
+                    className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    {specialties.map((specialty) => (
+                      <option key={specialty} value={specialty}>
+                        {specialty}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <svg className="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
 
               {/* Insurance Filter */}
-              <select
-                value={selectedInsurance}
-                onChange={(e) => setSelectedInsurance(e.target.value)}
-                className="w-full rounded-lg border-gray-200 px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                {insurances.map((insurance) => (
-                  <option key={insurance} value={insurance}>
-                    {insurance}
-                  </option>
-                ))}
-              </select>
-
-              {/* Sort By Filter */}
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full rounded-lg border-gray-200 px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option value="rating">Highest Rated</option>
-                <option value="distance">Nearest</option>
-                <option value="availability">Soonest Available</option>
-              </select>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Insurance</label>
+                <div className="relative">
+                  <select
+                    value={selectedInsurance}
+                    onChange={(e) => setSelectedInsurance(e.target.value)}
+                    className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  >
+                    {insurances.map((insurance) => (
+                      <option key={insurance} value={insurance}>
+                        {insurance}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <svg className="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Additional Filter Options */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Availability</label>
+                <div className="flex flex-wrap gap-2">
+                  <button className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-100">
+                    Today
+                  </button>
+                  <button className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-200">
+                    Tomorrow
+                  </button>
+                  <button className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-200">
+                    This Week
+                  </button>
+                  <button className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-200">
+                    Next Week
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -389,7 +461,7 @@ export default function DoctorSearch() {
             <div
               key={doctor.id}
               className="group relative overflow-hidden rounded-2xl bg-white shadow-md transition-all duration-300 hover:shadow-xl"
-              onClick={() => navigate(`/appointments/book/${doctor.id}`)}
+              onClick={() => handleBookAppointment(doctor)}
             >
               {/* Doctor Image */}
               <div className="relative h-48 overflow-hidden">
@@ -457,7 +529,13 @@ export default function DoctorSearch() {
 
               {/* Book Now Button */}
               <div className="absolute bottom-0 left-0 right-0 flex transform justify-center bg-gradient-to-t from-white p-4 pt-8 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-                <button className="w-full rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:bg-blue-700">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the parent onClick
+                    handleBookAppointment(doctor);
+                  }}
+                  className="w-full rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:bg-blue-700"
+                >
                   Book Appointment
                 </button>
               </div>

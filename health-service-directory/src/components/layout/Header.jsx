@@ -117,16 +117,18 @@ export default function Header() {
 
         {/* Desktop right section */}
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-6">
-          <Link
-            to="/profile"
-            className="flex items-center gap-x-2 group"
-            title="Go to Profile"
-          >
-            <span className="flex items-center justify-center h-9 w-9 rounded-full bg-blue-100 text-blue-700 font-bold text-lg uppercase border-2 border-blue-300 shadow group-hover:bg-blue-200 transition-all">
-              p
-            </span>
-            <span className="ml-2 text-gray-800 font-semibold group-hover:text-blue-700 transition-all">patient</span>
-          </Link>
+          {location.pathname.startsWith('/dashboard/patient') && (
+            <Link
+              to="/profile"
+              className="flex items-center gap-x-2 group"
+              title="Go to Profile"
+            >
+              <span className="flex items-center justify-center h-9 w-9 rounded-full bg-blue-100 text-blue-700 font-bold text-lg uppercase border-2 border-blue-300 shadow group-hover:bg-blue-200 transition-all">
+                p
+              </span>
+              <span className="ml-2 text-gray-800 font-semibold group-hover:text-blue-700 transition-all">patient</span>
+            </Link>
+          )}
           <div className="hidden lg:flex lg:items-center">
             <Link
               to="/auth"

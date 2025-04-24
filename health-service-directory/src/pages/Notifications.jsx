@@ -49,35 +49,35 @@ const getNotificationIcon = (type) => {
 const NotificationItem = ({ notification, onMarkAsRead }) => {
   return (
     <div
-      className={`p-4 mb-2 rounded-lg ${
-        notification.read ? 'bg-gray-50' : 'bg-white border-l-4 border-blue-500'
-      } hover:bg-gray-50 transition-colors duration-150 ease-in-out`}
+      className={`p-5 mb-3 rounded-xl shadow-sm ${notification.read ? 'bg-white/60' : 'bg-white border-l-4 border-blue-500'} 
+      hover:shadow-md transition-all duration-200 ease-in-out`}
     >
-      <div className="flex items-start space-x-3">
-        <div className="flex-shrink-0 group relative">
+      <div className="flex items-start space-x-4">
+        <div className={`p-3 rounded-full ${!notification.read ? 'bg-blue-50' : 'bg-gray-50'} flex-shrink-0`}>
           {getNotificationIcon(notification.type)}
-          <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 mt-1 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
-            {notification.title}
-          </div>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <p className="text-sm text-gray-500">{notification.message}</p>
-            </div>
-            <div className="flex items-center">
-              <ClockIcon className="h-4 w-4 text-gray-400 mr-1" />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h3 className="text-sm font-medium text-gray-900">{notification.title}</h3>
+            <div className="flex items-center bg-gray-50 rounded-full px-3 py-1">
+              <ClockIcon className="h-3.5 w-3.5 text-gray-400 mr-1.5" />
               <p className="text-xs text-gray-500">{timeAgo(notification.date)}</p>
             </div>
           </div>
-          {!notification.read && (
-            <button
-              onClick={() => onMarkAsRead(notification.id)}
-              className="mt-2 text-xs text-blue-600 hover:text-blue-800"
-            >
-              Mark as read
-            </button>
-          )}
+          <p className="mt-1 text-sm text-gray-600">{notification.message}</p>
+          <div className="mt-3 flex justify-between items-center">
+            <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-50 text-blue-700">
+              {notification.type.charAt(0).toUpperCase() + notification.type.slice(1)}
+            </span>
+            {!notification.read && (
+              <button
+                onClick={() => onMarkAsRead(notification.id)}
+                className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-xs font-semibold text-blue-600 shadow-sm ring-1 ring-inset ring-blue-200 hover:bg-blue-50 transition-colors"
+              >
+                Mark as read
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -87,6 +87,7 @@ const NotificationItem = ({ notification, onMarkAsRead }) => {
 export default function Notifications() {
   const { notifications, markAsRead, clearNotifications } = useNotifications();
   const [filter, setFilter] = useState('all');
+  const [showModal, setShowModal] = useState(false);
 
   const filteredNotifications = notifications.filter((notification) => {
     if (filter === 'all') return true;
@@ -95,93 +96,130 @@ export default function Notifications() {
   });
 
   const notificationTypes = [
-    { value: 'all', label: 'All' },
-    { value: 'unread', label: 'Unread' },
-    { value: 'appointment', label: 'Appointments' },
-    { value: 'pharmacy', label: 'Pharmacy' },
-    { value: 'resource', label: 'Resources' },
-    { value: 'health-record', label: 'Health Records' },
-    { value: 'system', label: 'System' },
-    { value: 'emergency', label: 'Emergency' },
+    { value: 'all', label: 'All', icon: BellIcon, color: 'bg-blue-100 text-blue-700' },
+    { value: 'unread', label: 'Unread', icon: BellIcon, color: 'bg-red-100 text-red-700' },
+    { value: 'appointment', label: 'Appointments', icon: CalendarIcon, color: 'bg-indigo-100 text-indigo-700' },
+    { value: 'pharmacy', label: 'Pharmacy', icon: BeakerIcon, color: 'bg-green-100 text-green-700' },
+    { value: 'resource', label: 'Resources', icon: DocumentTextIcon, color: 'bg-purple-100 text-purple-700' },
+    { value: 'health-record', label: 'Health Records', icon: HeartIcon, color: 'bg-pink-100 text-pink-700' },
+    { value: 'system', label: 'System', icon: CogIcon, color: 'bg-gray-100 text-gray-700' },
+    { value: 'emergency', label: 'Emergency', icon: ExclamationTriangleIcon, color: 'bg-red-100 text-red-700' },
   ];
 
   const unreadCount = notifications.filter(n => !n.read).length;
+  const markAllAsRead = () => {
+    notifications.filter(n => !n.read).forEach(n => markAsRead(n.id));
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-blue-50 via-white to-blue-100 py-8 px-2 sm:px-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl px-8 py-8 mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <BellIcon className="h-10 w-10 text-blue-600 drop-shadow" />
-            <div>
-              <h1 className="text-3xl font-extrabold text-blue-800 tracking-tight">Notifications</h1>
-              <p className="mt-1 text-sm text-gray-500">Stay updated with your healthcare activities</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2 mb-6">
-            {notificationTypes.map((type) => (
-              <button
-                key={type.value}
-                onClick={() => setFilter(type.value)}
-                className={`px-4 py-1.5 text-sm rounded-full border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 ${
-                  filter === type.value
-                    ? 'bg-blue-100 text-blue-800 border-blue-300 shadow'
-                    : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200'
-                }`}
-              >
-                {type.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-2">
-              <div className="relative group">
-                <BellIcon className="h-8 w-8 text-blue-600 hover:text-blue-700 transition-colors duration-200 cursor-pointer" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
-                    {unreadCount}
-                  </span>
-                )}
-                <div className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 mt-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  Notifications Center
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-8 px-4 sm:px-8">
+      <div className="max-w-5xl mx-auto">
+        {/* Header Section */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl px-6 sm:px-8 py-6 mb-8 text-white">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-full">
+                <BellIcon className="h-8 w-8 text-white" />
               </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Notifications</h1>
+                <p className="mt-1 text-sm text-blue-100">Stay updated with your healthcare activities</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 self-end sm:self-auto">
               {unreadCount > 0 && (
-                <p className="text-sm text-gray-600">
-                  You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
-                </p>
+                <button
+                  onClick={markAllAsRead}
+                  className="px-3 py-1.5 text-xs font-medium bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                >
+                  Mark all as read
+                </button>
               )}
+              <button
+                onClick={clearNotifications}
+                className="px-3 py-1.5 text-xs font-medium bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+              >
+                Clear all
+              </button>
             </div>
-            <button
-              onClick={clearNotifications}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition"
-            >
-              Clear all
-            </button>
-          </div>
-          <div className="w-full space-y-4">
-            {filteredNotifications.length > 0 ? (
-              filteredNotifications.map((notification) => (
-                <NotificationItem
-                  key={notification.id}
-                  notification={notification}
-                  onMarkAsRead={markAsRead}
-                />
-              ))
-            ) : (
-              <div className="w-full text-center py-8">
-                <BellIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No notifications</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  {filter === 'all'
-                    ? "You're all caught up!"
-                    : `No ${filter} notifications at the moment.`}
-                </p>
-              </div>
-            )}
           </div>
         </div>
-        <div className="text-xs text-gray-400 text-center mt-8">&copy; {new Date().getFullYear()} Health Service Directory Admin</div>
+        
+        {/* Filter Section */}
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+          <div className="p-4 sm:p-6 border-b border-gray-100">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Filter Notifications</h2>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <BellIcon className="h-6 w-6 text-blue-600" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+                {unreadCount > 0 && (
+                  <p className="text-sm font-medium text-gray-700">
+                    {unreadCount} unread
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap gap-2">
+              {notificationTypes.map((type) => {
+                const TypeIcon = type.icon;
+                return (
+                  <button
+                    key={type.value}
+                    onClick={() => setFilter(type.value)}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm rounded-full transition-all duration-200 ${filter === type.value
+                      ? `${type.color} shadow-sm`
+                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
+                  >
+                    <TypeIcon className="h-4 w-4" />
+                    <span>{type.label}</span>
+                    {type.value === 'unread' && unreadCount > 0 && (
+                      <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Notifications List */}
+          <div className="p-4 sm:p-6">
+            <div className="w-full space-y-4">
+              {filteredNotifications.length > 0 ? (
+                filteredNotifications.map((notification) => (
+                  <NotificationItem
+                    key={notification.id}
+                    notification={notification}
+                    onMarkAsRead={markAsRead}
+                  />
+                ))
+              ) : (
+                <div className="w-full text-center py-12 bg-gray-50 rounded-xl">
+                  <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-gray-100">
+                    <BellIcon className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <h3 className="mt-4 text-lg font-medium text-gray-900">No notifications</h3>
+                  <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto">
+                    {filter === 'all'
+                      ? "You're all caught up! We'll notify you when there's something new."
+                      : `No ${filter} notifications at the moment. Check back later or try a different filter.`}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <div className="text-xs text-gray-400 text-center mt-8">&copy; {new Date().getFullYear()} Health Service Directory</div>
       </div>
     </div>
   );

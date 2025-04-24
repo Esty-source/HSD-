@@ -12,7 +12,18 @@ import {
   DocumentDuplicateIcon,
   PhoneXMarkIcon,
   ExclamationCircleIcon,
+  PaperAirplaneIcon,
+  ClockIcon,
+  ArrowPathIcon,
+  UserCircleIcon,
+  CogIcon,
+  ShieldCheckIcon,
+  CheckCircleIcon,
+  FaceSmileIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
 } from '@heroicons/react/24/outline';
+import { VideoCameraIcon as VideoCameraSolid, MicrophoneIcon as MicrophoneSolid } from '@heroicons/react/24/solid';
 
 const mockDoctor = {
   id: 'mock-doctor',
@@ -426,189 +437,280 @@ export default function Telemedicine() {
   };
 
   return (
-    <div className="w-full max-w-none">
-      <div className="w-full bg-white px-4 py-8 sm:px-6 lg:px-8">
-        <div className="w-full">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Telemedicine</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Connect with healthcare providers through video consultations
-          </p>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white w-full max-w-none">
+      {/* Header with appointment info */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
+        <div className="w-full px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <img 
+                  src={appointment?.doctor?.image || mockDoctor.image} 
+                  alt={appointment?.doctor?.name || mockDoctor.name}
+                  className="h-12 w-12 rounded-full border-2 border-white/50 object-cover"
+                />
+              </div>
+              <div className="ml-4">
+                <h2 className="text-xl font-bold">{appointment?.doctor?.name || mockDoctor.name}</h2>
+                <p className="text-blue-100">{appointment?.doctor?.specialty || mockDoctor.specialty}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center rounded-full bg-white/20 px-4 py-1.5">
+                <ClockIcon className="mr-2 h-5 w-5" />
+                <span className="text-sm">
+                  {isCallActive ? formatDuration(callDuration) : 'Appointment: ' + (appointment?.time || '10:00 AM')}
+                </span>
+              </div>
+              <div className="flex items-center rounded-full bg-white/20 px-4 py-1.5">
+                <div className={`h-2 w-2 rounded-full mr-2 ${connectionStatus === 'connected' ? 'bg-green-400' : connectionStatus === 'connecting' ? 'bg-yellow-400 animate-pulse' : 'bg-red-400'}`} />
+                <span className="text-sm capitalize">{connectionStatus}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+      
+      {/* Error alert */}
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <ExclamationCircleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">{error}</h3>
+        <div className="w-full px-4 py-3 sm:px-6 lg:px-8">
+          <div className="rounded-lg bg-red-50 p-4 shadow-sm">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <ExclamationCircleIcon className="h-5 w-5 text-red-400" aria-hidden="true" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Connection Error</h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{error}</p>
+                </div>
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={() => window.location.reload()}
+                    className="rounded-md bg-red-50 px-3.5 py-2 text-sm font-semibold text-red-800 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-100"
+                  >
+                    <ArrowPathIcon className="inline-block mr-1.5 h-4 w-4" /> Refresh Connection
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
       <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
-        {/* Doctor Info Card */}
-        <div className="mb-6 overflow-hidden rounded-lg bg-white shadow">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="md:flex md:items-center md:justify-between">
-              <div className="flex items-center">
-                <div className="h-16 w-16 flex-shrink-0">
-                  <img
-                    className="h-16 w-16 rounded-full object-cover"
-                    src={appointment?.doctor?.image || 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80'}
-                    alt={appointment?.doctor?.name || 'Doctor'}
-                  />
-                </div>
-                <div className="ml-4">
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {appointment?.doctor?.name || 'Dr. Sarah Johnson'}
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    {appointment?.doctor?.specialty || 'General Practitioner'}
-                  </p>
-                  <div className="mt-1 flex items-center">
-                    <div className={`h-2.5 w-2.5 rounded-full ${
-                      connectionStatus === 'connected' ? 'bg-green-400' : 
-                      connectionStatus === 'connecting' ? 'bg-yellow-400' : 'bg-gray-400'
-                    }`} />
-                    <span className="ml-2 text-sm text-gray-500">
-                      {connectionStatus === 'connected' ? 'Online' : 
-                       connectionStatus === 'connecting' ? 'Connecting...' : 'Offline'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 flex md:ml-4 md:mt-0">
-                {!isCallActive ? (
-                  <button
-                    onClick={startCall}
-                    className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                  >
-                    <VideoCameraIcon className="mr-2 h-5 w-5" />
-                    Start Video Call
-                  </button>
-                ) : (
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={toggleVideo}
-                      className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ${
-                        isVideoEnabled 
-                          ? 'bg-gray-600 text-white hover:bg-gray-500' 
-                          : 'bg-red-600 text-white hover:bg-red-500'
-                      }`}
-                    >
-                      <VideoCameraIcon className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={toggleAudio}
-                      className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ${
-                        isAudioEnabled 
-                          ? 'bg-gray-600 text-white hover:bg-gray-500' 
-                          : 'bg-red-600 text-white hover:bg-red-500'
-                      }`}
-                    >
-                      <MicrophoneIcon className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={toggleScreenShare}
-                      className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ${
-                        isScreenSharing 
-                          ? 'bg-blue-600 text-white hover:bg-blue-500' 
-                          : 'bg-gray-600 text-white hover:bg-gray-500'
-                      }`}
-                    >
-                      <ComputerDesktopIcon className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={endCall}
-                      className="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500"
-                    >
-                      <PhoneXMarkIcon className="h-5 w-5" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-          {/* Video Section */}
-          <div className="lg:col-span-3">
-            <div className="overflow-hidden rounded-lg bg-gray-900 shadow">
-              <div className="relative aspect-video">
-                {isCallActive ? (
-                  <>
-                    <video
-                      ref={remoteVideoRef}
-                      autoPlay
-                      playsInline
-                      className="h-full w-full object-cover"
-                    />
-                    <div className="absolute bottom-4 right-4 h-32 w-48 overflow-hidden rounded-lg bg-black">
-                      <video
-                        ref={localVideoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        className="h-full w-full object-cover"
-                      />
+        {/* Main Telemedicine Container */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Video Call Section - Takes 2/3 of the space on large screens */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Video Call Container */}
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div className="relative aspect-video bg-gray-900 overflow-hidden">
+                {/* Remote Video (Doctor) */}
+                <video
+                  ref={remoteVideoRef}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  autoPlay
+                  playsInline
+                  muted={false}
+                ></video>
+                
+                {/* Local Video (Patient) - Small overlay */}
+                <div className="absolute bottom-4 right-4 w-1/4 aspect-video rounded-lg overflow-hidden border-2 border-white shadow-lg">
+                  <video
+                    ref={localVideoRef}
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    playsInline
+                    muted
+                  ></video>
+                  {!isVideoEnabled && (
+                    <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+                      <UserCircleIcon className="h-10 w-10 text-gray-400" />
                     </div>
-                  </>
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-gray-800">
-                    <div className="text-center">
-                      <VideoCameraIcon className="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 className="mt-2 text-sm font-semibold text-gray-200">
-                        No video call in progress
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-400">
-                        Click "Start Video Call" to begin your consultation
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Call Quality Indicator */}
-            {isCallActive && (
-              <div className="mt-4 flex items-center space-x-2">
-                <div className="flex items-center">
-                  <div className={`h-2 w-2 rounded-full ${
+                  )}
+                </div>
+                
+                {/* Call Quality Indicator */}
+                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-black/30 text-white text-sm flex items-center">
+                  <div className={`h-2 w-2 rounded-full mr-2 ${
                     callQuality === 'good' ? 'bg-green-400' :
-                    callQuality === 'fair' ? 'bg-yellow-400' :
-                    'bg-red-400'
-                  }`} />
-                  <span className="ml-2 text-sm text-gray-600">
-                    {callQuality === 'good' ? 'Excellent Connection' :
-                     callQuality === 'fair' ? 'Fair Connection' :
-                     'Poor Connection'}
-                  </span>
+                    callQuality === 'fair' ? 'bg-yellow-400' : 'bg-red-400'
+                  }`}></div>
+                  <span>{callQuality === 'good' ? 'Good Connection' : callQuality === 'fair' ? 'Fair Connection' : 'Poor Connection'}</span>
                 </div>
-                {isScreenSharing && (
-                  <span className="flex items-center text-sm text-blue-600">
-                    <ComputerDesktopIcon className="mr-1 h-4 w-4" />
-                    Screen Sharing Active
-                  </span>
+                
+                {/* Call Duration */}
+                {isCallActive && (
+                  <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-black/30 text-white text-sm flex items-center">
+                    <ClockIcon className="h-4 w-4 mr-1.5" />
+                    {formatDuration(callDuration)}
+                  </div>
+                )}
+                
+                {/* Call Status Overlay */}
+                {!isCallActive && (
+                  <div className="absolute inset-0 bg-gray-900/80 flex flex-col items-center justify-center text-white">
+                    <UserCircleIcon className="h-20 w-20 text-white/70 mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">Ready to connect with {appointment?.doctor?.name || 'Dr. Sarah Johnson'}</h3>
+                    <p className="text-blue-200 mb-6">Click the button below to start your video consultation</p>
+                    <button
+                      onClick={startCall}
+                      className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                    >
+                      <VideoCameraIcon className="-ml-1 mr-2 h-5 w-5" />
+                      Start Video Consultation
+                    </button>
+                  </div>
                 )}
               </div>
-            )}
+              
+              {/* Video Call Controls */}
+              <div className="bg-gray-800 px-6 py-4">
+                <div className="flex items-center justify-center space-x-6">
+                  <button
+                    onClick={toggleVideo}
+                    className={`p-3 rounded-full ${isVideoEnabled ? 'bg-gray-700 text-white' : 'bg-red-500 text-white'} hover:opacity-90 transition-colors`}
+                  >
+                    {isVideoEnabled ? <VideoCameraIcon className="h-6 w-6" /> : <XMarkIcon className="h-6 w-6" />}
+                  </button>
+                  
+                  <button
+                    onClick={toggleAudio}
+                    className={`p-3 rounded-full ${isAudioEnabled ? 'bg-gray-700 text-white' : 'bg-red-500 text-white'} hover:opacity-90 transition-colors`}
+                  >
+                    {isAudioEnabled ? <MicrophoneIcon className="h-6 w-6" /> : <XMarkIcon className="h-6 w-6" />}
+                  </button>
+                  
+                  <button
+                    onClick={toggleScreenShare}
+                    className={`p-3 rounded-full ${isScreenSharing ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white'} hover:opacity-90 transition-colors`}
+                  >
+                    <ComputerDesktopIcon className="h-6 w-6" />
+                  </button>
+                  
+                  <button
+                    onClick={() => setIsChatOpen(!isChatOpen)}
+                    className={`p-3 rounded-full ${isChatOpen ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white'} hover:opacity-90 transition-colors`}
+                  >
+                    <ChatBubbleLeftIcon className="h-6 w-6" />
+                  </button>
+                  
+                  <button
+                    onClick={endCall}
+                    className="p-3 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors"
+                  >
+                    <PhoneXMarkIcon className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Consultation Tools */}
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div className="p-4 border-b">
+                <h3 className="text-lg font-medium text-gray-900">Consultation Tools</h3>
+              </div>
+              <div className="p-4 grid grid-cols-2 gap-4">
+                <div className="col-span-2 sm:col-span-1">
+                  <div className="flex flex-col h-full bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                      <DocumentTextIcon className="h-5 w-5 mr-2 text-blue-500" />
+                      Medical Notes
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-4">Access and share medical documents during your consultation.</p>
+                    <div className="mt-auto">
+                      <input
+                        type="file"
+                        id="file-upload"
+                        className="hidden"
+                        onChange={handleFileShare}
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      />
+                      <label
+                        htmlFor="file-upload"
+                        className="inline-flex w-full justify-center items-center rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 cursor-pointer"
+                      >
+                        <DocumentDuplicateIcon className="mr-2 h-5 w-5 text-gray-500" />
+                        Upload Document
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="col-span-2 sm:col-span-1">
+                  <div className="flex flex-col h-full bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                      <VideoCameraIcon className="h-5 w-5 mr-2 text-blue-500" />
+                      Recording
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-4">Record your consultation for future reference (with permission).</p>
+                    <div className="mt-auto">
+                      <button
+                        onClick={toggleRecording}
+                        className={`inline-flex w-full justify-center items-center rounded-md px-3.5 py-2.5 text-sm font-semibold shadow-sm ${isRecording ? 'bg-red-600 text-white hover:bg-red-500' : 'bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'}`}
+                      >
+                        {isRecording ? (
+                          <>
+                            <div className="relative mr-2">
+                              <div className="h-2 w-2 rounded-full bg-white">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                              </div>
+                            </div>
+                            Stop Recording
+                          </>
+                        ) : (
+                          <>
+                            <VideoCameraIcon className="mr-2 h-5 w-5 text-gray-500" />
+                            Start Recording
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Shared Files */}
+              {sharedFiles.length > 0 && (
+                <div className="border-t p-4">
+                  <h4 className="text-sm font-medium text-gray-900 mb-3">Shared Documents</h4>
+                  <div className="space-y-2">
+                    {sharedFiles.map((file) => (
+                      <div
+                        key={file.id}
+                        className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
+                      >
+                        <div className="flex items-center">
+                          <DocumentDuplicateIcon className="h-5 w-5 text-blue-500" />
+                          <span className="ml-2 text-sm font-medium text-gray-900">{file.name}</span>
+                        </div>
+                        <a
+                          href={file.url}
+                          download={file.name}
+                          className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+                        >
+                          Download
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-
-          {/* Chat Section */}
+          
+          {/* Chat Section - Takes 1/3 of the space on large screens */}
           <div className="lg:col-span-1">
-            <div className="flex h-[calc(100vh-16rem)] flex-col overflow-hidden rounded-lg bg-white shadow">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden h-full flex flex-col">
               <div className="flex items-center justify-between border-b px-4 py-3">
-                <h3 className="text-lg font-medium text-gray-900">Chat</h3>
+                <h3 className="text-lg font-medium text-gray-900">Chat with {appointment?.doctor?.name || 'Dr. Sarah Johnson'}</h3>
                 <span className="text-sm text-gray-500">
                   {messages.length} messages
                 </span>
               </div>
-              <div className="h-96 overflow-y-auto p-4">
+              <div className="flex-1 overflow-y-auto p-4">
                 <div className="space-y-4">
                   {messages.map((msg) => (
                     <div
@@ -656,6 +758,33 @@ export default function Telemedicine() {
                   </button>
                 </form>
               </div>
+              
+              {/* Quick Responses */}
+              <div className="relative border-t p-3">
+                <button
+                  onClick={() => setShowQuickResponses(!showQuickResponses)}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                >
+                  <FaceSmileIcon className="h-4 w-4 mr-1.5" />
+                  Quick Responses
+                  {showQuickResponses ? <ChevronUpIcon className="h-4 w-4 ml-1" /> : <ChevronDownIcon className="h-4 w-4 ml-1" />}
+                </button>
+                {showQuickResponses && (
+                  <div className="absolute bottom-full left-0 mb-2 w-64 rounded-lg bg-white p-2 shadow-lg border border-gray-200">
+                    <div className="space-y-1">
+                      {quickResponses.map((response, index) => (
+                        <button
+                          key={index}
+                          onClick={() => sendQuickResponse(response)}
+                          className="block w-full rounded-md px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          {response}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -700,58 +829,6 @@ export default function Telemedicine() {
                   </div>
                 </button>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Quick Responses */}
-        <div className="relative mt-4">
-          <button
-            onClick={() => setShowQuickResponses(!showQuickResponses)}
-            className="text-sm text-gray-600 hover:text-gray-900"
-          >
-            Quick Responses
-          </button>
-          {showQuickResponses && (
-            <div className="absolute bottom-full left-0 mb-2 w-64 rounded-lg bg-white p-2 shadow-lg">
-              <div className="space-y-1">
-                {quickResponses.map((response, index) => (
-                  <button
-                    key={index}
-                    onClick={() => sendQuickResponse(response)}
-                    className="block w-full rounded-md px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    {response}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Shared Files */}
-        {sharedFiles.length > 0 && (
-          <div className="mt-4">
-            <h4 className="text-sm font-medium text-gray-900">Shared Files</h4>
-            <div className="mt-2 space-y-2">
-              {sharedFiles.map((file) => (
-                <div
-                  key={file.id}
-                  className="flex items-center justify-between rounded-lg bg-gray-50 p-2"
-                >
-                  <div className="flex items-center">
-                    <DocumentDuplicateIcon className="h-5 w-5 text-gray-400" />
-                    <span className="ml-2 text-sm text-gray-900">{file.name}</span>
-                  </div>
-                  <a
-                    href={file.url}
-                    download={file.name}
-                    className="text-sm text-blue-600 hover:text-blue-500"
-                  >
-                    Download
-                  </a>
-                </div>
-              ))}
             </div>
           </div>
         )}

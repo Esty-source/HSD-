@@ -9,8 +9,12 @@ import {
   VideoCameraIcon,
   DocumentTextIcon,
   BellIcon,
-  ArrowLeftOnRectangleIcon
+  ArrowLeftOnRectangleIcon,
+  HomeIcon,
+  Cog6ToothIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
+import { BellIcon as BellIconSolid } from '@heroicons/react/24/solid';
 import OverviewSection from '../../components/dashboard/doctor/OverviewSection';
 import AppointmentsSection from '../../components/dashboard/doctor/AppointmentsSection';
 import PatientsSection from '../../components/dashboard/doctor/PatientsSection';
@@ -83,72 +87,138 @@ export default function DoctorDashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className="w-72 bg-white border-r border-gray-200 shadow-sm">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-800">Doctor Dashboard</h2>
-          <p className="text-sm text-gray-500 mt-1">Welcome back, {userData.name}</p>
+      <div className="w-72 bg-white border-r border-gray-200 shadow-lg flex flex-col">
+        <div className="p-6 border-b border-gray-100 flex items-center space-x-3">
+          <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
+            <span className="text-lg font-bold text-white">HC</span>
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">HealthConnect</h2>
+            <p className="text-xs text-gray-500">Doctor Portal</p>
+          </div>
         </div>
-        <nav className="mt-4">
-          {sidebarItems.map((item) => (
+        
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center space-x-3">
+            <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+              <span className="text-sm font-medium text-indigo-600">
+                {userData.name.split(' ').map(n => n[0]).join('')}
+              </span>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900">{userData.name}</h3>
+              <p className="text-xs text-gray-500">Doctor ID: {userData.id || 'D-12345'}</p>
+            </div>
+          </div>
+        </div>
+        
+        <nav className="mt-6 flex-1 overflow-y-auto px-3">
+          <div className="mb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Main</div>
+          {sidebarItems.slice(0, 6).map((item) => (
             <button
               key={item.id}
               onClick={() => handleTabChange(item.id)}
-              className={`w-full flex items-center px-6 py-4 text-left transition-all duration-200 ${
+              className={`w-full flex items-center px-4 py-3 mb-1 rounded-xl text-left transition-all duration-200 ${
                 activeTab === item.id
-                  ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600 font-medium shadow-sm'
+                  ? 'bg-indigo-50 text-indigo-700 font-medium'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`}
             >
-              <item.icon className={`h-5 w-5 mr-3 ${activeTab === item.id ? 'text-blue-600' : 'text-gray-400'}`} />
-              {item.name}
+              <item.icon className={`h-5 w-5 mr-3 ${activeTab === item.id ? 'text-indigo-600' : 'text-gray-400'}`} />
+              <span>{item.name}</span>
+              {item.id === 'notifications' && unreadCount > 0 && (
+                <span className="ml-auto bg-red-100 text-red-600 text-xs font-medium px-2 py-0.5 rounded-full">
+                  {unreadCount}
+                </span>
+              )}
             </button>
           ))}
+          
+          <div className="mt-6 mb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Account</div>
+          {sidebarItems.slice(6).map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleTabChange(item.id)}
+              className={`w-full flex items-center px-4 py-3 mb-1 rounded-xl text-left transition-all duration-200 ${
+                activeTab === item.id
+                  ? 'bg-indigo-50 text-indigo-700 font-medium'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <item.icon className={`h-5 w-5 mr-3 ${activeTab === item.id ? 'text-indigo-600' : 'text-gray-400'}`} />
+              <span>{item.name}</span>
+              {item.id === 'notifications' && unreadCount > 0 && (
+                <span className="ml-auto bg-red-100 text-red-600 text-xs font-medium px-2 py-0.5 rounded-full">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+        
+        <div className="mt-auto p-4 border-t border-gray-100">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center px-6 py-4 text-left text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 mt-4"
+            className="w-full flex items-center justify-center px-4 py-2 rounded-xl text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
           >
-            <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-3 text-gray-400" />
-            Logout
+            <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-2" />
+            <span>Logout</span>
           </button>
-        </nav>
+        </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto w-full">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 p-6 shadow-sm">
+        <div className="bg-white border-b border-gray-200 p-4 shadow-sm sticky top-0 z-10">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-800">
-              {sidebarItems.find(item => item.id === activeTab)?.name}
-            </h1>
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-gray-800">
+                {sidebarItems.find(item => item.id === activeTab)?.name}
+              </h1>
+              <div className="ml-6 relative max-w-xs hidden md:block">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <MagnifyingGlassIcon className="h-4 w-4 text-gray-400" />
+                </div>
+                <input 
+                  type="text" 
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="Search..."
+                />
+              </div>
+            </div>
             <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => handleTabChange('notifications')}
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200 relative"
-              >
-                <BellIcon className="h-5 w-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {unreadCount}
-                  </span>
-                )}
+              <button className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                <BellIconSolid className="h-5 w-5 text-gray-600" />
+                <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-bold">{unreadCount || 0}</span>
               </button>
-              <div className="flex items-center space-x-2">
-                <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span className="text-sm font-medium text-blue-600">
+              <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                <Cog6ToothIcon className="h-5 w-5" />
+              </button>
+              <div className="flex items-center space-x-2 pl-2 border-l border-gray-200">
+                <div className="h-9 w-9 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm">
+                  <span className="text-sm font-medium">
                     {userData.name.split(' ').map(n => n[0]).join('')}
                   </span>
                 </div>
-                <span className="text-sm font-medium text-gray-700">{userData.name}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-8">
+        <div className="p-6 w-full max-w-7xl mx-auto">
+          {/* Breadcrumbs */}
+          <div className="flex items-center text-sm text-gray-500 mb-6">
+            <HomeIcon className="h-4 w-4 mr-1" />
+            <span className="mx-2">/</span>
+            <span className="font-medium text-gray-900">
+              {sidebarItems.find(item => item.id === activeTab)?.name}
+            </span>
+          </div>
+          
           {activeTab === 'overview' && <OverviewSection onTabChange={handleTabChange} />}
           {activeTab === 'appointments' && <AppointmentsSection />}
           {activeTab === 'patients' && <PatientsSection />}
@@ -161,4 +231,4 @@ export default function DoctorDashboard() {
       </div>
     </div>
   );
-} 
+}

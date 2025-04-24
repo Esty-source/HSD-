@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import {
   UserCircleIcon,
   KeyIcon,
@@ -47,6 +49,14 @@ export default function Profile() {
 
   const [editedData, setEditedData] = useState({});
   const [showRoleModal, setShowRoleModal] = useState(false);
+
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/auth');
+  };
 
   const handleEdit = (section) => {
     setEditMode({ ...editMode, [section]: true });
@@ -160,6 +170,21 @@ export default function Profile() {
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="bg-white rounded-2xl shadow-xl px-8 py-8 mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <UserCircleIcon className="h-12 w-12 text-blue-600 drop-shadow" />
+            <div>
+              <h1 className="text-3xl font-extrabold text-blue-800 tracking-tight">Profile</h1>
+              <p className="mt-1 text-sm text-gray-500">Manage your personal information</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="ml-auto px-4 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 transition"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
         {/* Profile Header */}
         <div className="mb-8 text-center">
           <div className="relative mx-auto h-32 w-32 overflow-hidden rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 p-1 shadow-xl">

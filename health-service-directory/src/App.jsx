@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/layout/Layout';
 import { NotificationsProvider } from './context/NotificationsContext';
+import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Lazy load components
@@ -18,6 +19,7 @@ const HealthResources = lazy(() => import('./pages/HealthResources'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const About = lazy(() => import('./pages/About'));
 const Contact = lazy(() => import('./pages/Contact'));
+const Support = lazy(() => import('./pages/Support'));
 const Auth = lazy(() => import('./pages/Auth'));
 const PatientDashboard = lazy(() => import('./pages/dashboard/PatientDashboard'));
 const DoctorDashboard = lazy(() => import('./pages/dashboard/DoctorDashboard'));
@@ -34,57 +36,65 @@ const LoadingSpinner = () => (
 function App() {
   return (
     <Router>
-      <NotificationsProvider>
-        <Layout>
+      <AuthProvider>
+        <NotificationsProvider>
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/pharmacies" element={<Pharmacies />} />
-              <Route path="/appointments" element={<Appointments />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/doctors" element={<DoctorSearch />} />
-              <Route path="/emergency" element={<Emergency />} />
-              <Route path="/telemedicine" element={<Telemedicine />} />
-              <Route path="/health-records" element={<HealthRecords />} />
-              <Route path="/resources" element={<HealthResources />} />
-              <Route path="/notifications" element={<Notifications />} />
-              
-              {/* Protected Routes */}
-              <Route 
-                path="/dashboard/admin/*" 
+              <Route path="/auth" element={<Layout><Auth /></Layout>} />
+              <Route
+                path="*"
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                } 
+                  <Layout>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/pharmacies" element={<Pharmacies />} />
+                      <Route path="/appointments" element={<Appointments />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/doctors" element={<DoctorSearch />} />
+                      <Route path="/emergency" element={<Emergency />} />
+                      <Route path="/telemedicine" element={<Telemedicine />} />
+                      <Route path="/health-records" element={<HealthRecords />} />
+                      <Route path="/resources" element={<HealthResources />} />
+                      <Route path="/notifications" element={<Notifications />} />
+                      <Route path="/support" element={<Support />} />
+                      {/* Protected Routes */}
+                      <Route 
+                        path="/dashboard/admin/*" 
+                        element={
+                          <ProtectedRoute allowedRoles={['admin']}>
+                            <AdminDashboard />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/dashboard/doctor/*" 
+                        element={
+                          <ProtectedRoute allowedRoles={['doctor']}>
+                            <DoctorDashboard />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      <Route 
+                        path="/dashboard/patient/*" 
+                        element={
+                          <ProtectedRoute allowedRoles={['patient']}>
+                            <PatientDashboard />
+                          </ProtectedRoute>
+                        } 
+                      />
+                      {/* Catch-all route for 404 */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Layout>
+                }
               />
-              <Route 
-                path="/dashboard/doctor/*" 
-                element={
-                  <ProtectedRoute allowedRoles={['doctor']}>
-                    <DoctorDashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/dashboard/patient/*" 
-                element={
-                  <ProtectedRoute allowedRoles={['patient']}>
-                    <PatientDashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              {/* Catch-all route for 404 */}
-              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
-        </Layout>
-        <Toaster position="top-right" />
-      </NotificationsProvider>
+          <Toaster position="top-right" />
+        </NotificationsProvider>
+      </AuthProvider>
     </Router>
   );
 }
