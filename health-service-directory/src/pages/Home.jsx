@@ -14,6 +14,7 @@ import {
   ArrowRightIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
+import FloatingNotifications from '../components/home/FloatingNotifications';
 
 export default function Home() {
   const features = [
@@ -79,7 +80,8 @@ export default function Home() {
   ];
 
   return (
-    <div className="w-full max-w-none">
+    <div className="w-full max-w-none relative">
+      <FloatingNotifications />
       {/* Hero Section */}
       <div className="relative w-full min-h-[600px]">
         {/* Background image */}
