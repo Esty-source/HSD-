@@ -112,10 +112,10 @@ export default function Notifications() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-8 px-4 sm:px-8 mt-9">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-8 px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 w-full">
+      <div className="w-full max-w-none">
         {/* Header Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl px-6 sm:px-8 py-6 mb-8 text-white">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl px-6 sm:px-8 py-6 mb-8 text-white w-full">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-full">
@@ -126,18 +126,18 @@ export default function Notifications() {
                 <p className="mt-1 text-sm text-blue-100">Stay updated with your healthcare activities</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 self-end sm:self-auto">
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  className="px-3 py-1.5 text-xs font-medium bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                  className="px-3 py-1.5 text-xs font-medium bg-white/20 hover:bg-white/30 rounded-full transition-colors whitespace-nowrap"
                 >
                   Mark all as read
                 </button>
               )}
               <button
                 onClick={clearNotifications}
-                className="px-3 py-1.5 text-xs font-medium bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+                className="px-3 py-1.5 text-xs font-medium bg-white/10 hover:bg-white/20 rounded-full transition-colors whitespace-nowrap"
               >
                 Clear all
               </button>
@@ -146,8 +146,8 @@ export default function Notifications() {
         </div>
         
         {/* Filter Section */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
-          <div className="p-4 sm:p-6 border-b border-gray-100">
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8 w-full">
+          <div className="p-4 sm:p-6 border-b border-gray-100 w-full">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Filter Notifications</h2>
               <div className="flex items-center gap-2">
@@ -167,7 +167,7 @@ export default function Notifications() {
               </div>
             </div>
             
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 overflow-x-hidden">
               {notificationTypes.map((type) => {
                 const TypeIcon = type.icon;
                 return (
@@ -192,7 +192,7 @@ export default function Notifications() {
           </div>
           
           {/* Notifications List */}
-          <div className="p-4 sm:p-6">
+          <div className="p-4 sm:p-6 w-full">
             <div className="w-full space-y-4">
               {filteredNotifications.length > 0 ? (
                 filteredNotifications.map((notification) => (

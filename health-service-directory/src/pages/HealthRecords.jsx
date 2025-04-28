@@ -376,7 +376,7 @@ export default function HealthRecords() {
   };
 
   return (
-    <div className="w-full max-w-none">
+    <div className="w-full">
       <div className="w-full bg-white px-4 py-8 sm:px-6 lg:px-8 mt-8">
         <div className="w-full">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Health Records</h1>
@@ -397,7 +397,7 @@ export default function HealthRecords() {
       {/* Add Record Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+          <div className="flex min-h-screen items-center justify-center px-4 py-10 text-center sm:p-0">
             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
 
             <div className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
@@ -490,7 +490,7 @@ export default function HealthRecords() {
       {/* Medical History Modal */}
       {showMedicalHistoryModal && selectedMedicalRecord && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+          <div className="flex min-h-screen items-center justify-center px-4 py-10 text-center sm:p-0">
             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
 
             <div className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
@@ -610,7 +610,7 @@ export default function HealthRecords() {
       {/* Lab Results Modal */}
       {showResultModal && selectedResult && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+          <div className="flex min-h-screen items-center justify-center px-4 py-10 text-center sm:p-0">
             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
 
             <div className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
@@ -723,7 +723,7 @@ export default function HealthRecords() {
       {/* Refill Modal */}
       {showRefillModal && selectedMedication && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+          <div className="flex min-h-screen items-center justify-center px-4 py-10 text-center sm:p-0">
             <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
 
             <div className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">

@@ -705,8 +705,8 @@ export default function Appointments() {
           </div>
 
           {showModal && (
-            <div className="fixed inset-0 z-10 overflow-y-auto">
-              <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 z-50 overflow-y-auto">
+              <div className="flex min-h-screen items-center justify-center px-4 py-10 text-center sm:p-0">
                 <div
                   className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
                   onClick={() => setShowModal(false)}
@@ -843,8 +843,8 @@ export default function Appointments() {
           )}
 
           {showCancelModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 mt-0">
+              <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 my-auto">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Cancel Appointment</h3>
                 <p className="text-gray-600 mb-6">
                   Are you sure you want to cancel your appointment with {selectedAppointment?.doctorName}? This action cannot be undone.
@@ -868,8 +868,8 @@ export default function Appointments() {
           )}
 
           {showRescheduleModal && (
-            <div className="fixed inset-0 z-10 overflow-y-auto">
-              <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 z-50 overflow-y-auto">
+              <div className="flex min-h-screen items-center justify-center px-4 py-10 text-center sm:p-0">
                 <div
                   className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
                   onClick={() => setShowRescheduleModal(false)}

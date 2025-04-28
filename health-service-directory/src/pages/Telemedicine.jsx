@@ -141,145 +141,224 @@ export default function Telemedicine() {
       timer = setInterval(() => {
         setCallDuration(prev => prev + 1);
       }, 1000);
+    } else {
+      // Reset call duration when call is not active
+      setCallDuration(0);
     }
+    
     return () => {
       if (timer) clearInterval(timer);
     };
   }, [isCallActive]);
 
   const stopMediaTracks = () => {
-    if (localVideoRef.current && localVideoRef.current.srcObject) {
-      localVideoRef.current.srcObject.getTracks().forEach(track => track.stop());
+    try {
+      // Stop local video tracks
+      if (localVideoRef.current && localVideoRef.current.srcObject) {
+        localVideoRef.current.srcObject.getTracks().forEach(track => {
+          try {
+            track.stop();
+          } catch (err) {
+            console.error('Error stopping track:', err);
+          }
+        });
+        localVideoRef.current.srcObject = null;
+      }
+      
+      // Stop remote video tracks
+      if (remoteVideoRef.current && remoteVideoRef.current.srcObject) {
+        remoteVideoRef.current.srcObject.getTracks().forEach(track => {
+          try {
+            track.stop();
+          } catch (err) {
+            console.error('Error stopping remote track:', err);
+          }
+        });
+        remoteVideoRef.current.srcObject = null;
+      }
+    } catch (err) {
+      console.error('Error stopping media tracks:', err);
     }
   };
 
   const initializePeerConnection = () => {
-    const configuration = {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-      ]
-    };
-
-    peerConnection.current = new RTCPeerConnection(configuration);
-
-    peerConnection.current.onicecandidate = event => {
-      if (event.candidate) {
-        // Send candidate to signaling server
-        console.log('New ICE candidate:', event.candidate);
+    try {
+      // Close existing connection if it exists
+      if (peerConnection.current) {
+        try {
+          peerConnection.current.close();
+        } catch (err) {
+          console.error('Error closing existing peer connection:', err);
+        }
       }
-    };
-
-    peerConnection.current.ontrack = event => {
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = event.streams[0];
-      }
-    };
-
-    peerConnection.current.onconnectionstatechange = () => {
-      setConnectionStatus(peerConnection.current.connectionState);
-    };
+      
+      // Create a new RTCPeerConnection with STUN servers
+      peerConnection.current = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' },
+          { urls: 'stun:stun3.l.google.com:19302' },
+          { urls: 'stun:stun4.l.google.com:19302' },
+        ],
+        iceCandidatePoolSize: 10,
+      });
+      
+      // Set up event handlers for the peer connection
+      peerConnection.current.onicecandidate = (event) => {
+        if (event.candidate) {
+          // In a real app, you would send this to the remote peer via signaling server
+          console.log('New ICE candidate:', event.candidate);
+        }
+      };
+      
+      peerConnection.current.ontrack = (event) => {
+        if (remoteVideoRef.current && event.streams && event.streams[0]) {
+          console.log('Received remote track', event.streams[0]);
+          remoteVideoRef.current.srcObject = event.streams[0];
+        }
+      };
+      
+      peerConnection.current.oniceconnectionstatechange = () => {
+        console.log('ICE connection state:', peerConnection.current.iceConnectionState);
+        if (peerConnection.current.iceConnectionState === 'disconnected' || 
+            peerConnection.current.iceConnectionState === 'failed' || 
+            peerConnection.current.iceConnectionState === 'closed') {
+          setCallQuality('poor');
+        } else if (peerConnection.current.iceConnectionState === 'connected') {
+          setCallQuality('good');
+        }
+      };
+      
+      peerConnection.current.onconnectionstatechange = () => {
+        console.log('Connection state:', peerConnection.current.connectionState);
+        if (peerConnection.current.connectionState === 'connected') {
+          setConnectionStatus('connected');
+        } else if (peerConnection.current.connectionState === 'disconnected' || 
+                  peerConnection.current.connectionState === 'failed' || 
+                  peerConnection.current.connectionState === 'closed') {
+          setConnectionStatus('disconnected');
+        }
+      };
+      
+      // Handle negotiation needed events
+      peerConnection.current.onnegotiationneeded = async () => {
+        try {
+          console.log('Negotiation needed event');
+          // In a real app, you would start the offer/answer process here
+        } catch (err) {
+          console.error('Error during negotiation:', err);
+        }
+      };
+      
+    } catch (err) {
+      console.error('Error initializing peer connection:', err);
+      setError('Failed to initialize video call connection: ' + (err.message || err));
+    }
   };
 
   const startCall = async () => {
     try {
+      console.log('Starting call...');
       setConnectionStatus('connecting');
-      // Check permissions before requesting
-      if (navigator.permissions) {
-        const camPerm = await navigator.permissions.query({ name: 'camera' });
-        const micPerm = await navigator.permissions.query({ name: 'microphone' });
-        if (camPerm.state === 'denied' || micPerm.state === 'denied') {
-          setError('Camera or microphone access has been denied. Please enable permissions in your browser settings and reload the page.');
-          setConnectionStatus('disconnected');
-          return;
-        }
-      }
+      
+      // Reset any previous error
+      setError('');
+      
+      // Check if browser supports getUserMedia
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         setError('Your browser does not support video calls.');
         setConnectionStatus('disconnected');
         return;
       }
+      
+      // Get user media with current video/audio settings
+      console.log('Requesting media with video:', isVideoEnabled, 'audio:', isAudioEnabled);
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: isVideoEnabled, 
         audio: isAudioEnabled 
       });
       
+      console.log('Media stream obtained:', stream.getTracks().map(t => t.kind).join(', '));
+      
+      // Set local video stream
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
+        console.log('Local video stream set');
       }
 
+      // Initialize WebRTC peer connection
       initializePeerConnection();
+      console.log('Peer connection initialized');
 
-      stream.getTracks().forEach(track => {
-        peerConnection.current.addTrack(track, stream);
-      });
+      // Add tracks to peer connection
+      if (peerConnection.current) {
+        stream.getTracks().forEach(track => {
+          try {
+            peerConnection.current.addTrack(track, stream);
+            console.log('Added track to peer connection:', track.kind);
+          } catch (err) {
+            console.error('Error adding track to peer connection:', err);
+          }
+        });
+      }
 
+      // Update UI state
       setIsCallActive(true);
-      setError('');
       setConnectionStatus('connected');
+      console.log('Call active, connection status set to connected');
       
-      // Simulate remote video for demo
+      // Simulate remote video for demo purposes
+      console.log('Simulating remote video in 1 second...');
       setTimeout(async () => {
         try {
           const remoteStream = await navigator.mediaDevices.getUserMedia({ 
             video: true, 
             audio: true 
           });
+          
           if (remoteVideoRef.current) {
             remoteVideoRef.current.srcObject = remoteStream;
+            console.log('Remote video stream set');
           }
         } catch (err) {
           console.error('Error simulating remote video:', err);
         }
       }, 1000);
 
+      console.log('Call started successfully');
     } catch (err) {
-      if (err && err.name === 'NotAllowedError') {
-        setError('Camera or microphone access was denied. Please enable permissions in your browser settings (often a lock icon near the address bar) and reload the page.');
-      } else {
-        setError('Unable to access camera or microphone. Please check your permissions.');
-      }
-      setConnectionStatus('disconnected');
       console.error('Error starting call:', err);
+      
+      // Handle specific permission errors
+      if (err.name === 'NotAllowedError') {
+        setError('Camera or microphone access was denied. Please enable permissions in your browser settings and reload the page.');
+      } else if (err.name === 'NotFoundError') {
+        setError('No camera or microphone found. Please connect a device and try again.');
+      } else if (err.name === 'NotReadableError') {
+        setError('Your camera or microphone is already in use by another application.');
+      } else {
+        setError('Unable to start call: ' + (err.message || err));
+      }
+      
+      setConnectionStatus('disconnected');
     }
   };
 
   const toggleScreenShare = async () => {
     try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-        setError('Your browser does not support screen sharing.');
-        return;
-      }
-      if (!isScreenSharing) {
-        try {
-          const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
-            video: true,
-            audio: true
-          });
+      if (isScreenSharing) {
+        // Stop screen sharing and revert to camera
+        if (localVideoRef.current && localVideoRef.current.srcObject) {
+          // Stop only video tracks, keep audio if possible
+          const videoTracks = localVideoRef.current.srcObject
+            .getTracks()
+            .filter(track => track.kind === 'video');
           
-          if (localVideoRef.current) {
-            localVideoRef.current.srcObject = screenStream;
-          }
-
-          screenStream.getTracks().forEach(track => {
-            const sender = peerConnection.current.getSenders().find(s => 
-              s.track.kind === track.kind
-            );
-            if (sender) {
-              sender.replaceTrack(track);
-            }
-          });
-
-          setIsScreenSharing(true);
-        } catch (err) {
-          if (err && err.name === 'NotAllowedError') {
-            setError('Screen sharing was denied. Please enable permissions in your browser settings and try again.');
-          } else {
-            setError('Unable to share screen. Please check your permissions.');
-          }
-          return;
+          videoTracks.forEach(track => track.stop());
         }
-      } else {
+        
+        // Get new camera stream
         const stream = await navigator.mediaDevices.getUserMedia({ 
           video: isVideoEnabled, 
           audio: isAudioEnabled 
@@ -288,118 +367,205 @@ export default function Telemedicine() {
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
         }
-
-        stream.getTracks().forEach(track => {
-          const sender = peerConnection.current.getSenders().find(s => 
-            s.track.kind === track.kind
-          );
-          if (sender) {
-            sender.replaceTrack(track);
+        
+        setIsScreenSharing(false);
+      } else {
+        // Start screen sharing
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+          setError('Your browser does not support screen sharing.');
+          return;
+        }
+        
+        // Save current audio track to add to screen share stream
+        let audioTrack = null;
+        if (localVideoRef.current && localVideoRef.current.srcObject) {
+          audioTrack = localVideoRef.current.srcObject
+            .getTracks()
+            .find(track => track.kind === 'audio');
+          
+          // Stop only video tracks
+          const videoTracks = localVideoRef.current.srcObject
+            .getTracks()
+            .filter(track => track.kind === 'video');
+          
+          videoTracks.forEach(track => track.stop());
+        }
+        
+        // Get screen sharing stream
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+          video: {
+            cursor: 'always',
+            displaySurface: 'monitor'
           }
         });
-
-        setIsScreenSharing(false);
+        
+        // If we had audio, add it to the screen sharing stream
+        if (audioTrack) {
+          try {
+            screenStream.addTrack(audioTrack);
+          } catch (err) {
+            console.warn('Could not add audio track to screen sharing stream:', err);
+            // If adding the track failed, get a new audio track
+            try {
+              const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              const newAudioTrack = audioStream.getAudioTracks()[0];
+              if (newAudioTrack) {
+                screenStream.addTrack(newAudioTrack);
+              }
+            } catch (audioErr) {
+              console.error('Could not get new audio track:', audioErr);
+            }
+          }
+        }
+        
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = screenStream;
+        }
+        
+        // Listen for the end of screen sharing
+        const videoTrack = screenStream.getVideoTracks()[0];
+        if (videoTrack) {
+          videoTrack.onended = async () => {
+            try {
+              const newStream = await navigator.mediaDevices.getUserMedia({ 
+                video: isVideoEnabled, 
+                audio: isAudioEnabled 
+              });
+              
+              if (localVideoRef.current) {
+                localVideoRef.current.srcObject = newStream;
+              }
+              
+              setIsScreenSharing(false);
+            } catch (err) {
+              console.error('Error reverting from screen sharing:', err);
+              setError('Error reverting from screen sharing. Please refresh the page.');
+            }
+          };
+        }
+        
+        setIsScreenSharing(true);
       }
     } catch (err) {
-      if (err && err.name === 'NotAllowedError') {
-        setError('Screen sharing was denied. Please enable permissions in your browser settings and try again.');
+      if (err.name === 'NotAllowedError') {
+        setError('Screen sharing permission was denied.');
       } else {
-        setError('Unable to share screen. Please check your permissions.');
+        setError('An error occurred while trying to share your screen: ' + (err.message || err));
+        console.error('Screen sharing error:', err);
       }
-      console.error('Error toggling screen share:', err);
-    }
-  };
-
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (message.trim()) {
-      const newMessage = {
-        id: messages.length + 1,
-        sender: 'patient',
-        message: message.trim(),
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-
-      const updatedMessages = [...messages, newMessage];
-      setMessages(updatedMessages);
-      setMessage('');
-
-      // Store messages in localStorage
-      if (appointment) {
-        localStorage.setItem(
-          `chat_${appointment.doctor.id}`,
-          JSON.stringify(updatedMessages)
-        );
-      }
-
-      // Simulate doctor's response
-      setTimeout(() => {
-        const responses = [
-          "I understand. Could you tell me more about your symptoms?",
-          "How long have you been experiencing this?",
-          "Have you taken any medication for this condition?",
-          "I recommend we discuss this further in our video consultation. Shall we start the call?",
-          "That's helpful information. Let me make a note of that.",
-          "Have you noticed any other symptoms?",
-          "I'll help you address this concern. First, let me ask you a few questions.",
-        ];
-
-        const doctorMessage = {
-          id: messages.length + 2,
-          sender: 'doctor',
-          message: responses[Math.floor(Math.random() * responses.length)],
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        };
-
-        const updatedMessagesWithResponse = [...updatedMessages, doctorMessage];
-        setMessages(updatedMessagesWithResponse);
-
-        if (appointment) {
-          localStorage.setItem(
-            `chat_${appointment.doctor.id}`,
-            JSON.stringify(updatedMessagesWithResponse)
-          );
-        }
-      }, 2000);
+      setIsScreenSharing(false);
     }
   };
 
   const toggleVideo = () => {
-    setIsVideoEnabled(!isVideoEnabled);
-    if (!isVideoEnabled) {
-      // Request video permissions
-      navigator.mediaDevices
-        .getUserMedia({ video: true })
-        .then(() => {
-          setError('');
-        })
-        .catch((err) => {
-          setError('Unable to access camera. Please check your permissions.');
-          setIsVideoEnabled(false);
-        });
+    try {
+      if (localVideoRef.current && localVideoRef.current.srcObject) {
+        const videoTrack = localVideoRef.current.srcObject
+          .getTracks()
+          .find(track => track.kind === 'video');
+        
+        if (videoTrack) {
+          videoTrack.enabled = !isVideoEnabled;
+          setIsVideoEnabled(!isVideoEnabled);
+          console.log('Video toggled:', !isVideoEnabled ? 'on' : 'off');
+        } else if (isCallActive) {
+          // If no video track but call is active, try to add video
+          navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+              const videoTrack = stream.getVideoTracks()[0];
+              if (videoTrack && localVideoRef.current.srcObject) {
+                localVideoRef.current.srcObject.addTrack(videoTrack);
+                setIsVideoEnabled(true);
+              }
+            })
+            .catch(err => {
+              console.error('Could not add video track:', err);
+              setError('Could not enable video: ' + err.message);
+            });
+        }
+      } else {
+        // Just toggle the state if not in a call yet
+        setIsVideoEnabled(!isVideoEnabled);
+      }
+    } catch (err) {
+      console.error('Error toggling video:', err);
+      setError('Error toggling video: ' + err.message);
     }
   };
 
   const toggleAudio = () => {
-    setIsAudioEnabled(!isAudioEnabled);
-    if (!isAudioEnabled) {
-      // Request audio permissions
-      navigator.mediaDevices
-        .getUserMedia({ audio: true })
-        .then(() => {
-          setError('');
-        })
-        .catch((err) => {
-          setError('Unable to access microphone. Please check your permissions.');
-          setIsAudioEnabled(false);
-        });
+    try {
+      if (localVideoRef.current && localVideoRef.current.srcObject) {
+        const audioTrack = localVideoRef.current.srcObject
+          .getTracks()
+          .find(track => track.kind === 'audio');
+        
+        if (audioTrack) {
+          audioTrack.enabled = !isAudioEnabled;
+          setIsAudioEnabled(!isAudioEnabled);
+          console.log('Audio toggled:', !isAudioEnabled ? 'on' : 'off');
+        } else if (isCallActive) {
+          // If no audio track but call is active, try to add audio
+          navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+              const audioTrack = stream.getAudioTracks()[0];
+              if (audioTrack && localVideoRef.current.srcObject) {
+                localVideoRef.current.srcObject.addTrack(audioTrack);
+                setIsAudioEnabled(true);
+              }
+            })
+            .catch(err => {
+              console.error('Could not add audio track:', err);
+              setError('Could not enable audio: ' + err.message);
+            });
+        }
+      } else {
+        // Just toggle the state if not in a call yet
+        setIsAudioEnabled(!isAudioEnabled);
+      }
+    } catch (err) {
+      console.error('Error toggling audio:', err);
+      setError('Error toggling audio: ' + err.message);
     }
   };
 
   const endCall = () => {
-    setIsCallActive(false);
-    setIsVideoEnabled(true);
-    setIsAudioEnabled(true);
+    try {
+      console.log('Ending call...');
+      
+      // Clear call duration timer
+      if (window.callDurationTimer) {
+        clearInterval(window.callDurationTimer);
+        window.callDurationTimer = null;
+      }
+      
+      // Stop all media tracks
+      stopMediaTracks();
+      
+      // Close peer connection
+      if (peerConnection.current) {
+        try {
+          peerConnection.current.close();
+        } catch (err) {
+          console.error('Error closing peer connection:', err);
+        }
+        peerConnection.current = null;
+      }
+      
+      // Update UI state
+      setIsCallActive(false);
+      setConnectionStatus('disconnected');
+      setIsScreenSharing(false);
+      
+      // Reset video and audio state for next call
+      setIsVideoEnabled(true);
+      setIsAudioEnabled(true);
+      
+      console.log('Call ended successfully');
+    } catch (err) {
+      console.error('Error ending call:', err);
+      setError('Error ending call: ' + err.message);
+    }
   };
 
   const formatDuration = (seconds) => {
@@ -407,6 +573,62 @@ export default function Telemedicine() {
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
     return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getSimulatedResponse = (message) => {
+    const responses = [
+      "I understand. Could you tell me more about your symptoms?",
+      "How long have you been experiencing this?",
+      "Have you taken any medication for this condition?",
+      "I recommend we discuss this further in our video consultation. Shall we start the call?",
+      "That's helpful information. Let me make a note of that.",
+      "Have you noticed any other symptoms?",
+      "I'll help you address this concern. First, let me ask you a few questions.",
+    ];
+
+    return responses[Math.floor(Math.random() * responses.length)];
+  };
+
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    
+    if (!message.trim()) return;
+    
+    const newMessage = {
+      id: messages.length + 1,
+      sender: 'user',
+      message: message.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    
+    const updatedMessages = [...messages, newMessage];
+    setMessages(updatedMessages);
+    setMessage('');
+    
+    // Store messages in localStorage
+    localStorage.setItem(
+      `chat_${appointment?.doctor?.id || mockDoctor.id}`,
+      JSON.stringify(updatedMessages)
+    );
+    
+    // Simulate doctor response after a short delay
+    setTimeout(() => {
+      const responseMessage = {
+        id: updatedMessages.length + 1,
+        sender: 'doctor',
+        message: getSimulatedResponse(message.trim()),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      
+      const messagesWithResponse = [...updatedMessages, responseMessage];
+      setMessages(messagesWithResponse);
+      
+      // Store updated messages in localStorage
+      localStorage.setItem(
+        `chat_${appointment?.doctor?.id || mockDoctor.id}`,
+        JSON.stringify(messagesWithResponse)
+      );
+    }, 1500);
   };
 
   const handleFileShare = (e) => {
