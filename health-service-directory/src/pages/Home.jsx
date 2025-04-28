@@ -93,15 +93,15 @@ export default function Home() {
         </div>
 
         {/* Content */}
-        <div className="relative w-full px-4 py-32 sm:px-6 sm:py-40 lg:px-8">
+        <div className="relative w-full px-4 py-32 sm:px-6 sm:py-40 lg:px-8 flex flex-col items-center justify-center text-center">
           <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
             Your Health, Our Priority
           </h1>
-          <p className="mt-6 max-w-xl text-xl text-gray-100">
+          <p className="mt-6 max-w-xl mx-auto text-xl text-gray-100">
             Find and book appointments with qualified healthcare providers. Access emergency services
             and locate nearby pharmacies all in one place.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row items-center gap-4 sm:gap-x-6">
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-x-6">
             <Link
               to="/doctors"
               className="rounded-xl bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
