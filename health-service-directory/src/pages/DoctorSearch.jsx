@@ -309,7 +309,7 @@ export default function DoctorSearch() {
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white w-full">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white w-full mt-8">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-12 sm:py-16 max-w-[1600px] mx-auto">
           <div className="flex flex-col items-center text-center">
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">

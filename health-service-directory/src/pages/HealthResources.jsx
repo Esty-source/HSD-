@@ -132,7 +132,7 @@ export default function HealthResources() {
   return (
     <div className="w-full max-w-none bg-gradient-to-b from-blue-50 to-white min-h-screen pb-12">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-700 py-16 shadow-xl">
+      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-700 py-16 shadow-xl mt-8">
         <div className="absolute inset-0 opacity-20">
           <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
             <path fill="#ffffff" fillOpacity="1" d="M0,160L48,144C96,128,192,96,288,106.7C384,117,480,171,576,197.3C672,224,768,224,864,197.3C960,171,1056,117,1152,117.3C1248,117,1344,171,1392,197.3L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>

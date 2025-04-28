@@ -287,7 +287,7 @@ export default function Appointments() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white w-full">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white w-full mt-8">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
@@ -694,7 +694,7 @@ export default function Appointments() {
                   <p className="text-xs text-indigo-700 mb-3">Contact our support team for assistance with your appointments.</p>
                   <button 
                     className="w-full inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors"
-                    onClick={() => alert('Support feature coming soon!')}
+                    onClick={() => navigate('/contact')}
                   >
                     <PhoneIcon className="mr-2 h-4 w-4" />
                     Contact Support

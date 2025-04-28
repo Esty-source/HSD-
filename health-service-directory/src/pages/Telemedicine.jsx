@@ -475,7 +475,7 @@ export default function Telemedicine() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white w-full max-w-none">
       {/* Header with appointment info */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg mt-14">
         <div className="w-full px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center">
