@@ -2,6 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Dark mode styles */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: #1a1a1a;
+  color: #f3f4f6;
+}
+
+.dark .bg-white {
+  background-color: #2d2d2d;
+}
+
+.dark .text-gray-700,
+.dark .text-gray-800 {
+  color: #e5e7eb;
+}
+
+.dark .text-gray-500,
+.dark .text-gray-600 {
+  color: #9ca3af;
+}
+
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: #374151;
+}
+
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background-color: #374151;
+}
+
+.dark .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Dark mode form elements */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #3b82f6;
+}
+
+/* Dark mode button styles */
+.dark button.bg-blue-600 {
+  background-color: #3b82f6;
+}
+
+.dark button.bg-blue-600:hover {
+  background-color: #2563eb;
+}
+
+/* Dark mode toggle switch */
+.dark .bg-gray-200 {
+  background-color: #4b5563;
+}
+
+/* Transition for theme changes */
+body,
+.bg-white,
+input,
+select,
+textarea,
+button {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
 @layer base {
   html {
     font-family: Inter, system-ui, sans-serif;

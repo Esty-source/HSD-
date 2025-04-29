@@ -44,11 +44,11 @@ export default function Auth() {
     try {
       if (isLogin) {
         // Simulate API call for login
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 800));
         
         // Mock successful login response
         const mockResponse = {
-          token: 'mock-token',
+          token: 'mock-token-' + Date.now(), // Add timestamp to ensure token uniqueness
           user: {
             id: 1,
             name: data.email.split('@')[0],
@@ -58,27 +58,33 @@ export default function Auth() {
           },
         };
 
+        // First store the authentication data
         login(mockResponse.user, mockResponse.token);
+        
+        // Then show success message
         toast.success('Login successful!');
         
-        // Redirect to the appropriate dashboard
-        if (mockResponse.user.role === 'admin') {
-          navigate('/dashboard/admin');
-        } else if (mockResponse.user.role === 'doctor') {
-          navigate('/dashboard/doctor');
-        } else {
-          navigate('/dashboard/patient');
-        }
+        // Wait a moment to ensure state is updated before redirecting
+        setTimeout(() => {
+          // Redirect to the appropriate dashboard
+          if (mockResponse.user.role === 'admin') {
+            navigate('/dashboard/admin', { replace: true });
+          } else if (mockResponse.user.role === 'doctor') {
+            navigate('/dashboard/doctor', { replace: true });
+          } else {
+            navigate('/dashboard/patient', { replace: true });
+          }
+        }, 100);
       } else {
         // Simulate API call for registration
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 800));
         
         // Ensure the role is set from the userType state
         data.role = userType;
         
         // Mock successful registration response
         const mockResponse = {
-          token: 'mock-token',
+          token: 'mock-token-' + Date.now(), // Add timestamp to ensure token uniqueness
           user: {
             id: 2,
             name: data.name,
@@ -87,17 +93,23 @@ export default function Auth() {
           },
         };
 
+        // First store the authentication data
         login(mockResponse.user, mockResponse.token);
+        
+        // Then show success message
         toast.success('Registration successful!');
         
-        // Redirect to the appropriate dashboard
-        if (data.role === 'admin') {
-          navigate('/dashboard/admin');
-        } else if (data.role === 'doctor') {
-          navigate('/dashboard/doctor');
-        } else {
-          navigate('/dashboard/patient');
-        }
+        // Wait a moment to ensure state is updated before redirecting
+        setTimeout(() => {
+          // Redirect to the appropriate dashboard
+          if (data.role === 'admin') {
+            navigate('/dashboard/admin', { replace: true });
+          } else if (data.role === 'doctor') {
+            navigate('/dashboard/doctor', { replace: true });
+          } else {
+            navigate('/dashboard/patient', { replace: true });
+          }
+        }, 100);
       }
     } catch (error) {
       toast.error(error.message || 'An error occurred');

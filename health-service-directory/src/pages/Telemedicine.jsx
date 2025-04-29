@@ -62,8 +62,36 @@ export default function Telemedicine() {
   const [showQuickResponses, setShowQuickResponses] = useState(false);
 
   useEffect(() => {
-    // Handle appointment state
-    if (location.state?.appointment) {
+    // Check if we're starting a session directly from the patient dashboard
+    if (location.state?.startSession) {
+      const consultationId = location.state.consultationId;
+      console.log('Starting consultation session with ID:', consultationId);
+      
+      // Fetch consultation details from API or use mock data
+      // For now, we'll use mock data
+      setAppointment({
+        id: consultationId,
+        doctor: mockDoctor,
+        date: new Date(),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      });
+      
+      // Auto-start the call after a short delay
+      setTimeout(() => {
+        startCall();
+      }, 1000);
+      
+      // Initialize chat with a welcome message
+      const initialMessage = {
+        id: 1,
+        sender: 'doctor',
+        message: "Welcome to your scheduled consultation! I'm Dr. Sarah Johnson. I'll be with you shortly.",
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages([initialMessage]);
+    }
+    // Handle regular appointment state
+    else if (location.state?.appointment) {
       setAppointment(location.state.appointment);
       const storedMessages = localStorage.getItem(`chat_${location.state.appointment.doctor.id}`);
       if (storedMessages) {
@@ -556,10 +584,34 @@ export default function Telemedicine() {
       setIsCallActive(false);
       setConnectionStatus('disconnected');
       setIsScreenSharing(false);
+      setCallDuration(0);
       
       // Reset video and audio state for next call
       setIsVideoEnabled(true);
       setIsAudioEnabled(true);
+      
+      // Show confirmation message
+      const confirmationMessage = {
+        id: Date.now(),
+        sender: 'system',
+        message: 'Call ended. Thank you for using our telemedicine service.',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
+      setMessages((prev) => [...prev, confirmationMessage]);
+
+      // Save chat history
+      if (appointment?.doctor?.id) {
+        localStorage.setItem(
+          `chat_${appointment.doctor.id}`,
+          JSON.stringify([...messages, confirmationMessage])
+        );
+      }
+      
+      // Navigate back to patient dashboard if we came from there
+      if (location.state?.returnTo) {
+        navigate(location.state.returnTo);
+      }
       
       console.log('Call ended successfully');
     } catch (err) {
@@ -666,33 +718,39 @@ export default function Telemedicine() {
     }
   };
 
-  const toggleRecording = () => {
-    if (!isRecording) {
-      setIsRecording(true);
-      // Start recording logic here
-    } else {
-      setIsRecording(false);
-      // Stop recording logic here
-    }
-  };
 
-  const sendQuickResponse = (response) => {
-    const newMessage = {
-      id: messages.length + 1,
-      sender: 'patient',
-      message: response,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    const updatedMessages = [...messages, newMessage];
-    setMessages(updatedMessages);
-    setShowQuickResponses(false);
-    if (appointment) {
-      localStorage.setItem(
-        `chat_${appointment.doctor.id}`,
-        JSON.stringify(updatedMessages)
-      );
-    }
+
+
+  ;
+
+const toggleRecording = () => {
+  if (!isRecording) {
+    setIsRecording(true);
+    // Start recording logic here
+  } else {
+    setIsRecording(false);
+    // Stop recording logic here
+  }
+};
+
+const sendQuickResponse = (response) => {
+  const newMessage = {
+    id: messages.length + 1,
+    sender: 'patient',
+    message: response,
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   };
+  const updatedMessages = [...messages, newMessage];
+  setMessages(updatedMessages);
+  setShowQuickResponses(false);
+  if (appointment) {
+    localStorage.setItem(
+      `chat_${appointment.doctor.id}`,
+      JSON.stringify(updatedMessages)
+    );
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white w-full max-w-none">

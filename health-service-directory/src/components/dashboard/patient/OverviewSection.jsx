@@ -660,8 +660,8 @@ export default function OverviewSection({ setActiveTab }) {
       
       {/* Reschedule Appointment Modal */}
       {showRescheduleModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full transform transition-all my-8">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4 transform transition-all">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-gray-900">Reschedule Appointment</h3>
               <button 
@@ -672,9 +672,9 @@ export default function OverviewSection({ setActiveTab }) {
               </button>
             </div>
             
-            <div className="mb-6">
-              <div className="bg-blue-50 p-4 rounded-xl mb-6">
-                <h4 className="text-md font-semibold mb-2 text-blue-800">Current Appointment</h4>
+            <div className="mb-5">
+              <div className="bg-blue-50 p-4 rounded-xl mb-5">
+                <h4 className="text-md font-semibold mb-3 text-blue-800">Current Appointment</h4>
                 <div className="flex items-start space-x-4">
                   <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                     <span className="text-sm font-medium text-blue-600">RW</span>
@@ -682,7 +682,7 @@ export default function OverviewSection({ setActiveTab }) {
                   <div>
                     <p className="font-medium text-gray-900">Dr. Rebecca Wilson</p>
                     <p className="text-sm text-gray-600">Primary Care Physician</p>
-                    <div className="mt-1 flex items-center text-sm text-gray-500">
+                    <div className="mt-2 flex items-center text-sm text-gray-500">
                       <CalendarIcon className="h-4 w-4 mr-1 text-blue-500" />
                       <span>{formatDate(nextAppointmentDate)}</span>
                       <span className="mx-2">•</span>
@@ -693,25 +693,25 @@ export default function OverviewSection({ setActiveTab }) {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">New Date</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">New Date</label>
                   <input 
                     type="date" 
                     name="date" 
                     value={appointmentForm.date} 
                     onChange={handleAppointmentFormChange}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">New Time</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">New Time</label>
                   <select 
                     name="time" 
                     value={appointmentForm.time} 
                     onChange={handleAppointmentFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {availableTimeSlots.map(slot => (
                       <option key={slot} value={slot}>{slot}</option>
@@ -778,23 +778,23 @@ export default function OverviewSection({ setActiveTab }) {
               </div>
             </div>
             
-            <div className="border-t border-gray-200 pt-6">
-              <div className="bg-gray-50 p-4 rounded-lg mb-6">
+            <div className="border-t border-gray-200 pt-5 mt-2">
+              <div className="bg-gray-50 p-4 rounded-lg mb-5">
                 <p className="text-sm text-gray-600 mb-2"><span className="font-medium">Cancellation Policy:</span> Please reschedule at least 24 hours in advance to avoid a cancellation fee.</p>
                 <p className="text-sm text-gray-600"><span className="font-medium">Insurance:</span> Your insurance will be automatically applied to this appointment.</p>
               </div>
             </div>
             
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end space-x-3 sticky bottom-0 pt-3 bg-white border-t border-gray-100 mt-2">
               <button
                 onClick={closeRescheduleModal}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={handleRescheduleAppointment}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
               >
                 Confirm Reschedule
               </button>
@@ -805,8 +805,8 @@ export default function OverviewSection({ setActiveTab }) {
       
       {/* Payment Modal */}
       {showPaymentModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full transform transition-all my-8">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4 transform transition-all">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-gray-900">Make Payment</h3>
               <button 
@@ -817,11 +817,11 @@ export default function OverviewSection({ setActiveTab }) {
               </button>
             </div>
             
-            <div className="mb-6">
+            <div className="mb-5">
               {/* Payment Summary */}
-              <div className="bg-blue-50 p-4 rounded-xl mb-6">
+              <div className="bg-blue-50 p-4 rounded-xl mb-5">
                 <h4 className="text-md font-semibold mb-3 text-blue-800">Payment Summary</h4>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Dr. Wilson Consultation</span>
                     <span className="text-sm font-medium">75,000 FCFA</span>
@@ -830,7 +830,7 @@ export default function OverviewSection({ setActiveTab }) {
                     <span className="text-sm text-gray-600">Lab Tests</span>
                     <span className="text-sm font-medium">100,000 FCFA</span>
                   </div>
-                  <div className="border-t border-blue-200 pt-2 mt-2">
+                  <div className="border-t border-blue-200 pt-3 mt-2">
                     <div className="flex justify-between">
                       <span className="text-sm font-medium text-gray-900">Total Amount</span>
                       <span className="text-sm font-bold text-gray-900">175,000 FCFA</span>
@@ -932,23 +932,23 @@ export default function OverviewSection({ setActiveTab }) {
               </div>
             </div>
             
-            <div className="border-t border-gray-200 pt-6">
-              <div className="bg-gray-50 p-4 rounded-lg mb-6">
+            <div className="border-t border-gray-200 pt-5 mt-2">
+              <div className="bg-gray-50 p-4 rounded-lg mb-5">
                 <p className="text-sm text-gray-600 mb-2"><span className="font-medium">Secure Payment:</span> All transactions are encrypted and secure.</p>
                 <p className="text-sm text-gray-600"><span className="font-medium">Need Help?</span> Contact our support team at support@healthconnect.cm</p>
               </div>
             </div>
             
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end space-x-3 sticky bottom-0 pt-3 bg-white border-t border-gray-100 mt-2">
               <button
                 onClick={closePaymentModal}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={handlePaymentSubmission}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium"
               >
                 Pay 175,000 FCFA
               </button>
@@ -959,8 +959,8 @@ export default function OverviewSection({ setActiveTab }) {
       
       {/* Health Metrics Modal */}
       {showMetricsModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-3xl w-full transform transition-all my-8">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto m-4 transform transition-all">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold text-gray-900">Update Health Metrics</h3>
               <button 
@@ -971,8 +971,8 @@ export default function OverviewSection({ setActiveTab }) {
               </button>
             </div>
             
-            <div className="mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="mb-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Weight */}
                 <div className="bg-blue-50 p-4 rounded-xl">
                   <h4 className="text-lg font-semibold mb-4 text-blue-800">Weight</h4>
@@ -1113,16 +1113,16 @@ export default function OverviewSection({ setActiveTab }) {
               </div>
             </div>
             
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-between sticky bottom-0 pt-3 bg-white border-t border-gray-100 mt-4">
               <button
                 onClick={closeMetricsModal}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveMetrics}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
               >
                 Save Changes
               </button>

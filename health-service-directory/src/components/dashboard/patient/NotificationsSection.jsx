@@ -1,11 +1,20 @@
 import { useState } from 'react';
 import { BellIcon, CalendarIcon, DocumentTextIcon, CreditCardIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { toast } from 'react-hot-toast';
+import ConfirmationModal from '../../ui/ConfirmationModal';
 
 export default function NotificationsSection() {
   const [activeFilter, setActiveFilter] = useState('all');
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationData, setConfirmationData] = useState({
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    type: 'primary'
+  });
 
   // Mock data - will be replaced with real API data
-  const notifications = [
+  const [notifications, setNotifications] = useState([
     {
       id: 1,
       type: 'appointment',
@@ -42,7 +51,7 @@ export default function NotificationsSection() {
       isRead: false,
       priority: 'high'
     }
-  ];
+  ]);
 
   const filters = [
     { id: 'all', name: 'All Notifications', icon: BellIcon },
@@ -54,6 +63,48 @@ export default function NotificationsSection() {
   const filteredNotifications = notifications.filter(
     notification => activeFilter === 'all' || notification.type === activeFilter
   );
+
+  // Function to show confirmation modal
+  const showConfirmModal = (title, message, onConfirm, type = 'primary') => {
+    setConfirmationData({ title, message, onConfirm, type });
+    setShowConfirmation(true);
+  };
+
+  // Function to mark all notifications as read
+  const markAllAsRead = () => {
+    const updatedNotifications = notifications.map(notification => ({
+      ...notification,
+      isRead: true
+    }));
+
+    setNotifications(updatedNotifications);
+    toast.success('All notifications marked as read', {
+      duration: 3000,
+      position: 'top-center',
+    });
+  };
+
+  // Function to clear all notifications
+  const clearAllNotifications = () => {
+    setNotifications([]);
+    toast.success('All notifications cleared', {
+      duration: 3000,
+      position: 'top-center',
+    });
+  };
+
+  // Function to mark a single notification as read
+  const markAsRead = (id) => {
+    const updatedNotifications = notifications.map(notification => 
+      notification.id === id ? { ...notification, isRead: true } : notification
+    );
+
+    setNotifications(updatedNotifications);
+    toast.success('Notification marked as read', {
+      duration: 2000,
+      position: 'top-center',
+    });
+  };
 
   const getNotificationIcon = (type) => {
     switch (type) {
@@ -91,10 +142,41 @@ export default function NotificationsSection() {
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-2xl font-bold text-gray-800">Notifications</h2>
         <div className="flex space-x-2">
-          <button className="px-6 py-3 bg-white text-gray-700 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+          <button 
+            onClick={() => {
+              if (notifications.some(n => !n.isRead)) {
+                markAllAsRead();
+              } else {
+                toast.info('All notifications are already read', {
+                  duration: 2000,
+                  position: 'top-center',
+                });
+              }
+            }}
+            className="px-6 py-3 bg-white text-gray-700 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+            disabled={notifications.length === 0}
+          >
             <span className="font-medium">Mark all as read</span>
           </button>
-          <button className="px-6 py-3 bg-white text-gray-700 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+          <button 
+            onClick={() => {
+              if (notifications.length > 0) {
+                showConfirmModal(
+                  'Clear All Notifications',
+                  'Are you sure you want to clear all notifications? This action cannot be undone.',
+                  clearAllNotifications,
+                  'danger'
+                );
+              } else {
+                toast.info('No notifications to clear', {
+                  duration: 2000,
+                  position: 'top-center',
+                });
+              }
+            }}
+            className="px-6 py-3 bg-white text-gray-700 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+            disabled={notifications.length === 0}
+          >
             <span className="font-medium">Clear all</span>
           </button>
         </div>
@@ -155,7 +237,10 @@ export default function NotificationsSection() {
                   </div>
                   <div className="mt-4 flex items-center space-x-4">
                     {!notification.isRead ? (
-                      <button className="text-blue-600 hover:text-blue-800 transition-colors duration-200">
+                      <button 
+                        onClick={() => markAsRead(notification.id)}
+                        className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                      >
                         <span className="font-medium">Mark as read</span>
                       </button>
                     ) : (
@@ -171,6 +256,25 @@ export default function NotificationsSection() {
           );
         })}
       </div>
+      
+      {/* Empty state */}
+      {notifications.length === 0 && (
+        <div className="bg-white p-10 rounded-xl shadow-sm border border-gray-100 text-center">
+          <BellIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">No notifications</h3>
+          <p className="text-gray-600">You don't have any notifications at the moment.</p>
+        </div>
+      )}
+      
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        onConfirm={confirmationData.onConfirm}
+        title={confirmationData.title}
+        message={confirmationData.message}
+        type={confirmationData.type}
+      />
     </div>
   );
-} 
+}

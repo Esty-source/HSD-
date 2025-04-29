@@ -10,7 +10,8 @@ import {
   ArrowLeftOnRectangleIcon,
   HomeIcon,
   Cog6ToothIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  VideoCameraIcon
 } from '@heroicons/react/24/outline';
 import { BellIcon as BellIconSolid } from '@heroicons/react/24/solid';
 import AppointmentsSection from '../../components/dashboard/patient/AppointmentsSection';
@@ -19,6 +20,8 @@ import ProfileSection from '../../components/dashboard/patient/ProfileSection';
 import PaymentsSection from '../../components/dashboard/patient/PaymentsSection';
 import NotificationsSection from '../../components/dashboard/patient/NotificationsSection';
 import OverviewSection from '../../components/dashboard/patient/OverviewSection';
+import SettingsSection from '../../components/dashboard/patient/SettingsSection';
+import TelemedicineSection from '../../components/dashboard/patient/TelemedicineSection';
 
 export default function PatientDashboard() {
   const navigate = useNavigate();
@@ -51,10 +54,12 @@ export default function PatientDashboard() {
   const sidebarItems = [
     { name: 'Overview', icon: ChartBarIcon, id: 'overview' },
     { name: 'Appointments', icon: CalendarIcon, id: 'appointments' },
+    { name: 'Telemedicine', icon: VideoCameraIcon, id: 'telemedicine' },
     { name: 'Medical Records', icon: ClipboardIcon, id: 'records' },
     { name: 'Profile', icon: UserCircleIcon, id: 'profile' },
     { name: 'Notifications', icon: BellIcon, id: 'notifications', count: 3 },
     { name: 'Payments', icon: CreditCardIcon, id: 'payments' },
+    { name: 'Settings', icon: Cog6ToothIcon, id: 'settings' },
   ];
 
   if (!userData) {
@@ -165,26 +170,41 @@ export default function PatientDashboard() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+              <button 
+                onClick={() => setActiveTab('notifications')}
+                className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                aria-label="Notifications"
+                title="View Notifications"
+              >
                 <BellIconSolid className="h-5 w-5 text-gray-600" />
                 <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-bold">3</span>
               </button>
-              <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+              <button 
+                onClick={() => setActiveTab('settings')}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                aria-label="Settings"
+                title="View Settings"
+              >
                 <Cog6ToothIcon className="h-5 w-5" />
               </button>
               <div className="flex items-center space-x-2 pl-2 border-l border-gray-200">
-                <div className="h-9 w-9 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-sm">
+                <button
+                  onClick={() => setActiveTab('profile')}
+                  className="h-9 w-9 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-sm hover:shadow-md transition-all duration-200"
+                  aria-label="Profile"
+                  title="View Profile"
+                >
                   <span className="text-sm font-medium">
                     {userData.name.split(' ').map(n => n[0]).join('')}
                   </span>
-                </div>
+                </button>
               </div>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-6 w-full max-w-7xl mx-auto">
+        <div className="p-6 w-full">
           {/* Breadcrumbs */}
           <div className="flex items-center text-sm text-gray-500 mb-6">
             <HomeIcon className="h-4 w-4 mr-1" />
@@ -196,10 +216,12 @@ export default function PatientDashboard() {
           
           {activeTab === 'overview' && <OverviewSection setActiveTab={setActiveTab} />}
           {activeTab === 'appointments' && <AppointmentsSection />}
+          {activeTab === 'telemedicine' && <TelemedicineSection />}
           {activeTab === 'records' && <MedicalRecordsSection />}
           {activeTab === 'profile' && <ProfileSection />}
           {activeTab === 'notifications' && <NotificationsSection />}
           {activeTab === 'payments' && <PaymentsSection />}
+          {activeTab === 'settings' && <SettingsSection />}
         </div>
       </div>
     </div>

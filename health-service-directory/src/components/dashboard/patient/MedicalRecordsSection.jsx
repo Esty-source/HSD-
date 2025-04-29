@@ -1,9 +1,14 @@
 import { useState } from 'react';
-import { DocumentIcon, FolderIcon, CloudArrowUpIcon, DocumentArrowDownIcon, DocumentTextIcon, CalendarIcon, UserIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { DocumentIcon, FolderIcon, CloudArrowUpIcon, DocumentArrowDownIcon, DocumentTextIcon, CalendarIcon, UserIcon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { toast } from 'react-hot-toast';
 
 export default function MedicalRecordsSection() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [newRecord, setNewRecord] = useState({
     name: '',
     category: '',
@@ -63,19 +68,90 @@ export default function MedicalRecordsSection() {
   );
 
   const handleUploadRecord = () => {
-    if (newRecord.name && newRecord.category && newRecord.file) {
+    if (newRecord.name && newRecord.category) {
+      // Check if file is selected
+      if (!newRecord.file) {
+        toast.error('Please select a file to upload', {
+          duration: 3000,
+          position: 'top-center',
+        });
+        return;
+      }
+      
+      // Create new record with file info
+      const fileType = newRecord.file.name.split('.').pop().toUpperCase();
+      const fileSizeMB = (newRecord.file.size / (1024 * 1024)).toFixed(1);
+      
       const newRecordItem = {
         id: records.length + 1,
+        name: newRecord.name,
+        category: newRecord.category,
         date: new Date().toISOString().split('T')[0],
         doctor: "Dr. Sarah Wilson", // This would come from the current user's doctor
-        fileSize: "2.4 MB", // This would be calculated from the actual file
-        fileType: "PDF", // This would be determined from the file extension
-        ...newRecord
+        fileSize: `${fileSizeMB} MB`,
+        fileType: fileType
       };
+      
+      // Add to records array (in a real app, this would be an API call)
       records.push(newRecordItem);
+      
+      // Reset form and close modal
       setShowUploadModal(false);
       setNewRecord({ name: '', category: '', file: null });
+      
+      // Show success message
+      toast.success('Record uploaded successfully!', {
+        duration: 3000,
+        position: 'top-center',
+      });
+    } else {
+      // Show error if required fields are missing
+      toast.error('Please fill in all required fields', {
+        duration: 3000,
+        position: 'top-center',
+      });
     }
+  };
+
+  const handleDownloadClick = (record) => {
+    setSelectedRecord(record);
+    setShowDownloadModal(true);
+  };
+
+  // Use a ref to track if a toast has been shown to prevent duplicates
+  const [hasShownToast, setHasShownToast] = useState(false);
+
+  const simulateDownload = () => {
+    // Reset the toast flag at the start of a new download
+    setHasShownToast(false);
+    setIsDownloading(true);
+    setDownloadProgress(0);
+    
+    // Simulate download progress
+    const interval = setInterval(() => {
+      setDownloadProgress(prev => {
+        const newProgress = prev + Math.floor(Math.random() * 10) + 5;
+        if (newProgress >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            setIsDownloading(false);
+            setShowDownloadModal(false);
+            
+            // Only show toast if it hasn't been shown yet for this download
+            if (!hasShownToast) {
+              setHasShownToast(true);
+              toast.success(`${selectedRecord.name} downloaded successfully!`, {
+                duration: 3000,
+                position: 'top-center',
+                icon: '📄',
+              });
+            }
+          }, 500);
+          return 100;
+        }
+        return newProgress;
+      });
+    }, 300);
   };
 
   return (
@@ -94,7 +170,7 @@ export default function MedicalRecordsSection() {
 
       {/* Upload Record Modal */}
       {showUploadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
           <div className="bg-white rounded-xl p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-gray-800">Upload New Record</h3>
@@ -136,28 +212,61 @@ export default function MedicalRecordsSection() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  File
+                  File <span className="text-red-500">*</span>
                 </label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
+                <div 
+                  className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${newRecord.file ? 'border-green-300 bg-green-50' : 'border-gray-300'} border-dashed rounded-lg hover:bg-gray-50 transition-colors duration-200`}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                      setNewRecord({ ...newRecord, file: e.dataTransfer.files[0] });
+                    }
+                  }}
+                >
                   <div className="space-y-1 text-center">
-                    <CloudArrowUpIcon className="mx-auto h-12 w-12 text-gray-400" />
-                    <div className="flex text-sm text-gray-600">
-                      <label
-                        htmlFor="file-upload"
-                        className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
-                      >
-                        <span>Upload a file</span>
-                        <input
-                          id="file-upload"
-                          name="file-upload"
-                          type="file"
-                          className="sr-only"
-                          onChange={(e) => setNewRecord({ ...newRecord, file: e.target.files[0] })}
-                        />
-                      </label>
-                      <p className="pl-1">or drag and drop</p>
-                    </div>
-                    <p className="text-xs text-gray-500">PDF, DOC, DICOM up to 10MB</p>
+                    {newRecord.file ? (
+                      <>
+                        <DocumentIcon className="mx-auto h-12 w-12 text-green-500" />
+                        <p className="text-sm font-medium text-green-700">{newRecord.file.name}</p>
+                        <p className="text-xs text-green-600">
+                          {(newRecord.file.size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                        <button 
+                          type="button"
+                          onClick={() => setNewRecord({ ...newRecord, file: null })}
+                          className="mt-2 inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        >
+                          Remove file
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <CloudArrowUpIcon className="mx-auto h-12 w-12 text-gray-400" />
+                        <div className="flex text-sm text-gray-600">
+                          <label
+                            htmlFor="file-upload"
+                            className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                          >
+                            <span>Upload a file</span>
+                            <input
+                              id="file-upload"
+                              name="file-upload"
+                              type="file"
+                              className="sr-only"
+                              accept=".pdf,.doc,.docx,.dicom,.jpg,.jpeg,.png"
+                              onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                  setNewRecord({ ...newRecord, file: e.target.files[0] });
+                                }
+                              }}
+                            />
+                          </label>
+                          <p className="pl-1">or drag and drop</p>
+                        </div>
+                        <p className="text-xs text-gray-500">PDF, DOC, DICOM up to 10MB</p>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -171,8 +280,9 @@ export default function MedicalRecordsSection() {
               </button>
               <button
                 onClick={handleUploadRecord}
-                className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center"
               >
+                <CloudArrowUpIcon className="h-5 w-5 mr-2" />
                 Upload Record
               </button>
             </div>
@@ -223,7 +333,11 @@ export default function MedicalRecordsSection() {
                   </div>
                 </div>
               </div>
-              <button className="text-blue-600 hover:text-blue-800 transition-colors duration-200">
+              <button 
+                onClick={() => handleDownloadClick(record)}
+                className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-2 rounded-full hover:bg-blue-50"
+                title="Download record"
+              >
                 <DocumentArrowDownIcon className="h-5 w-5" />
               </button>
             </div>
@@ -241,13 +355,95 @@ export default function MedicalRecordsSection() {
               : `No records found in ${categories.find(c => c.id === activeCategory)?.name}.`}
           </p>
           <div className="mt-6">
-            <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <button 
+              onClick={() => setShowUploadModal(true)}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
               <CloudArrowUpIcon className="h-5 w-5 mr-2" />
               Upload First Record
             </button>
           </div>
         </div>
       )}
+
+      {/* Download Modal */}
+      {showDownloadModal && selectedRecord && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-800">Download Medical Record</h3>
+              <button 
+                onClick={() => {
+                  if (!isDownloading) {
+                    setShowDownloadModal(false);
+                  }
+                }}
+                className="text-gray-400 hover:text-gray-500"
+                disabled={isDownloading}
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <DocumentIcon className="h-8 w-8 text-blue-500 flex-shrink-0" />
+                <div>
+                  <h4 className="font-medium text-gray-900">{selectedRecord.name}</h4>
+                  <p className="text-sm text-gray-500">{selectedRecord.fileSize} • {selectedRecord.fileType}</p>
+                  <p className="text-sm text-gray-500 mt-1">Uploaded on {new Date(selectedRecord.date).toLocaleDateString()}</p>
+                </div>
+              </div>
+            </div>
+            
+            {isDownloading && (
+              <div className="mb-6">
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Downloading...</span>
+                  <span>{downloadProgress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div 
+                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out" 
+                    style={{ width: `${downloadProgress}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  if (!isDownloading) {
+                    setShowDownloadModal(false);
+                  }
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                disabled={isDownloading}
+              >
+                Cancel
+              </button>
+              {!isDownloading ? (
+                <button
+                  onClick={simulateDownload}
+                  className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center"
+                >
+                  <DocumentArrowDownIcon className="h-5 w-5 mr-2" />
+                  Download
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="px-4 py-2 text-white bg-green-600 rounded-lg transition-colors duration-200 flex items-center opacity-90"
+                >
+                  <CheckIcon className="h-5 w-5 mr-2" />
+                  Downloading...
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-} 
+}
