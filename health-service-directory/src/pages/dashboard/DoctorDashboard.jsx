@@ -23,6 +23,7 @@ import TelemedicineSection from '../../components/dashboard/doctor/TelemedicineS
 import PrescriptionsSection from '../../components/dashboard/doctor/PrescriptionsSection';
 import ProfileSection from '../../components/dashboard/doctor/ProfileSection';
 import NotificationsSection from '../../components/dashboard/doctor/NotificationsSection';
+import SettingsSection from '../../components/dashboard/doctor/SettingsSection';
 
 export default function DoctorDashboard() {
   const navigate = useNavigate();
@@ -76,6 +77,7 @@ export default function DoctorDashboard() {
     { name: 'Prescriptions', icon: DocumentTextIcon, id: 'prescriptions' },
     { name: 'Profile', icon: UserCircleIcon, id: 'profile' },
     { name: 'Notifications', icon: BellIcon, id: 'notifications' },
+    { name: 'Settings', icon: Cog6ToothIcon, id: 'settings' },
   ];
 
   if (!userData) {
@@ -190,19 +192,28 @@ export default function DoctorDashboard() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+              <button 
+                onClick={() => handleTabChange('notifications')}
+                className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              >
                 <BellIconSolid className="h-5 w-5 text-gray-600" />
                 <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-bold">{unreadCount || 0}</span>
               </button>
-              <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+              <button 
+                onClick={() => handleTabChange('settings')}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              >
                 <Cog6ToothIcon className="h-5 w-5" />
               </button>
               <div className="flex items-center space-x-2 pl-2 border-l border-gray-200">
-                <div className="h-9 w-9 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm">
+                <button
+                  onClick={() => handleTabChange('profile')}
+                  className="h-9 w-9 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-sm hover:shadow-md transition-shadow duration-200"
+                >
                   <span className="text-sm font-medium">
                     {userData.name.split(' ').map(n => n[0]).join('')}
                   </span>
-                </div>
+                </button>
               </div>
             </div>
           </div>
@@ -227,6 +238,7 @@ export default function DoctorDashboard() {
           {activeTab === 'prescriptions' && <PrescriptionsSection />}
           {activeTab === 'profile' && <ProfileSection />}
           {activeTab === 'notifications' && <NotificationsSection />}
+          {activeTab === 'settings' && <SettingsSection />}
         </div>
       </div>
     </div>

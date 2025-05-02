@@ -12,6 +12,7 @@ import {
   PencilIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import ConfirmationModal from './ConfirmationModal';
 
 export default function PatientsSection() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,6 +21,11 @@ export default function PatientsSection() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showAddPatientModal, setShowAddPatientModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationType, setConfirmationType] = useState('add-patient');
+  const [confirmationData, setConfirmationData] = useState(null);
+  const [scheduledAppointment, setScheduledAppointment] = useState(null);
   const [patients, setPatients] = useState([
     {
       id: 1,
@@ -79,6 +85,29 @@ export default function PatientsSection() {
     setSearchQuery(e.target.value);
   };
 
+  // Filter patients based on search query and active filter
+  const getFilteredPatients = () => {
+    // First filter by search query
+    let filtered = patients;
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase();
+      filtered = patients.filter(patient => 
+        patient.name.toLowerCase().includes(query) || 
+        patient.email.toLowerCase().includes(query) ||
+        patient.phone.toLowerCase().includes(query)
+      );
+    }
+    
+    // Then filter by status
+    if (activeFilter !== 'all') {
+      filtered = filtered.filter(patient => patient.status === activeFilter);
+    }
+    
+    return filtered;
+  };
+  
+  const filteredPatients = getFilteredPatients();
+
   const handleViewProfile = (patient) => {
     setSelectedPatient(patient);
     setShowDetailsModal(true);
@@ -103,8 +132,22 @@ export default function PatientsSection() {
           }
         : patient
     );
+    
     setPatients(updatedPatients);
     setShowScheduleModal(false);
+    
+    // Prepare confirmation data
+    setConfirmationType('schedule-visit');
+    setConfirmationData({
+      'Patient': selectedPatient.name,
+      'Date': date,
+      'Time': time,
+      'Visit Type': type,
+      'Location': 'Main Clinic'
+    });
+    
+    // Show confirmation
+    setShowConfirmation(true);
   };
 
   const handleInputChange = (e) => {
@@ -126,6 +169,19 @@ export default function PatientsSection() {
     };
     
     setPatients(prev => [...prev, newPatientData]);
+    
+    // Prepare confirmation data
+    setConfirmationType('add-patient');
+    setConfirmationData({
+      'Name': newPatient.name,
+      'Age': newPatient.age,
+      'Gender': newPatient.gender,
+      'Phone': newPatient.phone,
+      'Email': newPatient.email,
+      'Status': 'New Patient'
+    });
+    
+    // Reset form
     setNewPatient({
       name: '',
       age: '',
@@ -134,7 +190,10 @@ export default function PatientsSection() {
       email: '',
       address: '',
     });
+    
+    // Close modal and show confirmation
     setShowAddPatientModal(false);
+    setShowConfirmation(true);
   };
 
   return (
@@ -178,7 +237,7 @@ export default function PatientsSection() {
       {/* Add Patient Modal */}
       {showAddPatientModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white z-50">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-gray-900">Add New Patient</h3>
               <button
@@ -281,64 +340,70 @@ export default function PatientsSection() {
 
       {/* Patients List */}
       <div className="mt-6 space-y-4">
-        {patients.map((patient) => (
-          <div key={patient.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
-            <div className="flex justify-between items-start">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <UserIcon className="h-5 w-5 text-gray-400" />
-                  <span className="font-medium text-gray-900">{patient.name}</span>
-                  <span className="text-sm text-gray-500">({patient.age} years, {patient.gender})</span>
+        {filteredPatients.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500">No patients match your search criteria.</p>
+          </div>
+        ) : (
+          filteredPatients.map((patient) => (
+            <div key={patient.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
+              <div className="flex justify-between items-start">
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <UserIcon className="h-5 w-5 text-gray-400" />
+                    <span className="font-medium text-gray-900">{patient.name}</span>
+                    <span className="text-sm text-gray-500">({patient.age} years, {patient.gender})</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <CalendarIcon className="h-5 w-5 text-gray-400" />
+                    <span className="text-gray-600">Last Visit: {patient.lastVisit}</span>
+                    {patient.nextAppointment && (
+                      <>
+                        <span className="text-gray-300">|</span>
+                        <span className="text-blue-600">Next: {patient.nextAppointment.date} at {patient.nextAppointment.time}</span>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <PhoneIcon className="h-5 w-5 text-gray-400" />
+                    <span className="text-gray-600">{patient.phone}</span>
+                    <EnvelopeIcon className="h-5 w-5 text-gray-400 ml-2" />
+                    <span className="text-gray-600">{patient.email}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <MapPinIcon className="h-5 w-5 text-gray-400" />
+                    <span className="text-gray-600">{patient.address}</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <CalendarIcon className="h-5 w-5 text-gray-400" />
-                  <span className="text-gray-600">Last Visit: {patient.lastVisit}</span>
-                  {patient.nextAppointment && (
-                    <>
-                      <span className="text-gray-300">|</span>
-                      <span className="text-blue-600">Next: {patient.nextAppointment.date} at {patient.nextAppointment.time}</span>
-                    </>
-                  )}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <PhoneIcon className="h-5 w-5 text-gray-400" />
-                  <span className="text-gray-600">{patient.phone}</span>
-                  <EnvelopeIcon className="h-5 w-5 text-gray-400 ml-2" />
-                  <span className="text-gray-600">{patient.email}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <MapPinIcon className="h-5 w-5 text-gray-400" />
-                  <span className="text-gray-600">{patient.address}</span>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  patient.status === 'Active' 
-                    ? 'bg-green-100 text-green-800' 
-                    : patient.status === 'New'
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {patient.status}
-                </span>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleViewProfile(patient)}
-                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                  >
-                    <EyeIcon className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleScheduleVisit(patient)}
-                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                  >
-                    <CalendarIcon className="h-5 w-5" />
-                  </button>
+                <div className="flex items-center space-x-4">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    patient.status === 'Active' 
+                      ? 'bg-green-100 text-green-800' 
+                      : patient.status === 'New'
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {patient.status}
+                  </span>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleViewProfile(patient)}
+                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                    >
+                      <EyeIcon className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => handleScheduleVisit(patient)}
+                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                    >
+                      <CalendarIcon className="h-5 w-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* Empty State */}
@@ -352,8 +417,8 @@ export default function PatientsSection() {
 
       {/* Patient Details Modal */}
       {showDetailsModal && selectedPatient && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full z-50">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Patient Profile</h3>
             <div className="space-y-4">
               <div>
@@ -392,31 +457,54 @@ export default function PatientsSection() {
 
       {/* Schedule Visit Modal */}
       {showScheduleModal && selectedPatient && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Schedule Visit</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full z-50">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Schedule Visit for {selectedPatient.name}</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Date</label>
                 <input
                   type="date"
+                  id="visitDate"
+                  min={new Date().toISOString().split('T')[0]}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Time</label>
-                <input
-                  type="time"
+                <select 
+                  id="visitTime"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
+                  required
+                >
+                  <option value="">Select time</option>
+                  <option value="09:00 AM">09:00 AM</option>
+                  <option value="09:30 AM">09:30 AM</option>
+                  <option value="10:00 AM">10:00 AM</option>
+                  <option value="10:30 AM">10:30 AM</option>
+                  <option value="11:00 AM">11:00 AM</option>
+                  <option value="11:30 AM">11:30 AM</option>
+                  <option value="12:00 PM">12:00 PM</option>
+                  <option value="02:00 PM">02:00 PM</option>
+                  <option value="02:30 PM">02:30 PM</option>
+                  <option value="03:00 PM">03:00 PM</option>
+                  <option value="03:30 PM">03:30 PM</option>
+                  <option value="04:00 PM">04:00 PM</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Visit Type</label>
-                <select className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                  <option>Regular Checkup</option>
-                  <option>Follow-up</option>
-                  <option>Emergency</option>
-                  <option>Consultation</option>
+                <select 
+                  id="visitType"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select visit type</option>
+                  <option value="Regular Checkup">Regular Checkup</option>
+                  <option value="Follow-up">Follow-up</option>
+                  <option value="Emergency">Emergency</option>
+                  <option value="Consultation">Consultation</option>
                 </select>
               </div>
             </div>
@@ -424,12 +512,25 @@ export default function PatientsSection() {
               <button
                 onClick={() => setShowScheduleModal(false)}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                type="button"
               >
                 Cancel
               </button>
               <button
-                onClick={() => handleScheduleSubmit(newDate, newTime, newType)}
+                onClick={() => {
+                  const date = document.getElementById('visitDate').value;
+                  const time = document.getElementById('visitTime').value;
+                  const type = document.getElementById('visitType').value;
+                  
+                  if (date && time && type) {
+                    handleScheduleSubmit(date, time, type);
+                  } else {
+                    // Show validation message
+                    alert('Please fill all fields');
+                  }
+                }}
                 className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                type="button"
               >
                 Schedule
               </button>
@@ -437,6 +538,20 @@ export default function PatientsSection() {
           </div>
         </div>
       )}
+      {/* Legacy confirmation modal - replaced with ConfirmationModal component */}
+      {/* Confirmation Modals */}
+      {showConfirmation && (
+        <ConfirmationModal
+          show={showConfirmation}
+          onClose={() => setShowConfirmation(false)}
+          title={confirmationType === 'add-patient' ? 'Patient Added Successfully' : 'Visit Scheduled Successfully'}
+          message={confirmationType === 'add-patient' 
+            ? 'The new patient has been added to your patient list.' 
+            : 'The visit has been scheduled successfully.'}
+          type="success"
+          data={confirmationData}
+        />
+      )}
     </div>
   );
-} 
+}

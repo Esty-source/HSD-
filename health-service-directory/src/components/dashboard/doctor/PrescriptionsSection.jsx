@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { 
+import {
   DocumentTextIcon,
   MagnifyingGlassIcon,
   UserIcon,
@@ -12,11 +12,138 @@ import {
   EyeIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import EditPrescriptionModal from './EditPrescriptionModal';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 export default function PrescriptionsSection() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedPrescription, setSelectedPrescription] = useState(null);
+  const [prescriptions, setPrescriptions] = useState([
+    {
+      id: 1,
+      patientName: 'John Doe',
+      date: '2024-04-15',
+      time: '10:30',
+      medications: [
+        { name: 'Amoxicillin', dosage: '500mg', frequency: '3 times daily', duration: '7 days' },
+        { name: 'Ibuprofen', dosage: '400mg', frequency: 'as needed', duration: '5 days' }
+      ],
+      status: 'Active',
+      refills: 2,
+      notes: 'Take with food. Complete full course of antibiotics.'
+    },
+    {
+      id: 2,
+      patientName: 'Jane Smith',
+      date: '2024-04-14',
+      time: '14:15',
+      medications: [
+        { name: 'Lisinopril', dosage: '10mg', frequency: 'once daily', duration: '30 days' },
+        { name: 'Metformin', dosage: '500mg', frequency: 'twice daily', duration: '30 days' }
+      ],
+      status: 'Active',
+      refills: 3,
+      notes: 'Monitor blood pressure. Take with meals.'
+    },
+    {
+      id: 3,
+      patientName: 'Robert Johnson',
+      date: '2024-04-10',
+      time: '09:00',
+      medications: [
+        { name: 'Atorvastatin', dosage: '20mg', frequency: 'once daily', duration: '30 days' }
+      ],
+      status: 'Completed',
+      refills: 0,
+      notes: 'Take at bedtime. Follow up in 3 months.'
+    },
+    {
+      id: 4,
+      patientName: 'Emily Davis',
+      date: '2024-04-18',
+      time: '11:45',
+      medications: [
+        { name: 'Paracetamol', dosage: '500mg', frequency: 'every 6 hours', duration: '3 days' }
+      ],
+      status: 'Expired',
+      refills: 1,
+      notes: 'For fever. Do not exceed 4g per day.'
+    },
+    {
+      id: 5,
+      patientName: 'Samuel Lee',
+      date: '2024-04-12',
+      time: '16:00',
+      medications: [
+        { name: 'Amlodipine', dosage: '5mg', frequency: 'once daily', duration: '60 days' },
+        { name: 'Simvastatin', dosage: '10mg', frequency: 'once daily', duration: '60 days' }
+      ],
+      status: 'Cancelled',
+      refills: 0,
+      notes: 'Cancelled due to adverse reaction.'
+    },
+    {
+      id: 6,
+      patientName: 'Fatima Bello',
+      date: '2024-04-17',
+      time: '13:30',
+      medications: [
+        { name: 'Omeprazole', dosage: '20mg', frequency: 'twice daily', duration: '14 days' }
+      ],
+      status: 'Active',
+      refills: 2,
+      notes: 'Take before meals.'
+    },
+    {
+      id: 7,
+      patientName: 'Mohamed Traore',
+      date: '2024-04-16',
+      time: '08:30',
+      medications: [
+        { name: 'Salbutamol Inhaler', dosage: '2 puffs', frequency: 'as needed', duration: 'as needed' }
+      ],
+      status: 'Completed',
+      refills: 1,
+      notes: 'For asthma attacks.'
+    },
+    {
+      id: 8,
+      patientName: 'Chinwe Okafor',
+      date: '2024-04-13',
+      time: '15:10',
+      medications: [
+        { name: 'Hydrochlorothiazide', dosage: '25mg', frequency: 'once daily', duration: '30 days' }
+      ],
+      status: 'Active',
+      refills: 2,
+      notes: 'Monitor for dehydration.'
+    },
+    {
+      id: 9,
+      patientName: 'Pierre Nguema',
+      date: '2024-04-11',
+      time: '10:00',
+      medications: [
+        { name: 'Metoprolol', dosage: '50mg', frequency: 'twice daily', duration: '30 days' }
+      ],
+      status: 'Expired',
+      refills: 0,
+      notes: 'Expired prescription, needs renewal.'
+    },
+    {
+      id: 10,
+      patientName: 'Awa Diop',
+      date: '2024-04-19',
+      time: '12:00',
+      medications: [
+        { name: 'Azithromycin', dosage: '250mg', frequency: 'once daily', duration: '5 days' }
+      ],
+      status: 'Active',
+      refills: 1,
+      notes: 'Take on an empty stomach.'
+    },
+  ]);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showNewModal, setShowNewModal] = useState(false);
@@ -31,53 +158,23 @@ export default function PrescriptionsSection() {
   });
 
   const filters = [
+    { id: 'all', name: 'All' },
     { id: 'active', name: 'Active' },
     { id: 'completed', name: 'Completed' },
     { id: 'expired', name: 'Expired' },
     { id: 'cancelled', name: 'Cancelled' },
   ];
 
-  // Mock prescription data
-  const prescriptions = [
-    {
-      id: 1,
-      patientName: 'John Doe',
-      date: '2024-04-15',
-      time: '10:30 AM',
-      medications: [
-        { name: 'Amoxicillin', dosage: '500mg', frequency: '3 times daily', duration: '7 days' },
-        { name: 'Ibuprofen', dosage: '400mg', frequency: 'as needed', duration: '5 days' }
-      ],
-      status: 'Active',
-      refills: 2,
-      notes: 'Take with food. Complete full course of antibiotics.'
-    },
-    {
-      id: 2,
-      patientName: 'Jane Smith',
-      date: '2024-04-14',
-      time: '02:15 PM',
-      medications: [
-        { name: 'Lisinopril', dosage: '10mg', frequency: 'once daily', duration: '30 days' },
-        { name: 'Metformin', dosage: '500mg', frequency: 'twice daily', duration: '30 days' }
-      ],
-      status: 'Active',
-      refills: 3,
-      notes: 'Monitor blood pressure. Take with meals.'
-    },
-    {
-      id: 3,
-      patientName: 'Robert Johnson',
-      date: '2024-04-10',
-      time: '09:00 AM',
-      medications: [
-        { name: 'Atorvastatin', dosage: '20mg', frequency: 'once daily', duration: '30 days' }
-      ],
-      status: 'Completed',
-      refills: 0,
-      notes: 'Take at bedtime. Follow up in 3 months.'
-    },
-  ];
+  // Filtering logic
+  const filteredPrescriptions = prescriptions.filter((prescription) => {
+    const matchesSearch =
+      prescription.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      prescription.medications.some(med => med.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesFilter =
+      activeFilter === 'all' ||
+      prescription.status.toLowerCase() === activeFilter;
+    return matchesSearch && matchesFilter;
+  });
 
   const handleViewDetails = (prescription) => {
     setSelectedPrescription(prescription);
@@ -89,15 +186,31 @@ export default function PrescriptionsSection() {
     setShowEditModal(true);
   };
 
-  const handleDeletePrescription = (prescriptionId) => {
-    // Remove the prescription from the list
-    const updatedPrescriptions = prescriptions.filter(prescription => prescription.id !== prescriptionId);
-    setPrescriptions(updatedPrescriptions);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [prescriptionToDelete, setPrescriptionToDelete] = useState(null);
+
+  const handleDeleteClick = (prescription) => {
+    setPrescriptionToDelete(prescription);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (prescriptionToDelete) {
+      setPrescriptions(prev => prev.filter(p => p.id !== prescriptionToDelete.id));
+      setShowDeleteModal(false);
+      setPrescriptionToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setPrescriptionToDelete(null);
   };
 
   const handlePrintPrescription = (prescription) => {
     // Open print dialog with prescription details
     const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
     printWindow.document.write(`
       <html>
         <head>
@@ -118,8 +231,8 @@ export default function PrescriptionsSection() {
           <div class="details">
             <h2>Patient Details</h2>
             <p>Name: ${prescription.patientName}</p>
-            <p>Age: ${prescription.patientAge}</p>
-            <p>Gender: ${prescription.patientGender}</p>
+            <p>Age: ${prescription.patientAge || ''}</p>
+            <p>Gender: ${prescription.patientGender || ''}</p>
           </div>
           <div class="medications">
             <h2>Medications</h2>
@@ -128,20 +241,31 @@ export default function PrescriptionsSection() {
                 <li>
                   ${med.name} - ${med.dosage}
                   <br>
-                  Instructions: ${med.instructions}
+                  Instructions: ${med.instructions || ''}
                 </li>
               `).join('')}
             </ul>
           </div>
           <div class="footer">
-            <p>Doctor: ${prescription.doctorName}</p>
-            <p>License: ${prescription.doctorLicense}</p>
+            <p>Doctor: ${prescription.doctorName || ''}</p>
+            <p>License: ${prescription.doctorLicense || ''}</p>
           </div>
         </body>
       </html>
     `);
     printWindow.document.close();
-    printWindow.print();
+    // Wait for the window to load before printing
+    printWindow.onload = function() {
+      printWindow.focus();
+      printWindow.print();
+    };
+    // Fallback in case onload doesn't fire
+    setTimeout(() => {
+      try {
+        printWindow.focus();
+        printWindow.print();
+      } catch (e) {}
+    }, 500);
   };
 
   const handleSavePrescription = (prescriptionData) => {
@@ -264,8 +388,8 @@ export default function PrescriptionsSection() {
 
       {/* Prescriptions List */}
       <div className="mt-6 space-y-4">
-        {prescriptions.map((prescription) => (
-          <div key={prescription.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
+        {filteredPrescriptions.map((prescription) => (
+          <div key={prescription.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-200 mb-4">
             <div className="flex justify-between items-start">
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
@@ -303,16 +427,17 @@ export default function PrescriptionsSection() {
                     <PencilIcon className="h-5 w-5" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => handlePrintPrescription(prescription)}
-                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <PrinterIcon className="h-5 w-5" />
                   </button>
                   <button
-                    onClick={() => handleDeletePrescription(prescription.id)}
-                    className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                    onClick={() => handleDeleteClick(prescription)}
+                    className="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors duration-200 text-sm font-medium"
                   >
-                    <TrashIcon className="h-5 w-5" />
+                    <TrashIcon className="h-5 w-5 mr-1" /> Delete
                   </button>
                 </div>
               </div>
@@ -323,8 +448,8 @@ export default function PrescriptionsSection() {
 
       {/* Prescription Details Modal */}
       {showDetailsModal && selectedPrescription && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8 relative z-50">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Prescription Details</h3>
             <div className="space-y-4">
               <div>
@@ -365,76 +490,28 @@ export default function PrescriptionsSection() {
 
       {/* Edit Prescription Modal */}
       {showEditModal && selectedPrescription && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Prescription</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Patient Name</label>
-                <input
-                  type="text"
-                  defaultValue={selectedPrescription.patientName}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Date</label>
-                <input
-                  type="date"
-                  defaultValue={selectedPrescription.date}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Medications</label>
-                <div className="space-y-2">
-                  {selectedPrescription.medications.map((medication, index) => (
-                    <div key={index} className="flex space-x-2">
-                      <input
-                        type="text"
-                        defaultValue={medication.name}
-                        placeholder="Medication name"
-                        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      />
-                      <input
-                        type="text"
-                        defaultValue={medication.dosage}
-                        placeholder="Dosage"
-                        className="w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      />
-                      <input
-                        type="text"
-                        defaultValue={medication.instructions}
-                        placeholder="Instructions"
-                        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowEditModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleSavePrescription(newPrescriptionData)}
-                className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-              >
-                Save Changes
-              </button>
-            </div>
-          </div>
-        </div>
+        <EditPrescriptionModal
+          prescription={selectedPrescription}
+          onClose={() => setShowEditModal(false)}
+          onSave={(updatedPrescription) => {
+            setPrescriptions((prev) => prev.map((p) => p.id === updatedPrescription.id ? updatedPrescription : p));
+            setShowEditModal(false);
+          }}
+        />
       )}
+
 
       {/* New Prescription Modal */}
       {showNewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl p-8 relative z-50 max-h-screen overflow-y-auto flex flex-col">
+            <button
+              onClick={() => setShowNewModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none"
+              style={{ zIndex: 10 }}
+            >
+              <XMarkIcon className="h-6 w-6" />
+            </button>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium text-gray-900">New Prescription</h3>
               <button
@@ -575,7 +652,7 @@ export default function PrescriptionsSection() {
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-              <div className="flex justify-end space-x-3 mt-6">
+              <div className="flex justify-end space-x-3 mt-8">
                 <button
                   type="button"
                   onClick={() => setShowNewModal(false)}
@@ -594,6 +671,12 @@ export default function PrescriptionsSection() {
           </div>
         </div>
       )}
+      <DeleteConfirmationModal
+        open={showDeleteModal}
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        prescription={prescriptionToDelete}
+      />
     </div>
   );
-} 
+}

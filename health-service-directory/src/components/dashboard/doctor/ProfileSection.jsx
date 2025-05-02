@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { 
   UserCircleIcon,
   PencilIcon,
@@ -14,6 +14,8 @@ import {
 
 export default function ProfileSection() {
   const [isEditing, setIsEditing] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
+  const fileInputRef = useRef(null);
 
   // Mock doctor profile data
   const profile = {
@@ -51,13 +53,39 @@ export default function ProfileSection() {
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex flex-col items-center">
               <div className="relative mb-4">
-                <div className="h-32 w-32 rounded-full bg-blue-100 flex items-center justify-center">
-                  <UserCircleIcon className="h-24 w-24 text-blue-600" />
+                <div className="h-32 w-32 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
+                  {profileImage ? (
+                    <img src={profileImage} alt="Profile" className="h-32 w-32 object-cover rounded-full" />
+                  ) : (
+                    <UserCircleIcon className="h-24 w-24 text-blue-600" />
+                  )}
                 </div>
                 {isEditing && (
-                  <button className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors duration-200">
-                    <CameraIcon className="h-5 w-5 text-gray-600" />
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+                      onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                    >
+                      <CameraIcon className="h-5 w-5 text-gray-600" />
+                    </button>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      style={{ display: 'none' }}
+                      onChange={e => {
+                        if (e.target.files && e.target.files[0]) {
+                          const file = e.target.files[0];
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setProfileImage(reader.result);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </>
                 )}
               </div>
               <h3 className="text-xl font-bold text-gray-800">{profile.name}</h3>

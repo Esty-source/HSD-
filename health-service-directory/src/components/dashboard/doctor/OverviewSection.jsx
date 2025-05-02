@@ -4,6 +4,8 @@ import { useState } from 'react';
 
 export default function OverviewSection({ onTabChange }) {
   const [showPerformanceModal, setShowPerformanceModal] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [selectedStat, setSelectedStat] = useState(null);
   
   function handleViewSchedule() {
     onTabChange('appointments');
@@ -31,6 +33,16 @@ export default function OverviewSection({ onTabChange }) {
   
   function closePerformanceModal() {
     setShowPerformanceModal(false);
+  }
+  
+  function handleStatCardClick(statType) {
+    setSelectedStat(statType);
+    setShowStatsModal(true);
+  }
+  
+  function closeStatsModal() {
+    setShowStatsModal(false);
+    setSelectedStat(null);
   }
 
   // Mock data for performance analytics
@@ -102,7 +114,10 @@ export default function OverviewSection({ onTabChange }) {
       <div className="w-full space-y-8">
         {/* Stats Overview */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
+          <div 
+            onClick={() => handleStatCardClick('appointments')}
+            className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">Appointments Today</p>
@@ -118,7 +133,10 @@ export default function OverviewSection({ onTabChange }) {
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
+          <div 
+            onClick={() => handleStatCardClick('patients')}
+            className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">Total Patients</p>
@@ -134,7 +152,10 @@ export default function OverviewSection({ onTabChange }) {
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
+          <div 
+            onClick={() => handleStatCardClick('sessions')}
+            className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">Upcoming Sessions</p>
@@ -150,7 +171,10 @@ export default function OverviewSection({ onTabChange }) {
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
+          <div 
+            onClick={() => handleStatCardClick('satisfaction')}
+            className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">Patient Satisfaction</p>
@@ -162,7 +186,7 @@ export default function OverviewSection({ onTabChange }) {
             </div>
             <div className="mt-4 flex items-center">
               <ArrowTrendingUpIcon className="h-4 w-4 text-green-500 mr-1" />
-              <span className="text-xs font-medium text-green-500">+12% this month</span>
+              <span className="text-xs font-medium text-green-500">+1% this month</span>
             </div>
           </div>
         </div>
@@ -564,6 +588,308 @@ export default function OverviewSection({ onTabChange }) {
       </div>
 
       {/* Performance Analytics Modal */}
+      {/* Stats Detail Modal */}
+      {showStatsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 max-w-2xl w-full relative z-50 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">
+                {selectedStat === 'appointments' && 'Today\'s Appointments'}
+                {selectedStat === 'patients' && 'Patient Statistics'}
+                {selectedStat === 'sessions' && 'Upcoming Telemedicine Sessions'}
+                {selectedStat === 'satisfaction' && 'Patient Satisfaction Details'}
+              </h2>
+              <button
+                onClick={closeStatsModal}
+                className="text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            
+            {selectedStat === 'appointments' && (
+              <div className="space-y-6">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium text-blue-800">Summary</h3>
+                    <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Today</span>
+                  </div>
+                  <p className="text-blue-700">You have 3 appointments scheduled for today.</p>
+                </div>
+                
+                <div className="divide-y divide-gray-200">
+                  <div className="py-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium text-gray-900">John Doe</h4>
+                        <p className="text-sm text-gray-600">09:00 AM - Regular Checkup</p>
+                      </div>
+                      <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Confirmed</span>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-600">Patient has history of hypertension</p>
+                  </div>
+                  
+                  <div className="py-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium text-gray-900">Emily Davis</h4>
+                        <p className="text-sm text-gray-600">11:15 AM - Annual Physical</p>
+                      </div>
+                      <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Pending</span>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-600">First visit to the clinic</p>
+                  </div>
+                  
+                  <div className="py-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium text-gray-900">Olivia Martin</h4>
+                        <p className="text-sm text-gray-600">02:30 PM - Vaccination</p>
+                      </div>
+                      <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Confirmed</span>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-600">COVID-19 booster shot</p>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleViewSchedule}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
+                  >
+                    View Full Schedule
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {selectedStat === 'patients' && (
+              <div className="space-y-6">
+                <div className="bg-indigo-50 p-4 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium text-indigo-800">Patient Growth</h3>
+                    <span className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Last 6 Months</span>
+                  </div>
+                  <p className="text-indigo-700">Your patient base has grown by 12% in the last 6 months.</p>
+                </div>
+                
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-3">Patient Demographics</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <span className="text-sm text-gray-600 w-20">0-18:</span>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: '15%' }}></div>
+                      </div>
+                      <span className="text-sm text-gray-600 ml-2">15%</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-sm text-gray-600 w-20">19-35:</span>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: '35%' }}></div>
+                      </div>
+                      <span className="text-sm text-gray-600 ml-2">35%</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-sm text-gray-600 w-20">36-50:</span>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: '30%' }}></div>
+                      </div>
+                      <span className="text-sm text-gray-600 ml-2">30%</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-sm text-gray-600 w-20">51-65:</span>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: '15%' }}></div>
+                      </div>
+                      <span className="text-sm text-gray-600 ml-2">15%</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-sm text-gray-600 w-20">65+:</span>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: '5%' }}></div>
+                      </div>
+                      <span className="text-sm text-gray-600 ml-2">5%</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-3">Top Conditions</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-800">Hypertension</span>
+                      <span className="text-sm font-medium text-gray-900">42 patients</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-800">Diabetes</span>
+                      <span className="text-sm font-medium text-gray-900">38 patients</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-800">Respiratory Issues</span>
+                      <span className="text-sm font-medium text-gray-900">27 patients</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-800">Joint Pain</span>
+                      <span className="text-sm font-medium text-gray-900">24 patients</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-800">Gastrointestinal</span>
+                      <span className="text-sm font-medium text-gray-900">19 patients</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleViewPatients}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
+                  >
+                    View All Patients
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {selectedStat === 'sessions' && (
+              <div className="space-y-6">
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium text-purple-800">Telemedicine Overview</h3>
+                    <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">This Week</span>
+                  </div>
+                  <p className="text-purple-700">You have 2 upcoming telemedicine sessions scheduled this week.</p>
+                </div>
+                
+                <div className="divide-y divide-gray-200">
+                  <div className="py-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium text-gray-900">Jane Smith</h4>
+                        <p className="text-sm text-gray-600">Tomorrow, 10:30 AM - Follow-up</p>
+                      </div>
+                      <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Confirmed</span>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-600">Follow-up for diabetes management</p>
+                    <div className="mt-3 flex items-center text-sm text-gray-600">
+                      <span className="mr-3">📱 +237 676 234 567</span>
+                      <span>📧 jane.smith@example.com</span>
+                    </div>
+                  </div>
+                  
+                  <div className="py-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium text-gray-900">Daniel Brown</h4>
+                        <p className="text-sm text-gray-600">May 4, 09:45 AM - Consultation</p>
+                      </div>
+                      <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Pending</span>
+                    </div>
+                    <p className="mt-2 text-sm text-gray-600">New patient consultation</p>
+                    <div className="mt-3 flex items-center text-sm text-gray-600">
+                      <span className="mr-3">📱 +237 678 456 789</span>
+                      <span>📧 daniel.brown@example.com</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleViewSessions}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
+                  >
+                    View All Sessions
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {selectedStat === 'satisfaction' && (
+              <div className="space-y-6">
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium text-green-800">Satisfaction Score</h3>
+                    <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Last 6 Months</span>
+                  </div>
+                  <p className="text-green-700">Your patient satisfaction score has increased from 92% to 95% in the last 6 months.</p>
+                </div>
+                
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-3">Monthly Satisfaction Trend</h3>
+                  <div className="h-48 w-full">
+                    <div className="flex h-full items-end">
+                      {performanceData.monthlyStats.map((stat, index) => (
+                        <div key={index} className="flex-1 flex flex-col items-center">
+                          <div 
+                            className="w-full max-w-[30px] bg-indigo-600 rounded-t" 
+                            style={{ height: `${stat.satisfaction}%` }}
+                          ></div>
+                          <span className="text-xs text-gray-600 mt-1">{stat.month}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-3">Key Performance Indicators</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm text-gray-700">Appointment Completion Rate</span>
+                        <span className="text-sm font-medium text-gray-900">88%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: '88%' }}></div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm text-gray-700">Follow-up Rate</span>
+                        <span className="text-sm font-medium text-gray-900">76%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: '76%' }}></div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm text-gray-700">Patient Retention</span>
+                        <span className="text-sm font-medium text-gray-900">92%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: '92%' }}></div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm text-gray-700">Average Response Time</span>
+                        <span className="text-sm font-medium text-gray-900">4.2 hours</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div className="bg-indigo-600 h-2.5 rounded-full" style={{ width: '84%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleViewAnalytics}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
+                  >
+                    View Full Analytics
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       {showPerformanceModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">

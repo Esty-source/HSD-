@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
   VideoCameraIcon,
   CalendarIcon,
@@ -18,10 +17,8 @@ import {
   SpeakerXMarkIcon
 } from '@heroicons/react/24/outline';
 import { EyeIcon } from '@heroicons/react/24/outline';
-import CancelConsultationModal from './CancelConsultationModal';
 
 export default function TelemedicineSection() {
-  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('upcoming');
   const [selectedSession, setSelectedSession] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -65,6 +62,7 @@ export default function TelemedicineSection() {
       phone: '+1 (555) 234-5678',
       email: 'michael.brown@example.com'
     },
+    // Completed consultations
     {
       id: 4,
       patientName: 'Robert Johnson',
@@ -89,6 +87,7 @@ export default function TelemedicineSection() {
       email: 'emily.davis@example.com',
       notes: 'New patient with chronic headaches. Prescribed medication and recommended lifestyle changes.'
     },
+    // Cancelled consultations
     {
       id: 6,
       patientName: 'Sarah Wilson',
@@ -114,9 +113,6 @@ export default function TelemedicineSection() {
       cancellationReason: 'Doctor unavailable due to emergency surgery'
     }
   ]);
-  
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [consultationToCancel, setConsultationToCancel] = useState(null);
 
   const [newConsultation, setNewConsultation] = useState({
     patientName: '',
@@ -151,16 +147,6 @@ export default function TelemedicineSection() {
     setSelectedSession(session);
     setShowJoinModal(true);
   };
-  
-  const navigateToTelemedicine = (session) => {
-    navigate('/telemedicine', { 
-      state: { 
-        startSession: true,
-        consultationId: session.id,
-        returnTo: '/dashboard/doctor'
-      } 
-    });
-  };
 
   const handleStartCall = () => {
     setIsInCall(true);
@@ -190,7 +176,7 @@ export default function TelemedicineSection() {
       case 'Chat':
         return <ChatBubbleLeftIcon className="h-5 w-5" />;
       default:
-        return <VideoCameraIcon className="h-5 w-5" />;
+        return null;
     }
   };
 
@@ -251,28 +237,6 @@ export default function TelemedicineSection() {
     }));
   };
 
-  const handleCancelClick = (consultation) => {
-    setConsultationToCancel(consultation);
-    setShowCancelModal(true);
-  };
-
-  const handleCancelModalClose = () => {
-    setShowCancelModal(false);
-    setConsultationToCancel(null);
-  };
-
-  const handleConfirmCancel = (reason) => {
-    setConsultations(prev => 
-      prev.map(c => 
-        c.id === consultationToCancel.id 
-          ? { ...c, status: 'cancelled', cancellationReason: reason } 
-          : c
-      )
-    );
-    setShowCancelModal(false);
-    setConsultationToCancel(null);
-  };
-
   const handleReschedule = (consultation) => {
     setConsultationToReschedule(consultation);
     setRescheduleData({
@@ -285,19 +249,18 @@ export default function TelemedicineSection() {
 
   const handleRescheduleSubmit = (e) => {
     e.preventDefault();
-    setConsultations(prev => 
-      prev.map(c => 
-        c.id === consultationToReschedule.id 
-          ? { 
-              ...c, 
-              date: rescheduleData.date,
-              time: rescheduleData.time,
-              duration: rescheduleData.duration,
-              status: 'scheduled'
-            } 
-          : c
-      )
-    );
+    setConsultations(prev => prev.map(consultation => {
+      if (consultation.id === consultationToReschedule.id) {
+        return {
+          ...consultation, 
+          date: rescheduleData.date,
+          time: rescheduleData.time,
+          duration: rescheduleData.duration,
+          status: 'scheduled' // Reset to scheduled if it was cancelled
+        };
+      }
+      return consultation;
+    }));
     setShowRescheduleModal(false);
     setConsultationToReschedule(null);
   };
@@ -413,21 +376,18 @@ export default function TelemedicineSection() {
                 {consultation.status === 'scheduled' ? (
                   <>
                     <button
-                      onClick={() => navigateToTelemedicine(consultation)}
+                      onClick={() => handleJoinSession(consultation)}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
                     >
                       Join Call
                     </button>
                     <button 
                       onClick={() => handleReschedule(consultation)}
-                      className="px-4 py-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors duration-200"
+                      className="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                     >
                       Reschedule
                     </button>
-                    <button 
-                      onClick={() => handleCancelClick(consultation)}
-                      className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                    >
+                    <button className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200">
                       Cancel
                     </button>
                   </>
@@ -498,7 +458,7 @@ export default function TelemedicineSection() {
                 Cancel
               </button>
               <button
-                onClick={() => navigateToTelemedicine(selectedSession)}
+                onClick={handleStartCall}
                 className="px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-200"
               >
                 Join Call
@@ -672,14 +632,6 @@ export default function TelemedicineSection() {
           </div>
         </div>
       )}
-
-      {/* Cancel Consultation Modal */}
-      <CancelConsultationModal
-        open={showCancelModal}
-        onCancel={handleCancelModalClose}
-        onConfirm={handleConfirmCancel}
-        consultation={consultationToCancel}
-      />
 
       {/* Add Reschedule Modal */}
       {showRescheduleModal && consultationToReschedule && (
