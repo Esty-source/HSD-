@@ -299,7 +299,7 @@ export default function OverviewSection({ setActiveTab }) {
 
   
   return (
-    <div className="w-full">
+    <div className="w-full m-0 p-0 overflow-hidden">
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-6 mb-8 text-white shadow-lg">
         <div className="flex items-center justify-between">

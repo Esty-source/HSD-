@@ -110,8 +110,8 @@ export default function OverviewSection({ onTabChange }) {
   };
   
   return (
-    <div>
-      <div className="w-full space-y-8">
+    <div className="w-full m-0 p-0 overflow-hidden">
+      <div className="w-full space-y-8 mx-0 px-0">
         {/* Stats Overview */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div 

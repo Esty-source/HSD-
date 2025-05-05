@@ -285,7 +285,7 @@ export default function Appointments() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white w-screen max-w-[100vw] overflow-hidden">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white w-full mt-8">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-12 sm:py-16">

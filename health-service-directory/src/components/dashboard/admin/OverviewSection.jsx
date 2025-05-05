@@ -162,7 +162,7 @@ export default function OverviewSection({ onTabChange }) {
   ];
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="space-y-8 w-full mx-0 px-0">
       {/* Welcome Banner */}
       <div className="bg-gradient-to-r from-indigo-600 to-blue-500 rounded-xl shadow-lg p-6 text-white">
         <div className="flex justify-between items-center">
@@ -178,8 +178,8 @@ export default function OverviewSection({ onTabChange }) {
 
       {/* Metrics Grid */}
       <div>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Key Metrics</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-gray-900">Key Metrics</h2>
           <button 
             onClick={() => onTabChange('analytics')} 
             className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center"
@@ -190,24 +190,24 @@ export default function OverviewSection({ onTabChange }) {
             </svg>
           </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
           {metrics.map((metric) => (
             <div
               key={metric.name}
               onClick={metric.onClick}
-              className="bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-100 hover:border-indigo-200"
+              className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-100 hover:border-indigo-200 flex flex-col h-full"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-start justify-between mb-3">
                 <div>
                   <p className="text-sm font-medium text-gray-500">{metric.name}</p>
                   <p className="text-2xl font-bold text-gray-900 mt-1">{metric.value}</p>
-                  <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
                 </div>
                 <div className={`h-12 w-12 rounded-full ${metric.bgColor} flex items-center justify-center`}>
                   <metric.icon className={`h-6 w-6 ${metric.iconColor}`} />
                 </div>
               </div>
-              <div className="mt-4 flex items-center">
+              <p className="text-xs text-gray-500 mb-3">{metric.description}</p>
+              <div className="mt-auto pt-3 flex items-center border-t border-gray-50">
                 {metric.changeType === 'positive' ? (
                   <ArrowUpIcon className="h-4 w-4 text-green-500 mr-1" />
                 ) : (

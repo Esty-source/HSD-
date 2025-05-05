@@ -112,7 +112,7 @@ export default function Notifications() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-8 px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 w-full">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-8 pt-16 sm:pt-20 w-screen max-w-[100vw] overflow-hidden">
       <div className="w-full max-w-none">
         {/* Header Section */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl px-6 sm:px-8 py-6 mb-8 text-white w-full">

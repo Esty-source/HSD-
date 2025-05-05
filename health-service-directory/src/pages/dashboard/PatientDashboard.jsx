@@ -67,7 +67,7 @@ export default function PatientDashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 overflow-hidden w-screen max-w-[100vw]">
       {/* Sidebar */}
       <div className="w-72 bg-white border-r border-gray-200 shadow-lg flex flex-col">
         <div className="p-6 border-b border-gray-100 flex items-center space-x-3">
@@ -150,7 +150,7 @@ export default function PatientDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto w-full">
+      <div className="flex-1 overflow-auto w-full pr-0 mr-0 max-w-full">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 p-4 shadow-sm sticky top-0 z-10">
           <div className="flex justify-between items-center">
@@ -204,9 +204,9 @@ export default function PatientDashboard() {
         </div>
 
         {/* Content */}
-        <div className="p-6 w-full">
+        <div className="p-0 m-0 w-full overflow-hidden">
           {/* Breadcrumbs */}
-          <div className="flex items-center text-sm text-gray-500 mb-6">
+          <div className="flex items-center text-sm text-gray-500 mb-6 px-6">
             <HomeIcon className="h-4 w-4 mr-1" />
             <span className="mx-2">/</span>
             <span className="font-medium text-gray-900">
@@ -214,14 +214,20 @@ export default function PatientDashboard() {
             </span>
           </div>
           
-          {activeTab === 'overview' && <OverviewSection setActiveTab={setActiveTab} />}
-          {activeTab === 'appointments' && <AppointmentsSection />}
-          {activeTab === 'telemedicine' && <TelemedicineSection />}
-          {activeTab === 'records' && <MedicalRecordsSection />}
-          {activeTab === 'profile' && <ProfileSection />}
-          {activeTab === 'notifications' && <NotificationsSection />}
-          {activeTab === 'payments' && <PaymentsSection />}
-          {activeTab === 'settings' && <SettingsSection />}
+          <div className="w-full m-0 p-0 overflow-hidden">
+            {activeTab === 'overview' && <OverviewSection setActiveTab={setActiveTab} />}
+            {activeTab !== 'overview' && (
+              <div className="px-6 w-full">
+                {activeTab === 'appointments' && <AppointmentsSection />}
+                {activeTab === 'telemedicine' && <TelemedicineSection />}
+                {activeTab === 'records' && <MedicalRecordsSection />}
+                {activeTab === 'profile' && <ProfileSection />}
+                {activeTab === 'notifications' && <NotificationsSection />}
+                {activeTab === 'payments' && <PaymentsSection />}
+                {activeTab === 'settings' && <SettingsSection />}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

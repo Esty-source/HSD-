@@ -376,8 +376,8 @@ export default function HealthRecords() {
   };
 
   return (
-    <div className="w-full">
-      <div className="w-full bg-white px-4 py-8 sm:px-6 lg:px-8 mt-8">
+    <div className="w-screen max-w-[100vw] overflow-hidden">
+      <div className="bg-white py-8 mt-8">
         <div className="w-full">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Health Records</h1>
           <p className="mt-2 text-sm text-gray-700">
@@ -762,7 +762,7 @@ export default function HealthRecords() {
         </div>
       )}
 
-      <div className="w-full px-4 py-6 max-w-7xl mx-auto">
+      <div className="w-full py-6 px-0 mx-0">
         {/* Header */}
         <div className="mb-8 bg-gradient-to-r from-blue-700 to-blue-500 rounded-2xl shadow-xl p-6 text-white">
           <div className="sm:flex sm:items-center sm:justify-between">

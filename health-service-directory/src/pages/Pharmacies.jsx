@@ -218,7 +218,7 @@ export default function Pharmacies() {
   };
 
   return (
-    <div className="w-full max-w-none bg-gradient-to-b from-blue-50 to-white min-h-screen pb-12">
+    <div className="w-screen max-w-[100vw] overflow-hidden bg-gradient-to-b from-blue-50 to-white min-h-screen pb-12">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-700 py-16 shadow-xl w-full mt-8">
         <div className="absolute inset-0 opacity-20" style={{ 

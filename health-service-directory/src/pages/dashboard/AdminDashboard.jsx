@@ -22,6 +22,9 @@ import PatientsSection from '../../components/dashboard/admin/PatientsSection';
 import MedicalRecordsSection from '../../components/dashboard/admin/MedicalRecordsSection';
 import SettingsSection from '../../components/dashboard/admin/SettingsSection';
 import NotificationsSection from '../../components/dashboard/admin/NotificationsSection';
+import AnalyticsSection from '../../components/dashboard/admin/AnalyticsSection';
+import SecuritySection from '../../components/dashboard/admin/SecuritySection';
+import ProfileSection from '../../components/dashboard/admin/ProfileSection';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -65,7 +68,8 @@ export default function AdminDashboard() {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    navigate(`/dashboard/admin/${tab}`);
+    // Don't navigate to a new URL, just update the state
+    // This prevents the error when clicking on different sections
   };
 
   const sidebarItems = [
@@ -85,7 +89,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 overflow-hidden w-screen max-w-[100vw]">
       {/* Sidebar */}
       {/* Sidebar - collapses to top bar on mobile */}
       <div className={`
@@ -195,7 +199,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto md:ml-64 mt-16 md:mt-0">
+      <div className="flex-1 overflow-auto md:ml-0 mt-16 md:mt-0 w-full pr-0 mr-0">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 p-2 md:p-4 shadow-sm sticky top-0 z-20">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
@@ -228,12 +232,16 @@ export default function AdminDashboard() {
                 )}
               </button>
               <div className="flex items-center space-x-3 border-l border-gray-200 pl-3">
-                <div className="h-9 w-9 rounded-full bg-gradient-to-r from-indigo-500 to-blue-600 flex items-center justify-center shadow-md">
+                <div 
+                  className="h-9 w-9 rounded-full bg-gradient-to-r from-indigo-500 to-blue-600 flex items-center justify-center shadow-md cursor-pointer hover:shadow-lg transition-all duration-200"
+                  onClick={() => handleTabChange('profile')}
+                  title="View Profile"
+                >
                   <span className="text-sm font-bold text-white">
                     {userData.name.split(' ').map(n => n[0]).join('')}
                   </span>
                 </div>
-                <div className="hidden md:block">
+                <div className="hidden md:block cursor-pointer" onClick={() => handleTabChange('profile')}>
                   <span className="text-sm font-medium text-gray-900">{userData.name}</span>
                   <p className="text-xs text-gray-500">Administrator</p>
                 </div>
@@ -243,26 +251,34 @@ export default function AdminDashboard() {
         </div>
 
         {/* Content */}
-        <div className="p-2 sm:p-4 md:p-6">
-          {/* Breadcrumbs */}
-          <div className="flex items-center text-sm text-gray-500 mb-6">
-            <HomeIcon className="h-4 w-4 mr-2" />
-            <span className="mr-2">Dashboard</span>
-            <span className="mx-2">/</span>
-            <span className="font-medium text-indigo-600">{sidebarItems.find(item => item.id === activeTab)?.name}</span>
-          </div>
+        <div className="p-0 m-0 w-full overflow-hidden">
+          {/* Breadcrumbs - hidden on overview page */}
+          {activeTab !== 'overview' && (
+            <div className="flex items-center text-sm text-gray-500 mb-6">
+              <HomeIcon className="h-4 w-4 mr-2" />
+              <span className="mr-2">Dashboard</span>
+              <span className="mx-2">/</span>
+              <span className="font-medium text-indigo-600">{sidebarItems.find(item => item.id === activeTab)?.name}</span>
+            </div>
+          )}
           
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            {activeTab === 'overview' && <OverviewSection onTabChange={handleTabChange} />}
-            {activeTab === 'users' && <UsersSection />}
-            {activeTab === 'doctors' && <DoctorsSection />}
-            {activeTab === 'patients' && <PatientsSection />}
-            {activeTab === 'records' && <MedicalRecordsSection />}
-            {activeTab === 'settings' && <SettingsSection />}
-            {activeTab === 'notifications' && <NotificationsSection />}
-            {activeTab === 'analytics' && <div className="p-8"><p className="text-gray-500">Analytics dashboard coming soon...</p></div>}
-            {activeTab === 'security' && <div className="p-8"><p className="text-gray-500">Security settings coming soon...</p></div>}
-          </div>
+          {activeTab === 'overview' ? (
+            <div className="w-full m-0 p-0">
+              <OverviewSection onTabChange={handleTabChange} />
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              {activeTab === 'users' && <UsersSection />}
+              {activeTab === 'doctors' && <DoctorsSection />}
+              {activeTab === 'patients' && <PatientsSection />}
+              {activeTab === 'records' && <MedicalRecordsSection />}
+              {activeTab === 'settings' && <SettingsSection />}
+              {activeTab === 'notifications' && <NotificationsSection />}
+              {activeTab === 'analytics' && <AnalyticsSection />}
+              {activeTab === 'security' && <SecuritySection />}
+              {activeTab === 'profile' && <ProfileSection />}
+            </div>
+          )}
           
           {/* Footer */}
           <div className="mt-8 text-center text-xs text-gray-500">
