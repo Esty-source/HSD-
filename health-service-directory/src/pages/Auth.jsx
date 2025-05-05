@@ -5,11 +5,13 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { toast } from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
 
 // Validation schemas
 const loginSchema = yup.object().shape({
   email: yup.string().email('Invalid email').required('Email is required'),
   password: yup.string().required('Password is required'),
+  role: yup.string().oneOf(['patient', 'doctor', 'admin'], 'Invalid role'),
 });
 
 const registerSchema = yup.object().shape({
@@ -43,65 +45,210 @@ export default function Auth() {
     setLoading(true);
     try {
       if (isLogin) {
-        // Simulate API call for login
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        // Handle login with Supabase
+        const { data: authData, error } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password
+        });
         
-        // Mock successful login response
-        const mockResponse = {
-          token: 'mock-token-' + Date.now(), // Add timestamp to ensure token uniqueness
-          user: {
-            id: 1,
-            name: data.email.split('@')[0],
-            email: data.email,
-            role: data.email.toLowerCase().includes('admin') ? 'admin' : 
-                  data.email.toLowerCase().includes('doctor') ? 'doctor' : 'patient',
-          },
-        };
-
-        // First store the authentication data
-        login(mockResponse.user, mockResponse.token);
+        if (error) {
+          toast.error('Invalid login credentials');
+          throw error;
+        }
         
-        // Then show success message
+        // Get user profile - handle case where profile might not exist yet
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authData.user.id)
+          .single();
+        
+        // If profile doesn't exist or we're overriding the role
+        let userData;
+        
+        if (profileError) {
+          console.log('Profile not found, creating new profile');
+          // Create a new profile with the selected role
+          userData = {
+            id: authData.user.id,
+            email: authData.user.email,
+            name: authData.user.email.split('@')[0], // Use part of email as name
+            role: userType // Use the selected role from UI
+          };
+          
+          // Try to create the profile
+          try {
+            await supabase.from('profiles').insert([{
+              id: authData.user.id,
+              name: userData.name,
+              email: userData.email,
+              role: userData.role,
+              phone: '',
+              address: ''
+            }]);
+          } catch (insertError) {
+            console.error('Error creating profile during login:', insertError);
+            // Continue anyway
+          }
+        } else {
+          // Use the retrieved profile data but override the role if needed
+          userData = {
+            id: authData.user.id,
+            email: authData.user.email,
+            name: profileData.name,
+            role: userType // Use the selected role from UI
+          };
+          
+          // Update the profile with the new role if different
+          if (profileData.role !== userType) {
+            try {
+              const { error: updateError } = await supabase.from('profiles').update({
+                role: userType
+              }).eq('id', authData.user.id);
+              
+              if (updateError) {
+                console.error('Error updating profile role:', updateError);
+                // Continue anyway - we'll use the selected role for this session
+              }
+            } catch (updateError) {
+              console.error('Exception updating profile role:', updateError);
+              // Continue anyway - we'll use the selected role for this session
+            }
+          }
+        }
+        
+        // Use the existing login function from AuthContext
+        login(userData, authData.session.access_token);
+        
+        // Show success message
         toast.success('Login successful!');
         
-        // Wait a moment to ensure state is updated before redirecting
-        setTimeout(() => {
-          // Redirect to the appropriate dashboard
-          if (mockResponse.user.role === 'admin') {
-            navigate('/dashboard/admin', { replace: true });
-          } else if (mockResponse.user.role === 'doctor') {
-            navigate('/dashboard/doctor', { replace: true });
-          } else {
-            navigate('/dashboard/patient', { replace: true });
-          }
-        }, 100);
+        // Redirect based on selected role
+        if (userType === 'admin') {
+          navigate('/dashboard/admin', { replace: true });
+        } else if (userType === 'doctor') {
+          navigate('/dashboard/doctor', { replace: true });
+        } else {
+          navigate('/dashboard/patient', { replace: true });
+        }
       } else {
-        // Simulate API call for registration
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        
+        // Handle registration with Supabase
         // Ensure the role is set from the userType state
         data.role = userType;
         
-        // Mock successful registration response
-        const mockResponse = {
-          token: 'mock-token-' + Date.now(), // Add timestamp to ensure token uniqueness
-          user: {
-            id: 2,
-            name: data.name,
+        // First try to sign in directly (in case user already exists)
+        let authData;
+        
+        // Try to sign up the user
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password,
+          options: {
+            data: {
+              name: data.name,
+              role: data.role
+            },
+            // Skip email verification
+            emailRedirectTo: window.location.origin + '/auth-callback'
+          }
+        });
+        
+        // If there's an error or no session (email confirmation required)
+        if (signUpError || !signUpData.session) {
+          // Try to sign in directly
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
             email: data.email,
-            role: data.role,
-          },
-        };
-
-        // First store the authentication data
-        login(mockResponse.user, mockResponse.token);
+            password: data.password
+          });
+          
+          if (signInError) {
+            // If both signup and signin fail, show error
+            if (signUpError) {
+              throw signUpError;
+            } else {
+              throw signInError;
+            }
+          }
+          
+          // Use the sign in data
+          authData = signInData;
+        } else {
+          // Use the sign up data
+          authData = signUpData;
+        }
         
-        // Then show success message
-        toast.success('Registration successful!');
+        // Create profile record - simplified to avoid duplication
+        try {
+          // First check if profile already exists
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', authData.user.id)
+            .single();
+          
+          // Only create profile if it doesn't exist
+          if (!existingProfile) {
+            const { error: profileError } = await supabase
+              .from('profiles')
+              .insert([{ 
+                id: authData.user.id,
+                name: data.name,
+                role: data.role, // Use the role from userType
+                email: data.email,
+                phone: '',
+                address: ''
+              }]);
+            
+            if (profileError) {
+              console.error('Profile creation error:', profileError);
+              // Continue anyway - the user is authenticated
+            }
+          }
+          
+          // Attempt to create role-specific records - but only after a delay to ensure profile is created
+          // Skip this part for now - we'll handle it after successful login
+          // This prevents the 500 errors when trying to create patient/doctor records
+          
+          /* Commenting out to fix 500 errors
+          if (data.role === 'patient') {
+            const { error: patientError } = await supabase
+              .from('patients')
+              .upsert([{ id: authData.user.id }], { onConflict: 'id' });
+            
+            if (patientError) {
+              console.error('Patient record creation error:', patientError);
+            }
+          } else if (data.role === 'doctor') {
+            const { error: doctorError } = await supabase
+              .from('doctors')
+              .upsert([{ id: authData.user.id }], { onConflict: 'id' });
+            
+            if (doctorError) {
+              console.error('Doctor record creation error:', doctorError);
+            }
+          }
+          */
+        } catch (dbError) {
+          console.error('Database operation error:', dbError);
+          // Continue with signup process despite DB errors
+          // The user can still confirm their email
+        }
         
-        // Wait a moment to ensure state is updated before redirecting
-        setTimeout(() => {
-          // Redirect to the appropriate dashboard
+        // Handle session and redirection
+        if (authData.session) {
+          // If session exists (auto-confirm is enabled)
+          const userData = {
+            id: authData.user.id,
+            email: authData.user.email,
+            name: data.name,
+            role: data.role
+          };
+          
+          login(userData, authData.session.access_token);
+          
+          toast.success('Registration successful!');
+          
+          // Redirect based on role
           if (data.role === 'admin') {
             navigate('/dashboard/admin', { replace: true });
           } else if (data.role === 'doctor') {
@@ -109,9 +256,13 @@ export default function Auth() {
           } else {
             navigate('/dashboard/patient', { replace: true });
           }
-        }, 100);
+        } else {
+          // If email confirmation is required
+          toast.success('Registration successful! Please check your email to confirm your account.');
+        }
       }
     } catch (error) {
+      console.error('Auth error:', error);
       toast.error(error.message || 'An error occurred');
     } finally {
       setLoading(false);
@@ -178,45 +329,62 @@ export default function Auth() {
                 </div>
               </div>
             )}
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <div className="mt-1">
-                <input
-                  {...register('email')}
-                  type="email"
-                  placeholder="your.email@example.com"
-                  className="appearance-none block w-full px-3 py-2 sm:py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base transition-all duration-200"
-                />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="mt-1">
-                <input
-                  {...register('password')}
-                  type="password"
-                  placeholder="••••••••"
-                  className="appearance-none block w-full px-3 py-2 sm:py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base transition-all duration-200"
-                />
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-                )}
-              </div>
-            </div>
-
-            {!isLogin && (
+            {isLogin ? (
+              <>
+                <div className="mb-4">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    {...register('email')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                  <input
+                    type="password"
+                    id="password"
+                    {...register('password')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
+                </div>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Login As</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div 
+                      className={`border rounded-md p-3 text-center cursor-pointer transition-all ${userType === 'patient' ? 'bg-blue-500 text-white border-blue-600' : 'border-gray-300 hover:border-blue-500'}`}
+                      onClick={() => setUserType('patient')}
+                    >
+                      <div className="flex justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      <span className="text-sm font-medium">Patient</span>
+                    </div>
+                    <div 
+                      className={`border rounded-md p-3 text-center cursor-pointer transition-all ${userType === 'doctor' ? 'bg-blue-500 text-white border-blue-600' : 'border-gray-300 hover:border-blue-500'}`}
+                      onClick={() => setUserType('doctor')}
+                    >
+                      <div className="flex justify-center mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        </svg>
+                      </div>
+                      <span className="text-sm font-medium">Doctor</span>
+                    </div>
+                  </div>
+                  <input type="hidden" {...register('role')} value={userType} />
+                </div>
+              </> 
+            ) : (
               <>
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    Email address
                     Confirm Password
                   </label>
                   <div className="mt-1">

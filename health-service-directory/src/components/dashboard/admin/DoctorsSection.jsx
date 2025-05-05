@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   UserCircleIcon, 
   PlusIcon, 
@@ -6,34 +6,50 @@ import {
   TrashIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { supabase } from '../../../lib/supabase';
 
 export default function DoctorsSection() {
-  const [doctors, setDoctors] = useState([
-    { 
-      id: 1, 
-      name: 'Dr. Sarah Johnson', 
-      email: 'sarah@example.com', 
-      specialty: 'Cardiology',
-      status: 'active',
-      patients: 156
-    },
-    { 
-      id: 2, 
-      name: 'Dr. Michael Chen', 
-      email: 'michael@example.com', 
-      specialty: 'Pediatrics',
-      status: 'active',
-      patients: 98
-    },
-    { 
-      id: 3, 
-      name: 'Dr. Emily Wilson', 
-      email: 'emily@example.com', 
-      specialty: 'Dermatology',
-      status: 'inactive',
-      patients: 0
-    },
-  ]);
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    fetchDoctors();
+  }, []);
+  
+  async function fetchDoctors() {
+    try {
+      setLoading(true);
+      
+      const { data, error } = await supabase
+        .from('doctors')
+        .select(`
+          id,
+          profiles (id, name, email),
+          specialty,
+          license_number,
+          education,
+          years_experience
+        `);
+      
+      if (error) throw error;
+      
+      // Transform the data to match our component's expected format
+      const formattedDoctors = data.map(doctor => ({
+        id: doctor.id,
+        name: doctor.profiles.name,
+        email: doctor.profiles.email,
+        specialty: doctor.specialty || 'General',
+        status: 'active', // You might want to add a status field to your database
+        patients: 0 // This would need to be calculated from appointments or another table
+      }));
+      
+      setDoctors(formattedDoctors);
+    } catch (error) {
+      console.error('Error fetching doctors:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const [showNewDoctorModal, setShowNewDoctorModal] = useState(false);
   const [showEditDoctorModal, setShowEditDoctorModal] = useState(false);
@@ -61,25 +77,84 @@ export default function DoctorsSection() {
     }));
   };
 
-  const handleAddDoctor = (e) => {
+  const handleAddDoctor = async (e) => {
     e.preventDefault();
-    const doctorData = {
-      ...newDoctor,
-      id: Date.now()
-    };
-    setDoctors(prev => [...prev, doctorData]);
-    setShowNewDoctorModal(false);
-    setNewDoctor({
-      name: '',
-      email: '',
-      specialty: '',
-      status: 'active',
-      patients: 0
-    });
+    try {
+      // First, create a user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: newDoctor.email,
+        password: 'tempPassword123', // You'd want to generate this or have the user set it
+        email_confirm: true,
+        user_metadata: {
+          name: newDoctor.name,
+          role: 'doctor'
+        }
+      });
+      
+      if (authError) throw authError;
+      
+      // Create a profile record
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{ 
+          id: authData.user.id,
+          name: newDoctor.name,
+          role: 'doctor',
+          email: newDoctor.email
+        }]);
+      
+      if (profileError) throw profileError;
+      
+      // Create a doctor record
+      const { error: doctorError } = await supabase
+        .from('doctors')
+        .insert([{ 
+          id: authData.user.id,
+          specialty: newDoctor.specialty,
+          license_number: '',
+          education: '',
+          years_experience: 0
+        }]);
+      
+      if (doctorError) throw doctorError;
+      
+      // Refresh the doctors list
+      fetchDoctors();
+      
+      // Reset form and close modal
+      setShowNewDoctorModal(false);
+      setNewDoctor({
+        name: '',
+        email: '',
+        specialty: '',
+        status: 'active',
+        patients: 0
+      });
+    } catch (error) {
+      console.error('Error adding doctor:', error.message);
+      alert('Failed to add doctor: ' + error.message);
+    }
   };
 
-  const handleDeleteDoctor = (doctorId) => {
-    setDoctors(prev => prev.filter(doctor => doctor.id !== doctorId));
+  const handleDeleteDoctor = async (doctorId) => {
+    try {
+      // Delete the doctor record
+      const { error: doctorError } = await supabase
+        .from('doctors')
+        .delete()
+        .eq('id', doctorId);
+      
+      if (doctorError) throw doctorError;
+      
+      // Note: In a real application, you might want to handle deleting the profile and auth user as well,
+      // but that requires admin privileges and careful consideration of data integrity
+      
+      // Refresh the doctors list
+      fetchDoctors();
+    } catch (error) {
+      console.error('Error deleting doctor:', error.message);
+      alert('Failed to delete doctor: ' + error.message);
+    }
   };
 
   const handleEditClick = (doctor) => {
@@ -102,12 +177,38 @@ export default function DoctorsSection() {
     }));
   };
 
-  const handleUpdateDoctor = (e) => {
+  const handleUpdateDoctor = async (e) => {
     e.preventDefault();
-    setDoctors(prev => prev.map(doctor => 
-      doctor.id === editDoctor.id ? editDoctor : doctor
-    ));
-    setShowEditDoctorModal(false);
+    try {
+      // Update the doctor record
+      const { error: doctorError } = await supabase
+        .from('doctors')
+        .update({ 
+          specialty: editDoctor.specialty
+          // Add other doctor-specific fields here
+        })
+        .eq('id', editDoctor.id);
+      
+      if (doctorError) throw doctorError;
+      
+      // Update the profile record
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ 
+          name: editDoctor.name
+          // Add other profile fields here
+        })
+        .eq('id', editDoctor.id);
+      
+      if (profileError) throw profileError;
+      
+      // Refresh the doctors list
+      fetchDoctors();
+      setShowEditDoctorModal(false);
+    } catch (error) {
+      console.error('Error updating doctor:', error.message);
+      alert('Failed to update doctor: ' + error.message);
+    }
   };
 
   return (
@@ -310,63 +411,87 @@ export default function DoctorsSection() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialty</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patients</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {doctors.map((doctor) => (
-              <tr key={doctor.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                      <UserCircleIcon className="h-6 w-6 text-gray-500" />
-                    </div>
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">{doctor.name}</div>
-                      <div className="text-sm text-gray-500">{doctor.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{doctor.specialty}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{doctor.patients}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    doctor.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {doctor.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button 
-                    onClick={() => handleEditClick(doctor)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    <PencilIcon className="h-5 w-5" />
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteDoctor(doctor.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                </td>
+      {loading ? (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-12 w-12 bg-blue-200 rounded-full mb-4"></div>
+            <div className="h-4 bg-blue-100 rounded w-1/3 mb-2"></div>
+            <div className="h-3 bg-blue-50 rounded w-1/4"></div>
+          </div>
+          <p className="mt-4 text-gray-500">Loading doctors...</p>
+        </div>
+      ) : doctors.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <UserCircleIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-1">No doctors found</h3>
+          <p className="text-gray-500">Add your first doctor to get started.</p>
+          <button 
+            onClick={() => setShowNewDoctorModal(true)}
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
+            Add Doctor
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Specialty</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patients</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {doctors.map((doctor) => (
+                <tr key={doctor.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                        <UserCircleIcon className="h-6 w-6 text-gray-500" />
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">{doctor.name}</div>
+                        <div className="text-sm text-gray-500">{doctor.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{doctor.specialty || 'Not specified'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{doctor.patients || 0}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      doctor.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {doctor.status || 'active'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button 
+                      onClick={() => handleEditClick(doctor)}
+                      className="text-blue-600 hover:text-blue-900 mr-4"
+                    >
+                      <PencilIcon className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteDoctor(doctor.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
-} 
+}

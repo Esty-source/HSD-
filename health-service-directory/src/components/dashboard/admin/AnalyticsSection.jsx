@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../../../lib/supabase';
 import { 
   ChartBarIcon, 
   UsersIcon, 
@@ -39,65 +40,192 @@ export default function AnalyticsSection() {
   });
 
   useEffect(() => {
-    // Simulate data loading
-    setLoading(true);
-    setTimeout(() => {
-      // Generate mock data based on time range
-      const multiplier = timeRange === 'week' ? 1 : timeRange === 'month' ? 4 : 12;
-      
-      setStats({
-        totalUsers: 1250 + Math.floor(Math.random() * 200),
-        totalDoctors: 85 + Math.floor(Math.random() * 15),
-        totalPatients: 1150 + Math.floor(Math.random() * 180),
-        totalAppointments: 3200 * multiplier + Math.floor(Math.random() * 500),
-        userGrowth: 5.2 + (Math.random() * 2 - 1),
-        doctorGrowth: 3.8 + (Math.random() * 2 - 1),
-        patientGrowth: 7.5 + (Math.random() * 2 - 1),
-        appointmentGrowth: 12.3 + (Math.random() * 3 - 1.5)
-      });
-
-      // Generate user activity data
-      const days = timeRange === 'week' ? 7 : timeRange === 'month' ? 30 : 90;
-      const userActivity = Array.from({ length: days }, (_, i) => ({
-        day: i + 1,
-        logins: 50 + Math.floor(Math.random() * 100),
-        searches: 120 + Math.floor(Math.random() * 200),
-        appointments: 30 + Math.floor(Math.random() * 50)
-      }));
-
-      // Generate appointments by day
-      const appointmentsByDay = Array.from({ length: 7 }, (_, i) => ({
-        day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i],
-        count: 50 + Math.floor(Math.random() * 100)
-      }));
-
-      // Generate doctor performance data
-      const doctorPerformance = [
-        { name: 'Dr. Sarah Johnson', appointments: 85 + Math.floor(Math.random() * 20), rating: 4.8, specialty: 'Cardiology' },
-        { name: 'Dr. Michael Chen', appointments: 72 + Math.floor(Math.random() * 20), rating: 4.7, specialty: 'Pediatrics' },
-        { name: 'Dr. Emily Wilson', appointments: 68 + Math.floor(Math.random() * 20), rating: 4.9, specialty: 'Neurology' },
-        { name: 'Dr. David Kim', appointments: 63 + Math.floor(Math.random() * 20), rating: 4.6, specialty: 'Orthopedics' },
-        { name: 'Dr. Lisa Brown', appointments: 59 + Math.floor(Math.random() * 20), rating: 4.5, specialty: 'Dermatology' }
-      ];
-
-      // Generate patient distribution data
-      const patientDistribution = [
-        { age: '0-18', count: 220 + Math.floor(Math.random() * 50) },
-        { age: '19-35', count: 380 + Math.floor(Math.random() * 70) },
-        { age: '36-50', count: 290 + Math.floor(Math.random() * 60) },
-        { age: '51-65', count: 180 + Math.floor(Math.random() * 40) },
-        { age: '65+', count: 80 + Math.floor(Math.random() * 30) }
-      ];
-
-      setChartData({
-        userActivity,
-        appointmentsByDay,
-        doctorPerformance,
-        patientDistribution
-      });
-
-      setLoading(false);
-    }, 800);
+    async function fetchData() {
+      setLoading(true);
+      try {
+        // Get date range based on selected time range
+        const now = new Date();
+        let startDate;
+        
+        if (timeRange === 'week') {
+          startDate = new Date(now);
+          startDate.setDate(now.getDate() - 7);
+        } else if (timeRange === 'month') {
+          startDate = new Date(now);
+          startDate.setMonth(now.getMonth() - 1);
+        } else { // quarter
+          startDate = new Date(now);
+          startDate.setMonth(now.getMonth() - 3);
+        }
+        
+        const startDateStr = startDate.toISOString().split('T')[0];
+        
+        // Fetch total counts
+        const { count: totalUsers } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+          
+        const { count: totalDoctors } = await supabase
+          .from('doctors')
+          .select('*', { count: 'exact', head: true });
+          
+        const { count: totalPatients } = await supabase
+          .from('patients')
+          .select('*', { count: 'exact', head: true });
+          
+        const { count: totalAppointments } = await supabase
+          .from('appointments')
+          .select('*', { count: 'exact', head: true });
+        
+        // Fetch counts for previous period to calculate growth
+        const prevStartDate = new Date(startDate);
+        if (timeRange === 'week') {
+          prevStartDate.setDate(prevStartDate.getDate() - 7);
+        } else if (timeRange === 'month') {
+          prevStartDate.setMonth(prevStartDate.getMonth() - 1);
+        } else {
+          prevStartDate.setMonth(prevStartDate.getMonth() - 3);
+        }
+        const prevStartDateStr = prevStartDate.toISOString().split('T')[0];
+        
+        // Get previous period counts for growth calculation
+        const { count: prevUsers } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+          .lt('created_at', startDateStr);
+          
+        const { count: prevDoctors } = await supabase
+          .from('doctors')
+          .select('*', { count: 'exact', head: true })
+          .lt('created_at', startDateStr);
+          
+        const { count: prevPatients } = await supabase
+          .from('patients')
+          .select('*', { count: 'exact', head: true })
+          .lt('created_at', startDateStr);
+          
+        const { count: prevAppointments } = await supabase
+          .from('appointments')
+          .select('*', { count: 'exact', head: true })
+          .lt('date', startDateStr);
+        
+        // Calculate growth percentages
+        const userGrowth = prevUsers > 0 ? ((totalUsers - prevUsers) / prevUsers) * 100 : 0;
+        const doctorGrowth = prevDoctors > 0 ? ((totalDoctors - prevDoctors) / prevDoctors) * 100 : 0;
+        const patientGrowth = prevPatients > 0 ? ((totalPatients - prevPatients) / prevPatients) * 100 : 0;
+        const appointmentGrowth = prevAppointments > 0 ? ((totalAppointments - prevAppointments) / prevAppointments) * 100 : 0;
+        
+        setStats({
+          totalUsers: totalUsers || 0,
+          totalDoctors: totalDoctors || 0,
+          totalPatients: totalPatients || 0,
+          totalAppointments: totalAppointments || 0,
+          userGrowth,
+          doctorGrowth,
+          patientGrowth,
+          appointmentGrowth
+        });
+        
+        // Fetch appointments by day for the chart
+        const { data: appointmentsData } = await supabase
+          .from('appointments')
+          .select('date')
+          .gte('date', startDateStr);
+          
+        // Process appointments by day of week
+        const dayCount = { 'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0, 'Sat': 0, 'Sun': 0 };
+        if (appointmentsData) {
+          appointmentsData.forEach(app => {
+            const date = new Date(app.date);
+            const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()];
+            dayCount[day]++;
+          });
+        }
+        
+        const appointmentsByDay = Object.keys(dayCount).map(day => ({
+          day,
+          count: dayCount[day]
+        }));
+        
+        // Fetch top doctors by appointment count
+        const { data: doctorsData } = await supabase
+          .from('doctors')
+          .select(`
+            id,
+            profiles(name),
+            specialty
+          `);
+          
+        // Count appointments per doctor
+        const doctorAppointments = {};
+        if (doctorsData) {
+          for (const doctor of doctorsData) {
+            const { count } = await supabase
+              .from('appointments')
+              .select('*', { count: 'exact', head: true })
+              .eq('doctor_id', doctor.id)
+              .gte('date', startDateStr);
+              
+            doctorAppointments[doctor.id] = count || 0;
+          }
+        }
+        
+        // Format doctor performance data
+        const doctorPerformance = doctorsData
+          ? doctorsData
+              .map(doctor => ({
+                id: doctor.id,
+                name: doctor.profiles?.name || 'Unknown Doctor',
+                appointments: doctorAppointments[doctor.id] || 0,
+                specialty: doctor.specialty || 'General',
+                rating: 4.5 // We'll use a default rating for now
+              }))
+              .sort((a, b) => b.appointments - a.appointments)
+              .slice(0, 5)
+          : [];
+          
+        // For user activity and patient distribution, we'll use mock data for now
+        // as these would require additional tables or more complex queries
+        
+        // Generate user activity data (this would ideally come from auth logs or similar)
+        const days = timeRange === 'week' ? 7 : timeRange === 'month' ? 30 : 90;
+        const userActivity = Array.from({ length: days }, (_, i) => {
+          const date = new Date();
+          date.setDate(date.getDate() - (days - i - 1));
+          return {
+            day: i + 1,
+            date: date.toISOString().split('T')[0],
+            logins: 20 + Math.floor(Math.random() * 30),
+            searches: 40 + Math.floor(Math.random() * 60),
+            appointments: 10 + Math.floor(Math.random() * 15)
+          };
+        });
+        
+        // For patient distribution, we could calculate this from patient data
+        // if we had age information in the profiles table
+        const patientDistribution = [
+          { age: '0-18', count: Math.floor(totalPatients * 0.2) },
+          { age: '19-35', count: Math.floor(totalPatients * 0.3) },
+          { age: '36-50', count: Math.floor(totalPatients * 0.25) },
+          { age: '51-65', count: Math.floor(totalPatients * 0.15) },
+          { age: '65+', count: Math.floor(totalPatients * 0.1) }
+        ];
+        
+        setChartData({
+          userActivity,
+          appointmentsByDay,
+          doctorPerformance,
+          patientDistribution
+        });
+        
+      } catch (error) {
+        console.error('Error fetching analytics data:', error.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchData();
   }, [timeRange]);
 
   const renderGrowthIndicator = (value) => {

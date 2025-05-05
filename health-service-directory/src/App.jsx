@@ -25,6 +25,7 @@ const PatientDashboard = lazy(() => import('./pages/dashboard/PatientDashboard')
 const DoctorDashboard = lazy(() => import('./pages/dashboard/DoctorDashboard'));
 const AdminDashboard = lazy(() => import('./pages/dashboard/AdminDashboard'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 
 // Loading spinner component
 const LoadingSpinner = () => (
@@ -38,6 +39,7 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<Layout />}>
       <Route path="/auth" element={<Auth />} />
+      <Route path="/auth-callback" element={<AuthCallback />} />
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />

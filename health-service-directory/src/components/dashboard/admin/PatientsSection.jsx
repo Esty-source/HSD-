@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   UserGroupIcon, 
   PlusIcon, 
@@ -6,37 +6,53 @@ import {
   TrashIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { supabase } from '../../../lib/supabase';
 
 export default function PatientsSection() {
-  const [patients, setPatients] = useState([
-    { 
-      id: 1, 
-      name: 'Robert Brown', 
-      email: 'robert@example.com', 
-      age: 45,
-      gender: 'Male',
-      lastVisit: '2024-03-15',
-      status: 'active'
-    },
-    { 
-      id: 2, 
-      name: 'Lisa Anderson', 
-      email: 'lisa@example.com', 
-      age: 32,
-      gender: 'Female',
-      lastVisit: '2024-03-10',
-      status: 'active'
-    },
-    { 
-      id: 3, 
-      name: 'David Wilson', 
-      email: 'david@example.com', 
-      age: 28,
-      gender: 'Male',
-      lastVisit: '2024-02-20',
-      status: 'inactive'
-    },
-  ]);
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+  
+  async function fetchPatients() {
+    try {
+      setLoading(true);
+      
+      const { data, error } = await supabase
+        .from('patients')
+        .select(`
+          id,
+          profiles (id, name, email),
+          medical_history,
+          allergies,
+          blood_type
+        `);
+      
+      if (error) throw error;
+      
+      // Transform the data to match our component's expected format
+      const formattedPatients = data.map(patient => ({
+        id: patient.id,
+        name: patient.profiles.name,
+        email: patient.profiles.email,
+        age: 0, // This would need to be calculated from date of birth or stored in the database
+        gender: 'Unknown', // This would need to be added to your database schema
+        lastVisit: new Date().toISOString().split('T')[0], // This would need to be calculated from appointments
+        status: 'active',
+        medical_history: patient.medical_history,
+        allergies: patient.allergies,
+        blood_type: patient.blood_type
+      }));
+      
+      setPatients(formattedPatients);
+    } catch (error) {
+      console.error('Error fetching patients:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const [showNewPatientModal, setShowNewPatientModal] = useState(false);
   const [showEditPatientModal, setShowEditPatientModal] = useState(false);
@@ -66,27 +82,84 @@ export default function PatientsSection() {
     }));
   };
 
-  const handleAddPatient = (e) => {
+  const handleAddPatient = async (e) => {
     e.preventDefault();
-    const patientData = {
-      ...newPatient,
-      id: Date.now(),
-      age: parseInt(newPatient.age)
-    };
-    setPatients(prev => [...prev, patientData]);
-    setShowNewPatientModal(false);
-    setNewPatient({
-      name: '',
-      email: '',
-      age: '',
-      gender: 'Male',
-      lastVisit: new Date().toISOString().split('T')[0],
-      status: 'active'
-    });
+    try {
+      // First, create a user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: newPatient.email,
+        password: 'tempPassword123', // You'd want to generate this or have the user set it
+        email_confirm: true,
+        user_metadata: {
+          name: newPatient.name,
+          role: 'patient'
+        }
+      });
+      
+      if (authError) throw authError;
+      
+      // Create a profile record
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{ 
+          id: authData.user.id,
+          name: newPatient.name,
+          role: 'patient',
+          email: newPatient.email
+        }]);
+      
+      if (profileError) throw profileError;
+      
+      // Create a patient record
+      const { error: patientError } = await supabase
+        .from('patients')
+        .insert([{ 
+          id: authData.user.id,
+          medical_history: '',
+          allergies: '',
+          blood_type: ''
+        }]);
+      
+      if (patientError) throw patientError;
+      
+      // Refresh the patients list
+      fetchPatients();
+      
+      // Reset form and close modal
+      setShowNewPatientModal(false);
+      setNewPatient({
+        name: '',
+        email: '',
+        age: '',
+        gender: 'Male',
+        lastVisit: new Date().toISOString().split('T')[0],
+        status: 'active'
+      });
+    } catch (error) {
+      console.error('Error adding patient:', error.message);
+      alert('Failed to add patient: ' + error.message);
+    }
   };
 
-  const handleDeletePatient = (patientId) => {
-    setPatients(prev => prev.filter(patient => patient.id !== patientId));
+  const handleDeletePatient = async (patientId) => {
+    try {
+      // Delete the patient record
+      const { error: patientError } = await supabase
+        .from('patients')
+        .delete()
+        .eq('id', patientId);
+      
+      if (patientError) throw patientError;
+      
+      // Note: In a real application, you might want to handle deleting the profile and auth user as well,
+      // but that requires admin privileges and careful consideration of data integrity
+      
+      // Refresh the patients list
+      fetchPatients();
+    } catch (error) {
+      console.error('Error deleting patient:', error.message);
+      alert('Failed to delete patient: ' + error.message);
+    }
   };
 
   const handleEditClick = (patient) => {
@@ -110,16 +183,40 @@ export default function PatientsSection() {
     }));
   };
 
-  const handleUpdatePatient = (e) => {
+  const handleUpdatePatient = async (e) => {
     e.preventDefault();
-    const updatedPatient = {
-      ...editPatient,
-      age: parseInt(editPatient.age)
-    };
-    setPatients(prev => prev.map(patient => 
-      patient.id === updatedPatient.id ? updatedPatient : patient
-    ));
-    setShowEditPatientModal(false);
+    try {
+      // Update the patient record
+      const { error: patientError } = await supabase
+        .from('patients')
+        .update({ 
+          // Add patient-specific fields here if needed
+          medical_history: editPatient.medical_history || '',
+          allergies: editPatient.allergies || '',
+          blood_type: editPatient.blood_type || ''
+        })
+        .eq('id', editPatient.id);
+      
+      if (patientError) throw patientError;
+      
+      // Update the profile record
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ 
+          name: editPatient.name
+          // Add other profile fields here
+        })
+        .eq('id', editPatient.id);
+      
+      if (profileError) throw profileError;
+      
+      // Refresh the patients list
+      fetchPatients();
+      setShowEditPatientModal(false);
+    } catch (error) {
+      console.error('Error updating patient:', error.message);
+      alert('Failed to update patient: ' + error.message);
+    }
   };
 
   return (
@@ -347,67 +444,91 @@ export default function PatientsSection() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Visit</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {patients.map((patient) => (
-              <tr key={patient.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                      <UserGroupIcon className="h-6 w-6 text-gray-500" />
-                    </div>
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">{patient.name}</div>
-                      <div className="text-sm text-gray-500">{patient.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{patient.age}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{patient.gender}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{patient.lastVisit}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    patient.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {patient.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button 
-                    onClick={() => handleEditClick(patient)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    <PencilIcon className="h-5 w-5" />
-                  </button>
-                  <button 
-                    onClick={() => handleDeletePatient(patient.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                </td>
+      {loading ? (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-12 w-12 bg-blue-200 rounded-full mb-4"></div>
+            <div className="h-4 bg-blue-100 rounded w-1/3 mb-2"></div>
+            <div className="h-3 bg-blue-50 rounded w-1/4"></div>
+          </div>
+          <p className="mt-4 text-gray-500">Loading patients...</p>
+        </div>
+      ) : patients.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <UserGroupIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-1">No patients found</h3>
+          <p className="text-gray-500">Add your first patient to get started.</p>
+          <button 
+            onClick={() => setShowNewPatientModal(true)}
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
+            Add Patient
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gender</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Visit</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {patients.map((patient) => (
+                <tr key={patient.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                        <UserGroupIcon className="h-6 w-6 text-gray-500" />
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">{patient.name}</div>
+                        <div className="text-sm text-gray-500">{patient.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{patient.age || 'N/A'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{patient.gender || 'Unknown'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{patient.lastVisit || 'Never'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      patient.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {patient.status || 'active'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button 
+                      onClick={() => handleEditClick(patient)}
+                      className="text-blue-600 hover:text-blue-900 mr-4"
+                    >
+                      <PencilIcon className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeletePatient(patient.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 } 

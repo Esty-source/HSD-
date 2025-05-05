@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   UserGroupIcon, 
   PlusIcon, 
@@ -6,18 +6,43 @@ import {
   TrashIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { supabase } from '../../../lib/supabase';
 
 export default function UsersSection() {
-  const [users, setUsers] = useState([
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'patient', status: 'active' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'doctor', status: 'active' },
-    { id: 3, name: 'Admin User', email: 'admin@example.com', role: 'admin', status: 'active' },
-    { id: 4, name: 'Michael Johnson', email: 'michael@example.com', role: 'patient', status: 'inactive' },
-    { id: 5, name: 'Dr. Sarah Wilson', email: 'sarah@example.com', role: 'doctor', status: 'active' },
-    { id: 6, name: 'Robert Brown', email: 'robert@example.com', role: 'patient', status: 'active' },
-    { id: 7, name: 'Emily Davis', email: 'emily@example.com', role: 'doctor', status: 'inactive' },
-    { id: 8, name: 'Support Admin', email: 'support@example.com', role: 'admin', status: 'active' },
-  ]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+  
+  async function fetchUsers() {
+    try {
+      setLoading(true);
+      
+      // Fetch all profiles from Supabase
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*');
+      
+      if (error) throw error;
+      
+      // Transform the data to match our component's expected format
+      const formattedUsers = data.map(user => ({
+        id: user.id,
+        name: user.name || 'Unknown',
+        email: user.email || '',
+        role: user.role || 'patient',
+        status: 'active' // You might want to add a status field to your database
+      }));
+      
+      setUsers(formattedUsers);
+    } catch (error) {
+      console.error('Error fetching users:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const [showNewUserModal, setShowNewUserModal] = useState(false);
   const [showEditUserModal, setShowEditUserModal] = useState(false);
@@ -44,24 +69,111 @@ export default function UsersSection() {
     }));
   };
 
-  const handleAddUser = (e) => {
+  const handleAddUser = async (e) => {
     e.preventDefault();
-    const userData = {
-      ...newUser,
-      id: Date.now()
-    };
-    setUsers(prev => [...prev, userData]);
-    setShowNewUserModal(false);
-    setNewUser({
-      name: '',
-      email: '',
-      role: 'patient',
-      status: 'active'
-    });
+    try {
+      // First, create a user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: newUser.email,
+        password: 'tempPassword123', // You'd want to generate this or have the user set it
+        email_confirm: true,
+        user_metadata: {
+          name: newUser.name,
+          role: newUser.role
+        }
+      });
+      
+      if (authError) throw authError;
+      
+      // Create a profile record
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{ 
+          id: authData.user.id,
+          name: newUser.name,
+          role: newUser.role,
+          email: newUser.email
+        }]);
+      
+      if (profileError) throw profileError;
+      
+      // Create role-specific record if needed
+      if (newUser.role === 'doctor') {
+        const { error: doctorError } = await supabase
+          .from('doctors')
+          .insert([{ id: authData.user.id }]);
+        
+        if (doctorError) throw doctorError;
+      } else if (newUser.role === 'patient') {
+        const { error: patientError } = await supabase
+          .from('patients')
+          .insert([{ id: authData.user.id }]);
+        
+        if (patientError) throw patientError;
+      }
+      
+      // Refresh the users list
+      fetchUsers();
+      
+      // Reset form and close modal
+      setShowNewUserModal(false);
+      setNewUser({
+        name: '',
+        email: '',
+        role: 'patient',
+        status: 'active'
+      });
+    } catch (error) {
+      console.error('Error adding user:', error.message);
+      alert('Failed to add user: ' + error.message);
+    }
   };
 
-  const handleDeleteUser = (userId) => {
-    setUsers(prev => prev.filter(user => user.id !== userId));
+  const handleDeleteUser = async (userId) => {
+    try {
+      // First check if this user has a role-specific record
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+      
+      if (profileError) throw profileError;
+      
+      // Delete role-specific record if it exists
+      if (profileData.role === 'doctor') {
+        const { error: doctorError } = await supabase
+          .from('doctors')
+          .delete()
+          .eq('id', userId);
+        
+        if (doctorError) throw doctorError;
+      } else if (profileData.role === 'patient') {
+        const { error: patientError } = await supabase
+          .from('patients')
+          .delete()
+          .eq('id', userId);
+        
+        if (patientError) throw patientError;
+      }
+      
+      // Delete the profile record
+      const { error: deleteProfileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+      
+      if (deleteProfileError) throw deleteProfileError;
+      
+      // Note: In a real application, you might want to handle deleting the auth user as well,
+      // but that requires admin privileges and careful consideration of data integrity
+      
+      // Refresh the users list
+      fetchUsers();
+    } catch (error) {
+      console.error('Error deleting user:', error.message);
+      alert('Failed to delete user: ' + error.message);
+    }
   };
 
   const handleEditClick = (user) => {
@@ -83,19 +195,73 @@ export default function UsersSection() {
     }));
   };
 
-  const handleUpdateUser = (e) => {
+  const handleUpdateUser = async (e) => {
     e.preventDefault();
-    setUsers(prev => prev.map(user => 
-      user.id === editUser.id ? editUser : user
-    ));
-    setShowEditUserModal(false);
-    setEditUser({
-      id: null,
-      name: '',
-      email: '',
-      role: '',
-      status: ''
-    });
+    try {
+      // Get the current role of the user
+      const { data: currentUserData, error: fetchError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', editUser.id)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      // If the role has changed, we need to handle role-specific records
+      if (currentUserData.role !== editUser.role) {
+        // Delete old role-specific record
+        if (currentUserData.role === 'doctor') {
+          await supabase
+            .from('doctors')
+            .delete()
+            .eq('id', editUser.id);
+        } else if (currentUserData.role === 'patient') {
+          await supabase
+            .from('patients')
+            .delete()
+            .eq('id', editUser.id);
+        }
+        
+        // Create new role-specific record
+        if (editUser.role === 'doctor') {
+          await supabase
+            .from('doctors')
+            .insert([{ id: editUser.id }]);
+        } else if (editUser.role === 'patient') {
+          await supabase
+            .from('patients')
+            .insert([{ id: editUser.id }]);
+        }
+      }
+      
+      // Update the profile record
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          name: editUser.name,
+          role: editUser.role,
+          // Don't update email here as that would require auth changes too
+        })
+        .eq('id', editUser.id);
+      
+      if (updateError) throw updateError;
+      
+      // Refresh the users list
+      fetchUsers();
+      
+      // Reset form and close modal
+      setShowEditUserModal(false);
+      setEditUser({
+        id: null,
+        name: '',
+        email: '',
+        role: '',
+        status: ''
+      });
+    } catch (error) {
+      console.error('Error updating user:', error.message);
+      alert('Failed to update user: ' + error.message);
+    }
   };
 
   return (
@@ -273,68 +439,92 @@ export default function UsersSection() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                      <UserGroupIcon className="h-6 w-6 text-gray-500" />
-                    </div>
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{user.email}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                    user.role === 'doctor' ? 'bg-blue-100 text-blue-800' :
-                    'bg-green-100 text-green-800'
-                  }`}>
-                    {user.role}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {user.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button 
-                    onClick={() => handleEditClick(user)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    <PencilIcon className="h-5 w-5" />
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteUser(user.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                </td>
+      {loading ? (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-12 w-12 bg-blue-200 rounded-full mb-4"></div>
+            <div className="h-4 bg-blue-100 rounded w-1/3 mb-2"></div>
+            <div className="h-3 bg-blue-50 rounded w-1/4"></div>
+          </div>
+          <p className="mt-4 text-gray-500">Loading users...</p>
+        </div>
+      ) : users.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <UserGroupIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-1">No users found</h3>
+          <p className="text-gray-500">Add your first user to get started.</p>
+          <button 
+            onClick={() => setShowNewUserModal(true)}
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
+            Add User
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow overflow-hidden overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {users.map((user) => (
+                <tr key={user.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                        <UserGroupIcon className="h-6 w-6 text-gray-500" />
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{user.email}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                      user.role === 'doctor' ? 'bg-blue-100 text-blue-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {user.role}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {user.status || 'active'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button 
+                      onClick={() => handleEditClick(user)}
+                      className="text-blue-600 hover:text-blue-900 mr-4"
+                    >
+                      <PencilIcon className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteUser(user.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 } 

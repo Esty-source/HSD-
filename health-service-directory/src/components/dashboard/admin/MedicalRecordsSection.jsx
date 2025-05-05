@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../../lib/supabase';
 import { 
   ClipboardDocumentListIcon, 
   PlusIcon, 
@@ -8,46 +9,109 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function MedicalRecordsSection() {
-  const [records, setRecords] = useState([
-    { 
-      id: 1, 
-      patientName: 'Robert Brown', 
-      doctorName: 'Dr. Sarah Johnson',
-      date: '2024-03-15',
-      type: 'Consultation',
-      status: 'completed'
-    },
-    { 
-      id: 2, 
-      patientName: 'Lisa Anderson', 
-      doctorName: 'Dr. Michael Chen',
-      date: '2024-03-10',
-      type: 'Follow-up',
-      status: 'completed'
-    },
-    { 
-      id: 3, 
-      patientName: 'David Wilson', 
-      doctorName: 'Dr. Emily Wilson',
-      date: '2024-02-20',
-      type: 'Initial Visit',
-      status: 'pending'
-    },
-  ]);
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [patients, setPatients] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  
+  useEffect(() => {
+    fetchRecords();
+    fetchPatientsAndDoctors();
+  }, []);
+  
+  async function fetchRecords() {
+    try {
+      setLoading(true);
+      
+      // Fetch all medical records from Supabase
+      const { data, error } = await supabase
+        .from('medical_records')
+        .select(`
+          id,
+          patient_id,
+          doctor_id,
+          date,
+          type,
+          status,
+          patients:patient_id(id, name),
+          doctors:doctor_id(id, name)
+        `);
+      
+      if (error) throw error;
+      
+      // Transform the data to match our component's expected format
+      const formattedRecords = data.map(record => ({
+        id: record.id,
+        patientId: record.patient_id,
+        doctorId: record.doctor_id,
+        patientName: record.patients?.name || 'Unknown Patient',
+        doctorName: record.doctors?.name || 'Unknown Doctor',
+        date: record.date,
+        type: record.type || 'Consultation',
+        status: record.status || 'pending'
+      }));
+      
+      setRecords(formattedRecords);
+    } catch (error) {
+      console.error('Error fetching medical records:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+  
+  async function fetchPatientsAndDoctors() {
+    try {
+      // Fetch patients
+      const { data: patientsData, error: patientsError } = await supabase
+        .from('patients')
+        .select(`
+          id,
+          profiles(id, name)
+        `);
+      
+      if (patientsError) throw patientsError;
+      
+      const formattedPatients = patientsData.map(patient => ({
+        id: patient.id,
+        name: patient.profiles?.name || 'Unknown Patient'
+      }));
+      
+      setPatients(formattedPatients);
+      
+      // Fetch doctors
+      const { data: doctorsData, error: doctorsError } = await supabase
+        .from('doctors')
+        .select(`
+          id,
+          profiles(id, name)
+        `);
+      
+      if (doctorsError) throw doctorsError;
+      
+      const formattedDoctors = doctorsData.map(doctor => ({
+        id: doctor.id,
+        name: doctor.profiles?.name || 'Unknown Doctor'
+      }));
+      
+      setDoctors(formattedDoctors);
+    } catch (error) {
+      console.error('Error fetching patients and doctors:', error.message);
+    }
+  }
 
   const [showNewRecordModal, setShowNewRecordModal] = useState(false);
   const [showEditRecordModal, setShowEditRecordModal] = useState(false);
   const [newRecord, setNewRecord] = useState({
-    patientName: '',
-    doctorName: '',
+    patientId: '',
+    doctorId: '',
     date: new Date().toISOString().split('T')[0],
     type: 'Consultation',
     status: 'pending'
   });
   const [editRecord, setEditRecord] = useState({
     id: null,
-    patientName: '',
-    doctorName: '',
+    patientId: '',
+    doctorId: '',
     date: '',
     type: '',
     status: ''
@@ -61,32 +125,66 @@ export default function MedicalRecordsSection() {
     }));
   };
 
-  const handleAddRecord = (e) => {
+  const handleAddRecord = async (e) => {
     e.preventDefault();
-    const recordData = {
-      ...newRecord,
-      id: Date.now()
-    };
-    setRecords(prev => [...prev, recordData]);
-    setShowNewRecordModal(false);
-    setNewRecord({
-      patientName: '',
-      doctorName: '',
-      date: new Date().toISOString().split('T')[0],
-      type: 'Consultation',
-      status: 'pending'
-    });
+    try {
+      // Insert the new record into Supabase
+      const { data, error } = await supabase
+        .from('medical_records')
+        .insert([
+          {
+            patient_id: newRecord.patientId,
+            doctor_id: newRecord.doctorId,
+            date: newRecord.date,
+            type: newRecord.type,
+            status: newRecord.status
+          }
+        ])
+        .select();
+      
+      if (error) throw error;
+      
+      // Refresh the records list
+      fetchRecords();
+      
+      // Reset form and close modal
+      setShowNewRecordModal(false);
+      setNewRecord({
+        patientId: '',
+        doctorId: '',
+        date: new Date().toISOString().split('T')[0],
+        type: 'Consultation',
+        status: 'pending'
+      });
+    } catch (error) {
+      console.error('Error adding medical record:', error.message);
+      alert('Failed to add medical record: ' + error.message);
+    }
   };
 
-  const handleDeleteRecord = (recordId) => {
-    setRecords(prev => prev.filter(record => record.id !== recordId));
+  const handleDeleteRecord = async (recordId) => {
+    try {
+      // Delete the record from Supabase
+      const { error } = await supabase
+        .from('medical_records')
+        .delete()
+        .eq('id', recordId);
+      
+      if (error) throw error;
+      
+      // Refresh the records list
+      fetchRecords();
+    } catch (error) {
+      console.error('Error deleting medical record:', error.message);
+      alert('Failed to delete medical record: ' + error.message);
+    }
   };
 
   const handleEditClick = (record) => {
     setEditRecord({
       id: record.id,
-      patientName: record.patientName,
-      doctorName: record.doctorName,
+      patientId: record.patientId,
+      doctorId: record.doctorId,
       date: record.date,
       type: record.type,
       status: record.status
@@ -102,12 +200,32 @@ export default function MedicalRecordsSection() {
     }));
   };
 
-  const handleUpdateRecord = (e) => {
+  const handleUpdateRecord = async (e) => {
     e.preventDefault();
-    setRecords(prev => prev.map(record => 
-      record.id === editRecord.id ? editRecord : record
-    ));
-    setShowEditRecordModal(false);
+    try {
+      // Update the record in Supabase
+      const { error } = await supabase
+        .from('medical_records')
+        .update({
+          patient_id: editRecord.patientId,
+          doctor_id: editRecord.doctorId,
+          date: editRecord.date,
+          type: editRecord.type,
+          status: editRecord.status
+        })
+        .eq('id', editRecord.id);
+      
+      if (error) throw error;
+      
+      // Refresh the records list
+      fetchRecords();
+      
+      // Close modal
+      setShowEditRecordModal(false);
+    } catch (error) {
+      console.error('Error updating medical record:', error.message);
+      alert('Failed to update medical record: ' + error.message);
+    }
   };
 
   return (
@@ -138,26 +256,34 @@ export default function MedicalRecordsSection() {
             </div>
             <form onSubmit={handleAddRecord} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Patient Name</label>
-                <input
-                  type="text"
-                  name="patientName"
-                  value={newRecord.patientName}
+                <label className="block text-sm font-medium text-gray-700">Patient</label>
+                <select
+                  name="patientId"
+                  value={newRecord.patientId}
                   onChange={handleNewRecordInputChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                   required
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
+                >
+                  <option value="">Select a patient</option>
+                  {patients.map(patient => (
+                    <option key={patient.id} value={patient.id}>{patient.name}</option>
+                  ))}
+                </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Doctor Name</label>
-                <input
-                  type="text"
-                  name="doctorName"
-                  value={newRecord.doctorName}
+                <label className="block text-sm font-medium text-gray-700">Doctor</label>
+                <select
+                  name="doctorId"
+                  value={newRecord.doctorId}
                   onChange={handleNewRecordInputChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                   required
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
+                >
+                  <option value="">Select a doctor</option>
+                  {doctors.map(doctor => (
+                    <option key={doctor.id} value={doctor.id}>{doctor.name}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Date</label>
@@ -232,26 +358,34 @@ export default function MedicalRecordsSection() {
             </div>
             <form onSubmit={handleUpdateRecord} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Patient Name</label>
-                <input
-                  type="text"
-                  name="patientName"
-                  value={editRecord.patientName}
+                <label className="block text-sm font-medium text-gray-700">Patient</label>
+                <select
+                  name="patientId"
+                  value={editRecord.patientId}
                   onChange={handleEditRecordInputChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                   required
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
+                >
+                  <option value="">Select a patient</option>
+                  {patients.map(patient => (
+                    <option key={patient.id} value={patient.id}>{patient.name}</option>
+                  ))}
+                </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Doctor Name</label>
-                <input
-                  type="text"
-                  name="doctorName"
-                  value={editRecord.doctorName}
+                <label className="block text-sm font-medium text-gray-700">Doctor</label>
+                <select
+                  name="doctorId"
+                  value={editRecord.doctorId}
                   onChange={handleEditRecordInputChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                   required
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
+                >
+                  <option value="">Select a doctor</option>
+                  {doctors.map(doctor => (
+                    <option key={doctor.id} value={doctor.id}>{doctor.name}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Date</label>
@@ -311,59 +445,83 @@ export default function MedicalRecordsSection() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {records.map((record) => (
-              <tr key={record.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{record.patientName}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{record.doctorName}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{record.date}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{record.type}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    record.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {record.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button 
-                    onClick={() => handleEditClick(record)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    <PencilIcon className="h-5 w-5" />
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteRecord(record.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                </td>
+      {loading ? (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-12 w-12 bg-blue-200 rounded-full mb-4"></div>
+            <div className="h-4 bg-blue-100 rounded w-1/3 mb-2"></div>
+            <div className="h-3 bg-blue-50 rounded w-1/4"></div>
+          </div>
+          <p className="mt-4 text-gray-500">Loading medical records...</p>
+        </div>
+      ) : records.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <ClipboardDocumentListIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-1">No medical records found</h3>
+          <p className="text-gray-500">Add your first medical record to get started.</p>
+          <button 
+            onClick={() => setShowNewRecordModal(true)}
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
+            Add Medical Record
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {records.map((record) => (
+                <tr key={record.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{record.patientName}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{record.doctorName}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{record.date}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{record.type}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      record.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {record.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button 
+                      onClick={() => handleEditClick(record)}
+                      className="text-blue-600 hover:text-blue-900 mr-4"
+                    >
+                      <PencilIcon className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteRecord(record.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 } 
