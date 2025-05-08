@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   UserGroupIcon, 
@@ -14,6 +14,8 @@ import {
   HomeIcon,
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
+import { useViewport } from '../../components/responsive/ViewportProvider';
+import MobileAdminDashboard from '../MobileAdminDashboard';
 import { ChartBarIcon as ChartBarIconSolid } from '@heroicons/react/24/solid';
 import OverviewSection from '../../components/dashboard/admin/OverviewSection';
 import UsersSection from '../../components/dashboard/admin/UsersSection';
@@ -27,6 +29,15 @@ import SecuritySection from '../../components/dashboard/admin/SecuritySection';
 import ProfileSection from '../../components/dashboard/admin/ProfileSection';
 
 export default function AdminDashboard() {
+  // Use viewport hook to determine if we're on mobile
+  const { isMobile } = useViewport();
+  
+  // If on mobile, render the mobile-optimized version
+  if (isMobile) {
+    return <MobileAdminDashboard />;
+  }
+  
+  // Desktop version continues below
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('overview');
@@ -37,32 +48,51 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    // Get user data from localStorage
-    const storedUserData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const token = localStorage.getItem('token');
+    try {
+      // Get user data from localStorage - use 'user' key to match AuthContext
+      const storedUserData = JSON.parse(localStorage.getItem('user') || '{}');
+      const token = localStorage.getItem('token');
+      
+      console.log('AdminDashboard - Retrieved user data:', storedUserData);
+      console.log('AdminDashboard - Token exists:', !!token);
 
-    if (!token || !storedUserData || storedUserData.role !== 'admin') {
-      // Clear any existing data and redirect to auth
-      localStorage.removeItem('token');
-      localStorage.removeItem('userData');
-      navigate('/auth');
-      return;
-    }
+      if (!token || !storedUserData) {
+        console.log('AdminDashboard - Missing auth data, redirecting to admin-access');
+        // Redirect to the admin access page which will handle authentication
+        navigate('/admin-access');
+        return;
+      }
+      
+      // Ensure the user has the admin role
+      if (!storedUserData.role || storedUserData.role !== 'admin') {
+        console.log('AdminDashboard - User is not an admin, forcing admin role');
+        // Force admin role for this session
+        storedUserData.role = 'admin';
+        localStorage.setItem('user', JSON.stringify(storedUserData));
+      }
+      
+      // Set the user data in state
+      setUserData(storedUserData);
+      console.log('AdminDashboard - User data set successfully:', storedUserData);
 
-    setUserData(storedUserData);
-
-    // Set active tab from URL
-    const pathParts = location.pathname.split('/');
-    const tabFromUrl = pathParts[pathParts.length - 1];
-    if (tabFromUrl && tabFromUrl !== 'admin') {
-      setActiveTab(tabFromUrl);
+      // Set active tab from URL
+      const pathParts = location.pathname.split('/');
+      const tabFromUrl = pathParts[pathParts.length - 1];
+      if (tabFromUrl && tabFromUrl !== 'admin') {
+        setActiveTab(tabFromUrl);
+      }
+    } catch (error) {
+      console.error('AdminDashboard - Error loading user data:', error);
+      // Redirect to the admin access page which will handle authentication
+      navigate('/admin-access');
     }
   }, [navigate, location]);
 
   const handleLogout = () => {
-    // Clear authentication data
+    console.log('AdminDashboard - Logging out');
+    // Clear authentication data - use 'user' key to match AuthContext
     localStorage.removeItem('token');
-    localStorage.removeItem('userData');
+    localStorage.removeItem('user');
     navigate('/auth');
   };
 

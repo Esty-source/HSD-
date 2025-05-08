@@ -7,6 +7,8 @@ import {
   ArrowUpTrayIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import { useViewport } from '../components/responsive/ViewportProvider';
+import MobileHealthRecords from './MobileHealthRecords';
 
 const mockRecords = {
   medicalHistory: [
@@ -84,6 +86,15 @@ const tabs = [
 ];
 
 export default function HealthRecords() {
+  // Use viewport hook to determine if we're on mobile
+  const { isMobile } = useViewport();
+  
+  // If on mobile, render the mobile-optimized version
+  if (isMobile) {
+    return <MobileHealthRecords />;
+  }
+  
+  // Desktop version continues below
   const [activeTab, setActiveTab] = useState('Medical History');
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);

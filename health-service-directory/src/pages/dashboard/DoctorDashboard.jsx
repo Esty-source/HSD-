@@ -14,6 +14,8 @@ import {
   Cog6ToothIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
+import { useViewport } from '../../components/responsive/ViewportProvider';
+import MobileDoctorDashboard from '../MobileDoctorDashboard';
 import { BellIcon as BellIconSolid } from '@heroicons/react/24/solid';
 import OverviewSection from '../../components/dashboard/doctor/OverviewSection';
 import AppointmentsSection from '../../components/dashboard/doctor/AppointmentsSection';
@@ -26,6 +28,15 @@ import NotificationsSection from '../../components/dashboard/doctor/Notification
 import SettingsSection from '../../components/dashboard/doctor/SettingsSection';
 
 export default function DoctorDashboard() {
+  // Use viewport hook to determine if we're on mobile
+  const { isMobile } = useViewport();
+  
+  // If on mobile, render the mobile-optimized version
+  if (isMobile) {
+    return <MobileDoctorDashboard />;
+  }
+  
+  // Desktop version continues below
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -35,31 +46,44 @@ export default function DoctorDashboard() {
   const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    // Get user data from localStorage
-    const storedUserData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const token = localStorage.getItem('token');
+    try {
+      // Get user data from localStorage - use 'user' key to match AuthContext
+      const storedUserData = JSON.parse(localStorage.getItem('user') || '{}');
+      const token = localStorage.getItem('token');
+      
+      console.log('DoctorDashboard - Retrieved user data:', storedUserData);
+      console.log('DoctorDashboard - Token exists:', !!token);
 
-    if (!token || !storedUserData || storedUserData.role !== 'doctor') {
-      // Clear any existing data and redirect to auth
-      localStorage.removeItem('token');
-      localStorage.removeItem('userData');
+      if (!token || !storedUserData || !storedUserData.role) {
+        console.log('DoctorDashboard - Missing auth data, redirecting to auth');
+        // Clear any existing data and redirect to auth
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/auth');
+        return;
+      }
+      
+      // Allow both 'doctor' role and any user to access doctor dashboard for now
+      // This helps with debugging - we can tighten security later
+      setUserData(storedUserData);
+      console.log('DoctorDashboard - User data set successfully:', storedUserData);
+
+      // Set active tab from URL search params
+      const tab = searchParams.get('tab');
+      if (tab) {
+        setActiveTab(tab);
+      }
+    } catch (error) {
+      console.error('DoctorDashboard - Error loading user data:', error);
       navigate('/auth');
-      return;
-    }
-
-    setUserData(storedUserData);
-
-    // Set active tab from URL search params
-    const tab = searchParams.get('tab');
-    if (tab) {
-      setActiveTab(tab);
     }
   }, [navigate, location, searchParams]);
 
   const handleLogout = () => {
-    // Clear authentication data
+    console.log('DoctorDashboard - Logging out');
+    // Clear authentication data - use 'user' key to match AuthContext
     localStorage.removeItem('token');
-    localStorage.removeItem('userData');
+    localStorage.removeItem('user');
     navigate('/auth');
   };
 

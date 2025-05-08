@@ -11,6 +11,8 @@ import {
   CurrencyDollarIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
+import { useViewport } from '../components/responsive/ViewportProvider';
+import MobileDoctorSearch from './MobileDoctorSearch';
 
 const specialties = [
   'All Specialties',
@@ -231,6 +233,15 @@ const mockDoctors = [
 ];
 
 export default function DoctorSearch() {
+  // Use viewport hook to determine if we're on mobile
+  const { isMobile } = useViewport();
+  
+  // If on mobile, render the mobile-optimized version
+  if (isMobile) {
+    return <MobileDoctorSearch />;
+  }
+  
+  // Desktop version continues below
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('All Specialties');

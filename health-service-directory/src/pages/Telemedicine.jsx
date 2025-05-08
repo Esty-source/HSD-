@@ -24,6 +24,8 @@ import {
   ChevronUpIcon,
 } from '@heroicons/react/24/outline';
 import { VideoCameraIcon as VideoCameraSolid, MicrophoneIcon as MicrophoneSolid } from '@heroicons/react/24/solid';
+import { useViewport } from '../components/responsive/ViewportProvider';
+import MobileTelemedicine from './MobileTelemedicine';
 
 const mockDoctor = {
   id: 'mock-doctor',
@@ -33,6 +35,15 @@ const mockDoctor = {
 };
 
 export default function Telemedicine() {
+  // Use viewport hook to determine if we're on mobile
+  const { isMobile } = useViewport();
+  
+  // If on mobile, render the mobile-optimized version
+  if (isMobile) {
+    return <MobileTelemedicine />;
+  }
+  
+  // Desktop version continues below
   const location = useLocation();
   const navigate = useNavigate();
   const localVideoRef = useRef(null);

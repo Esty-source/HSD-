@@ -14,6 +14,8 @@ import {
   UserIcon,
   VideoCameraIcon,
 } from '@heroicons/react/24/outline';
+import { useViewport } from '../components/responsive/ViewportProvider';
+import MobileAppointments from './MobileAppointments';
 
 const mockAppointments = [
   {
@@ -93,6 +95,15 @@ const quickTips = [
 ];
 
 export default function Appointments() {
+  // Use viewport hook to determine if we're on mobile
+  const { isMobile } = useViewport();
+  
+  // If on mobile, render the mobile-optimized version
+  if (isMobile) {
+    return <MobileAppointments />;
+  }
+  
+  // Desktop version continues below
   const location = useLocation();
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState(mockAppointments);

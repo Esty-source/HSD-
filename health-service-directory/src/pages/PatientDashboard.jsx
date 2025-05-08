@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaCalendarAlt, FaUserMd, FaPrescription, FaFileAlt, FaBell } from 'react-icons/fa';
+import { useViewport } from '../components/responsive/ViewportProvider';
+import MobilePatientDashboard from './MobilePatientDashboard';
 
 const DashboardCard = ({ title, icon: Icon, value, linkTo, className }) => (
   <Link to={linkTo} className={`bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow ${className}`}>
@@ -15,6 +17,14 @@ const DashboardCard = ({ title, icon: Icon, value, linkTo, className }) => (
 );
 
 const PatientDashboard = () => {
+  // Use viewport hook to determine if we're on mobile
+  const { isMobile } = useViewport();
+  
+  // If on mobile, render the mobile-optimized version
+  if (isMobile) {
+    return <MobilePatientDashboard />;
+  }
+  
   // Mock data - replace with actual data from your backend
   const dashboardData = {
     upcomingAppointments: 2,

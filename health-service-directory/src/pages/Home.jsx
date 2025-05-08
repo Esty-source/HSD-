@@ -15,8 +15,19 @@ import {
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import FloatingNotifications from '../components/home/FloatingNotifications';
+import { useViewport } from '../components/responsive/ViewportProvider';
+import MobileHome from './MobileHome';
 
 export default function Home() {
+  // Use viewport hook to determine if we're on mobile
+  const { isMobile } = useViewport();
+  
+  // If on mobile, render the mobile-optimized version
+  if (isMobile) {
+    return <MobileHome />;
+  }
+  
+  // Desktop version continues below
   const features = [
     {
       name: 'Find Doctors',

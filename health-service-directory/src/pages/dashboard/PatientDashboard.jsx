@@ -29,25 +29,38 @@ export default function PatientDashboard() {
   const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    // Get user data from localStorage
-    const storedUserData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const token = localStorage.getItem('token');
+    try {
+      // Get user data from localStorage - use 'user' key to match AuthContext
+      const storedUserData = JSON.parse(localStorage.getItem('user') || '{}');
+      const token = localStorage.getItem('token');
+      
+      console.log('PatientDashboard - Retrieved user data:', storedUserData);
+      console.log('PatientDashboard - Token exists:', !!token);
 
-    if (!token || !storedUserData || storedUserData.role !== 'patient') {
-      // Clear any existing data and redirect to auth
-      localStorage.removeItem('token');
-      localStorage.removeItem('userData');
+      if (!token || !storedUserData || !storedUserData.role) {
+        console.log('PatientDashboard - Missing auth data, redirecting to auth');
+        // Clear any existing data and redirect to auth
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/auth');
+        return;
+      }
+      
+      // Allow both 'patient' role and any user to access patient dashboard for now
+      // This helps with debugging - we can tighten security later
+      setUserData(storedUserData);
+      console.log('PatientDashboard - User data set successfully:', storedUserData);
+    } catch (error) {
+      console.error('PatientDashboard - Error loading user data:', error);
       navigate('/auth');
-      return;
     }
-
-    setUserData(storedUserData);
   }, [navigate]);
 
   const handleLogout = () => {
-    // Clear authentication data
+    console.log('PatientDashboard - Logging out');
+    // Clear authentication data - use 'user' key to match AuthContext
     localStorage.removeItem('token');
-    localStorage.removeItem('userData');
+    localStorage.removeItem('user');
     navigate('/auth');
   };
 

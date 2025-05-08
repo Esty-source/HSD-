@@ -8,6 +8,22 @@ import {
 } from '@heroicons/react/24/outline';
 import { supabase } from '../../../lib/supabase';
 
+// Helper function to calculate age from date of birth
+function calculateAge(dateOfBirth) {
+  if (!dateOfBirth) return 0;
+  
+  const dob = new Date(dateOfBirth);
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const monthDiff = today.getMonth() - dob.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+    age--;
+  }
+  
+  return age;
+}
+
 export default function PatientsSection() {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,37 +35,191 @@ export default function PatientsSection() {
   async function fetchPatients() {
     try {
       setLoading(true);
+      console.log('Fetching patients data...');
       
-      const { data, error } = await supabase
+      // First approach: Try to get patients from the patients table with joined profiles
+      let { data, error } = await supabase
         .from('patients')
         .select(`
           id,
-          profiles (id, name, email),
+          profiles (id, name, email, phone, address, date_of_birth, gender),
           medical_history,
           allergies,
-          blood_type
+          blood_type,
+          date_of_birth,
+          gender,
+          created_at,
+          updated_at
         `);
       
-      if (error) throw error;
+      // If the patients table doesn't exist or there's an error, fall back to profiles
+      if (error) {
+        console.log('Patients table error:', error.message);
+        console.log('Falling back to profiles table for patients');
+        
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('role', 'patient');
+          
+        if (profilesError) {
+          console.error('Error fetching from profiles table:', profilesError.message);
+          throw profilesError;
+        }
+        
+        console.log(`Found ${profilesData?.length || 0} patients in profiles table`);
+        
+        // Transform profiles data to match expected format, safely handling missing fields
+        data = profilesData?.map(profile => ({
+          id: profile.id,
+          profiles: {
+            id: profile.id,
+            name: profile.name || 'Unknown',
+            email: profile.email || '', // Handle missing email field
+            phone: profile.phone || '',
+            address: profile.address || '',
+            date_of_birth: profile.date_of_birth || null,
+            gender: profile.gender || '',
+            created_at: profile.created_at || new Date().toISOString(),
+            updated_at: profile.updated_at || new Date().toISOString()
+          },
+          medical_history: '',
+          allergies: '',
+          blood_type: '',
+          date_of_birth: profile.date_of_birth || null,
+          gender: profile.gender || 'Unknown',
+          created_at: profile.created_at || new Date().toISOString(),
+          updated_at: profile.updated_at || new Date().toISOString()
+        })) || [];
+      } else {
+        console.log(`Found ${data?.length || 0} patients in patients table`);
+      }
       
-      // Transform the data to match our component's expected format
-      const formattedPatients = data.map(patient => ({
-        id: patient.id,
-        name: patient.profiles.name,
-        email: patient.profiles.email,
-        age: 0, // This would need to be calculated from date of birth or stored in the database
-        gender: 'Unknown', // This would need to be added to your database schema
-        lastVisit: new Date().toISOString().split('T')[0], // This would need to be calculated from appointments
-        status: 'active',
-        medical_history: patient.medical_history,
-        allergies: patient.allergies,
-        blood_type: patient.blood_type
+      if (!data || data.length === 0) {
+        console.log('No patients found in database');
+        setPatients([]);
+        setLoading(false);
+        return;
+      }
+      
+      // Get appointment data for each patient
+      console.log('Fetching appointment data for patients...');
+      const patientsWithAppointments = await Promise.all(data.map(async (patient) => {
+        try {
+          // Get the most recent appointment
+          const { data: recentAppointment, error: recentAppointmentError } = await supabase
+            .from('appointments')
+            .select('id, created_at, status, doctor_id, appointment_date, reason, notes')
+            .eq('patient_id', patient.id)
+            .order('appointment_date', { ascending: false })
+            .limit(1);
+            
+          if (recentAppointmentError) {
+            console.warn(`Error fetching recent appointment for patient ${patient.id}:`, recentAppointmentError.message);
+          }
+          
+          // Get the total number of appointments
+          const { count: appointmentCount, error: countError } = await supabase
+            .from('appointments')
+            .select('id', { count: 'exact', head: true })
+            .eq('patient_id', patient.id);
+            
+          if (countError) {
+            console.warn(`Error counting appointments for patient ${patient.id}:`, countError.message);
+          }
+          
+          // Get doctor information if we have a recent appointment with doctor_id
+          let doctorInfo = null;
+          if (recentAppointment?.[0]?.doctor_id) {
+            const { data: doctorData, error: doctorError } = await supabase
+              .from('profiles')
+              .select('name')
+              .eq('id', recentAppointment[0].doctor_id)
+              .single();
+              
+            if (doctorError) {
+              console.warn(`Error fetching doctor info for appointment:`, doctorError.message);
+            } else {
+              doctorInfo = doctorData;
+            }
+          }
+            
+          const lastVisit = recentAppointment?.[0]?.appointment_date || null;
+          const lastVisitFormatted = lastVisit ? new Date(lastVisit).toISOString().split('T')[0] : 'No visits';
+          
+          // Use the appointment status if available, otherwise default to 'active'
+          const status = recentAppointment?.[0]?.status || 'active';
+          
+          const lastAppointmentDetails = recentAppointment?.[0] ? {
+            id: recentAppointment[0].id,
+            date: recentAppointment[0].appointment_date,
+            reason: recentAppointment[0].reason || '',
+            notes: recentAppointment[0].notes || '',
+            doctor: doctorInfo?.name || 'Unknown Doctor'
+          } : null;
+            
+          return {
+            ...patient,
+            lastVisit: lastVisitFormatted,
+            lastVisitDate: lastVisit,
+            lastAppointment: lastAppointmentDetails,
+            appointmentCount: appointmentCount || 0,
+            status
+          };
+        } catch (err) {
+          console.error(`Error processing appointments for patient ${patient.id}:`, err);
+          return {
+            ...patient,
+            lastVisit: 'No visits',
+            appointmentCount: 0,
+            status: 'active'
+          };
+        }
       }));
       
+      console.log('Transforming patient data for display...');
+      // Transform the data to match our component's expected format
+      const formattedPatients = patientsWithAppointments.map(patient => {
+        // Calculate age if date_of_birth exists
+        const age = patient.date_of_birth ? calculateAge(patient.date_of_birth) : 0;
+        
+        // Format dates for display
+        const createdAt = patient.created_at ? new Date(patient.created_at).toLocaleDateString() : 'Unknown';
+        const updatedAt = patient.updated_at ? new Date(patient.updated_at).toLocaleDateString() : 'Unknown';
+        
+        return {
+          id: patient.id,
+          name: patient.profiles?.name || 'Unknown',
+          email: patient.profiles?.email || '',
+          phone: patient.profiles?.phone || '',
+          address: patient.profiles?.address || '',
+          age: age,
+          gender: patient.gender || patient.profiles?.gender || 'Unknown',
+          lastVisit: patient.lastVisit || 'No visits',
+          lastVisitDate: patient.lastVisitDate || null,
+          lastAppointment: patient.lastAppointment || null,
+          appointmentCount: patient.appointmentCount || 0,
+          status: patient.status || 'active',
+          medical_history: patient.medical_history || '',
+          allergies: patient.allergies || '',
+          blood_type: patient.blood_type || 'Unknown',
+          date_of_birth: patient.date_of_birth || patient.profiles?.date_of_birth || null,
+          createdAt: createdAt,
+          updatedAt: updatedAt
+        };
+      });
+      
+      // Sort patients by name for better usability
+      formattedPatients.sort((a, b) => a.name.localeCompare(b.name));
+      
+      console.log(`Successfully processed ${formattedPatients.length} patients`);
       setPatients(formattedPatients);
     } catch (error) {
-      console.error('Error fetching patients:', error.message);
-    } finally {
+      console.error('Error fetching patients:', error);
+      alert(`Error loading patients: ${error.message || 'Unknown error'}`);
+      // Set an empty array to avoid undefined errors in the UI
+      setPatients([]);
+  } finally {
       setLoading(false);
     }
   }
@@ -84,81 +254,234 @@ export default function PatientsSection() {
 
   const handleAddPatient = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    
     try {
-      // First, create a user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      console.log('Adding new patient:', newPatient);
+      
+      // Generate a random password for the new patient
+      const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).toUpperCase().slice(-4) + '!1';
+      
+      // Calculate date of birth from age if provided
+      let dateOfBirth = null;
+      if (newPatient.age && !isNaN(parseInt(newPatient.age))) {
+        const today = new Date();
+        const birthYear = today.getFullYear() - parseInt(newPatient.age);
+        dateOfBirth = new Date(birthYear, today.getMonth(), today.getDate()).toISOString().split('T')[0];
+        console.log(`Calculated date of birth from age ${newPatient.age}: ${dateOfBirth}`);
+      }
+      
+      // First, check if email is already in use
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', newPatient.email);
+      
+      if (checkError) {
+        console.error('Error checking for existing user:', checkError);
+      } else if (existingUsers && existingUsers.length > 0) {
+        alert('A user with this email already exists');
+        setLoading(false);
+        return;
+      }
+      
+      // Sign up the user with Supabase Auth
+      console.log('Creating user account...');
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newPatient.email,
-        password: 'tempPassword123', // You'd want to generate this or have the user set it
-        email_confirm: true,
-        user_metadata: {
-          name: newPatient.name,
-          role: 'patient'
+        password: tempPassword,
+        options: {
+          data: {
+            name: newPatient.name,
+            role: 'patient'
+          }
         }
       });
       
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw authError;
+      }
       
-      // Create a profile record
-      const { error: profileError } = await supabase
+      if (!authData || !authData.user) {
+        throw new Error('Failed to create user account');
+      }
+      
+      console.log('User created successfully, creating profile...');
+      const userId = authData.user.id;
+      
+      // Create profile entry
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .insert([{ 
-          id: authData.user.id,
-          name: newPatient.name,
-          role: 'patient',
-          email: newPatient.email
-        }]);
+        .insert([
+          {
+            id: userId,
+            name: newPatient.name,
+            role: 'patient',
+            ...(dateOfBirth && { date_of_birth: dateOfBirth }),
+            gender: newPatient.gender || 'Male'
+          }
+        ]);
       
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+        throw profileError;
+      }
       
-      // Create a patient record
-      const { error: patientError } = await supabase
+      console.log('Profile created, adding patient medical data...');
+      // Create patient record with additional medical info
+      const { data: patientData, error: patientError } = await supabase
         .from('patients')
-        .insert([{ 
-          id: authData.user.id,
-          medical_history: '',
-          allergies: '',
-          blood_type: ''
-        }]);
+        .insert([
+          {
+            id: userId,
+            gender: newPatient.gender || 'Unknown',
+            date_of_birth: newPatient.date_of_birth || null,
+            medical_history: newPatient.medical_history || '',
+            allergies: newPatient.allergies || '',
+            blood_type: newPatient.blood_type || 'Unknown'
+          }
+        ]);
       
-      if (patientError) throw patientError;
+      if (patientError) {
+        console.error('Error creating patient record:', patientError);
+        // We'll continue since we have the auth and profile records
+        // but we should inform the user
+        alert('Patient account created but medical data could not be saved. You can update this later.');
+      }
       
-      // Refresh the patients list
-      fetchPatients();
+      console.log('Patient added successfully');
+      // Add to local state to avoid refetching
+      setPatients(prev => [
+        ...prev,
+        {
+          id: userId,
+          name: newPatient.name,
+          email: newPatient.email,
+          age: newPatient.date_of_birth ? calculateAge(newPatient.date_of_birth) : 0,
+          gender: newPatient.gender || 'Unknown',
+          lastVisit: 'No visits',
+          status: 'active',
+          medical_history: newPatient.medical_history || '',
+          allergies: newPatient.allergies || '',
+          blood_type: newPatient.blood_type || 'Unknown',
+          date_of_birth: newPatient.date_of_birth || null
+        }
+      ]);
       
       // Reset form and close modal
-      setShowNewPatientModal(false);
       setNewPatient({
         name: '',
         email: '',
         age: '',
         gender: 'Male',
+        date_of_birth: '',
+        phone: '',
+        address: '',
+        medical_history: '',
+        allergies: '',
+        blood_type: '',
         lastVisit: new Date().toISOString().split('T')[0],
         status: 'active'
       });
+      
+      setShowNewPatientModal(false);
+      
+      // Show success message with password
+      alert(`Patient added successfully. Temporary password: ${tempPassword}\n\nPlease share this with the patient securely.`);
     } catch (error) {
-      console.error('Error adding patient:', error.message);
-      alert('Failed to add patient: ' + error.message);
+      console.error('Error adding patient:', error);
+      alert(`Error adding patient: ${error.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDeletePatient = async (patientId) => {
+    // Find the patient's name for the confirmation message
+    const patientToDelete = patients.find(p => p.id === patientId);
+    const patientName = patientToDelete ? patientToDelete.name : 'this patient';
+    
+    if (!window.confirm(`Are you sure you want to delete ${patientName}? This action cannot be undone and will remove all patient data.`)) {
+      return;
+    }
+    
+    setLoading(true);
+    console.log(`Deleting patient with ID: ${patientId}`);
+    
     try {
-      // Delete the patient record
+      // First, check if there are any appointments for this patient
+      const { data: appointmentData, error: appointmentCheckError } = await supabase
+        .from('appointments')
+        .select('id')
+        .eq('patient_id', patientId);
+      
+      if (appointmentCheckError) {
+        console.warn('Error checking appointments:', appointmentCheckError);
+      } else if (appointmentData && appointmentData.length > 0) {
+        console.log(`Deleting ${appointmentData.length} appointments for patient`);
+        // Delete related appointments
+        const { error: appointmentDeleteError } = await supabase
+          .from('appointments')
+          .delete()
+          .eq('patient_id', patientId);
+        
+        if (appointmentDeleteError) {
+          console.error('Error deleting appointments:', appointmentDeleteError);
+        }
+      }
+      
+      // Delete from patients table
+      console.log('Deleting from patients table...');
       const { error: patientError } = await supabase
         .from('patients')
         .delete()
         .eq('id', patientId);
       
-      if (patientError) throw patientError;
+      if (patientError) {
+        console.warn('Error deleting from patients table:', patientError);
+        // Continue with profile deletion
+      }
       
-      // Note: In a real application, you might want to handle deleting the profile and auth user as well,
-      // but that requires admin privileges and careful consideration of data integrity
+      // Delete from profiles table
+      console.log('Deleting from profiles table...');
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', patientId);
       
-      // Refresh the patients list
-      fetchPatients();
+      if (profileError) {
+        console.error('Error deleting profile:', profileError);
+        throw profileError;
+      }
+      
+      // Try to delete the user from auth
+      console.log('Attempting to delete user from auth...');
+      try {
+        // Note: This may require admin privileges and might not work in all environments
+        const { error: authError } = await supabase.auth.admin.deleteUser(patientId);
+        
+        if (authError) {
+          console.warn('Could not delete user from auth (may require admin privileges):', authError);
+        } else {
+          console.log('User successfully deleted from auth');
+        }
+      } catch (authError) {
+        console.warn('Error deleting user from auth:', authError);
+        // Continue anyway since we've deleted the profile
+      }
+      
+      // Update local state
+      setPatients(prev => prev.filter(patient => patient.id !== patientId));
+      
+      console.log('Patient deletion completed successfully');
+      // Show success message
+      alert(`Patient ${patientName} has been deleted successfully`);
     } catch (error) {
-      console.error('Error deleting patient:', error.message);
-      alert('Failed to delete patient: ' + error.message);
+      console.error('Error deleting patient:', error);
+      alert(`Error deleting patient: ${error.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -185,37 +508,152 @@ export default function PatientsSection() {
 
   const handleUpdatePatient = async (e) => {
     e.preventDefault();
+    
+    // Enhanced validation
+    if (!editPatient.name.trim()) {
+      alert('Please enter a valid name');
+      return;
+    }
+    
+    if (!editPatient.email.trim() || !editPatient.email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
+    
+    setLoading(true);
+    console.log('Updating patient:', editPatient);
+    
     try {
-      // Update the patient record
-      const { error: patientError } = await supabase
-        .from('patients')
-        .update({ 
-          // Add patient-specific fields here if needed
-          medical_history: editPatient.medical_history || '',
-          allergies: editPatient.allergies || '',
-          blood_type: editPatient.blood_type || ''
-        })
-        .eq('id', editPatient.id);
+      // Handle date of birth calculation
+      let dateOfBirth = null;
+      if (editPatient.date_of_birth) {
+        // If we have a direct date of birth, use it
+        dateOfBirth = editPatient.date_of_birth;
+      } else if (editPatient.age && !isNaN(parseInt(editPatient.age))) {
+        // Calculate date of birth from age if provided
+        const today = new Date();
+        const birthYear = today.getFullYear() - parseInt(editPatient.age);
+        dateOfBirth = new Date(birthYear, today.getMonth(), today.getDate()).toISOString().split('T')[0];
+        console.log(`Calculated date of birth from age ${editPatient.age}: ${dateOfBirth}`);
+      }
       
-      if (patientError) throw patientError;
+      // First, check if email has changed and if it's already in use
+      const originalPatient = patients.find(p => p.id === editPatient.id);
+      if (originalPatient && originalPatient.email !== editPatient.email) {
+        console.log('Email has changed, checking if new email is available...');
+        const { data: existingUsers, error: checkError } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('email', editPatient.email)
+          .neq('id', editPatient.id);
+        
+        if (checkError) {
+          console.error('Error checking for existing user:', checkError);
+        } else if (existingUsers && existingUsers.length > 0) {
+          alert('A user with this email already exists');
+          setLoading(false);
+          return;
+        }
+      }
       
-      // Update the profile record
-      const { error: profileError } = await supabase
+      console.log('Updating profile record...');
+      // Update the profile record (this should always exist)
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .update({ 
-          name: editPatient.name
-          // Add other profile fields here
+          name: editPatient.name,
+          email: editPatient.email,
+          phone: editPatient.phone || '',
+          address: editPatient.address || '',
+          // Only update these if we have them in the profiles table
+          ...(dateOfBirth && { date_of_birth: dateOfBirth }),
+          ...(editPatient.gender && { gender: editPatient.gender })
         })
-        .eq('id', editPatient.id);
+        .eq('id', editPatient.id)
+        .select();
       
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Error updating profile:', profileError);
+        throw profileError;
+      }
       
-      // Refresh the patients list
-      fetchPatients();
+      console.log('Profile updated successfully');
+      
+      // Try to update the patient record in the patients table
+      console.log('Updating patient medical data...');
+      const { data: patientData, error: patientError } = await supabase
+        .from('patients')
+        .update({ 
+          medical_history: editPatient.medical_history || '',
+          allergies: editPatient.allergies || '',
+          blood_type: editPatient.blood_type || '',
+          // Always update these in the patients table
+          date_of_birth: dateOfBirth,
+          gender: editPatient.gender || 'Unknown'
+        })
+        .eq('id', editPatient.id)
+        .select();
+      
+      // Handle case where patient record doesn't exist
+      if (patientError) {
+        console.warn('Patient record update error:', patientError);
+        console.log('Attempting to create patient record instead...');
+        
+        // Try to create the patient record
+        const { data: newPatientData, error: insertError } = await supabase
+          .from('patients')
+          .insert([{ 
+            id: editPatient.id,
+            medical_history: editPatient.medical_history || '',
+            allergies: editPatient.allergies || '',
+            blood_type: editPatient.blood_type || '',
+            date_of_birth: dateOfBirth,
+            gender: editPatient.gender || 'Unknown'
+          }])
+          .select();
+          
+        if (insertError) {
+          console.warn('Patient record creation error:', insertError);
+          // We'll continue since we've updated the profile
+          // but we should inform the user
+          alert('Profile information updated, but medical data could not be saved. You can try again later.');
+        } else {
+          console.log('Patient record created successfully');
+        }
+      } else {
+        console.log('Patient record updated successfully');
+      }
+      
+      // Update the local state to reflect changes
+      setPatients(prevPatients => {
+        return prevPatients.map(patient => {
+          if (patient.id === editPatient.id) {
+            return {
+              ...patient,
+              name: editPatient.name,
+              email: editPatient.email,
+              age: dateOfBirth ? calculateAge(dateOfBirth) : patient.age,
+              gender: editPatient.gender || patient.gender,
+              medical_history: editPatient.medical_history || patient.medical_history,
+              allergies: editPatient.allergies || patient.allergies,
+              blood_type: editPatient.blood_type || patient.blood_type,
+              date_of_birth: dateOfBirth || patient.date_of_birth
+            };
+          }
+          return patient;
+        });
+      });
+      
+      // Show success message
+      alert('Patient information has been successfully updated.');
+      
+      // Close the modal
       setShowEditPatientModal(false);
     } catch (error) {
-      console.error('Error updating patient:', error.message);
-      alert('Failed to update patient: ' + error.message);
+      console.error('Error updating patient:', error);
+      alert(`Failed to update patient: ${error.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -16,6 +16,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import Emergency from './Emergency';
+import { useViewport } from '../components/responsive/ViewportProvider';
+import MobilePharmacies from './MobilePharmacies';
 
 const mockPharmacies = [
   {
@@ -145,6 +147,15 @@ const serviceIcons = {
 };
 
 export default function Pharmacies() {
+  // Use viewport hook to determine if we're on mobile
+  const { isMobile } = useViewport();
+  
+  // If on mobile, render the mobile-optimized version
+  if (isMobile) {
+    return <MobilePharmacies />;
+  }
+  
+  // Desktop version continues below
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState([]);
   const [showEmergency, setShowEmergency] = useState(false);
