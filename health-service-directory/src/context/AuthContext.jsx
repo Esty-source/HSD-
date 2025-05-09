@@ -1,137 +1,246 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  // Initialize state with safe parsing of localStorage data
-  const [user, setUser] = useState(() => {
-    try {
-      const data = localStorage.getItem('user');
-      return data ? JSON.parse(data) : null;
-    } catch (error) {
-      console.error('Error parsing user from localStorage:', error);
-      localStorage.removeItem('user'); // Clear corrupted data
-      return null;
-    }
-  });
-  const [token, setToken] = useState(() => localStorage.getItem('token'));
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    try {
-      return !!localStorage.getItem('user') && !!localStorage.getItem('token');
-    } catch (error) {
-      return false;
-    }
-  });
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Safely update localStorage when state changes
+  // Initialize auth state from Supabase session
   useEffect(() => {
-    try {
-      if (user) {
-        localStorage.setItem('user', JSON.stringify(user));
-      } else {
-        localStorage.removeItem('user');
-      }
-      if (token) {
-        localStorage.setItem('token', token);
-      } else {
-        localStorage.removeItem('token');
-      }
-    } catch (error) {
-      console.error('Error updating localStorage:', error);
-    }
-  }, [user, token]);
-
-  const login = (userDataOrEmail, tokenValueOrPassword) => {
-    console.log('Login called with:', { userDataOrEmail, tokenValueOrPassword });
-    
-    // Check if we're dealing with email/password login or direct user data
-    if (typeof userDataOrEmail === 'string' && typeof tokenValueOrPassword === 'string') {
-      // This is email/password login - we need to get the user data from localStorage or create it
-      console.log('Email/password login detected');
-      
-      // Special case for admin email
-      const isAdminEmail = userDataOrEmail === 'admin@healthdirectory.com';
-      if (isAdminEmail) {
-        console.log('ADMIN EMAIL DETECTED in login function');
-      }
-      
-      // Try to get existing user data from localStorage
+    // Get the current session
+    const fetchSession = async () => {
       try {
-        const existingUserData = JSON.parse(localStorage.getItem('user') || '{}');
+        setLoading(true);
         
-        // Create a proper user object
-        const userData = {
-          ...existingUserData,
-          email: userDataOrEmail,
-          // Ensure role is set (prefer existing role if available)
-          // Force admin role if admin email is used
-          role: isAdminEmail ? 'admin' : (existingUserData.role || 'patient')
-        };
+        // Get current session
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        console.log('Created user data from email/password:', userData);
+        if (error) {
+          throw error;
+        }
         
-        // Set the user and token
-        setUser(userData);
-        setToken(tokenValueOrPassword); // Use password as token for now
-        
-        // Store in localStorage
-        localStorage.setItem('user', JSON.stringify(userData));
-        localStorage.setItem('token', tokenValueOrPassword);
-        
-        return;
+        if (session) {
+          setSession(session);
+          setIsAuthenticated(true);
+          
+          // Get user profile data
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.error('Error fetching user profile:', profileError);
+          }
+          
+          // Combine auth data with profile data
+          const userData = {
+            ...session.user,
+            ...profile,
+            role: profile?.role || 'patient' // Default to patient if no role specified
+          };
+          
+          setUser(userData);
+        }
       } catch (error) {
-        console.error('Error handling email/password login:', error);
-        // Continue with regular login flow as fallback
+        console.error('Error fetching session:', error);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
     
-    // Regular object-based login flow
-    // Validate and ensure the user data has the required fields
-    if (!userDataOrEmail) {
-      console.error('Invalid user data provided to login function');
-      return;
-    }
+    fetchSession();
     
-    const userData = userDataOrEmail;
-    const tokenValue = tokenValueOrPassword;
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setIsAuthenticated(!!session);
+        
+        if (session) {
+          // Get user profile data when auth state changes
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.error('Error fetching user profile:', profileError);
+          }
+          
+          // Combine auth data with profile data
+          const userData = {
+            ...session.user,
+            ...profile,
+            role: profile?.role || 'patient' // Default to patient if no role specified
+          };
+          
+          setUser(userData);
+        } else {
+          setUser(null);
+        }
+        
+        setLoading(false);
+      }
+    );
     
-    // Make sure the role is explicitly set and valid
-    if (!userData.role) {
-      console.warn('No role provided in user data, defaulting to patient');
-      userData.role = 'patient';
-    }
-    
-    // Log the user data for debugging
-    console.log('Login with user data:', userData);
-    console.log('User role:', userData.role);
-    
-    // Ensure we have the latest user data with the correct role
-    setUser(userData);
-    setToken(tokenValue);
-    
-    // Store in localStorage for persistence
+    // Cleanup subscription on unmount
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  // Sign in with email and password
+  const login = async (email, password) => {
     try {
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('token', tokenValue);
+      setLoading(true);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+      
+      // Success - the session will be picked up by the auth listener
+      toast.success('Logged in successfully');
+      return { success: true, data };
     } catch (error) {
-      console.error('Error saving to localStorage:', error);
+      console.error('Login error:', error);
+      return { success: false, error };
+    } finally {
+      setLoading(false);
     }
-    
-    setIsAuthenticated(true);
-    setLoading(false);
+  };
+  
+  // Sign up with email and password
+  const signup = async (email, password, userData = {}) => {
+    try {
+      setLoading(true);
+      
+      // Create the auth user
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: userData.fullName || '',
+            avatar_url: userData.avatarUrl || ''
+          }
+        }
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+      
+      // If signup was successful, create a profile record
+      if (data?.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: data.user.id,
+              email: email,
+              full_name: userData.fullName || '',
+              avatar_url: userData.avatarUrl || '',
+              role: userData.role || 'patient',
+              created_at: new Date().toISOString()
+            }
+          ]);
+          
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+          toast.error('Account created but profile setup failed');
+        } else {
+          toast.success('Account created successfully');
+        }
+      }
+      
+      return { success: true, data };
+    } catch (error) {
+      console.error('Signup error:', error);
+      return { success: false, error };
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
+  // Sign out
+  const logout = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+      
+      toast.success('Logged out successfully');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Update user profile
+  const updateProfile = async (profileData) => {
+    try {
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
+      setLoading(true);
+      
+      // Update the profile in the database
+      const { error } = await supabase
+        .from('profiles')
+        .update(profileData)
+        .eq('id', user.id);
+      
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+      
+      // Update the local user state
+      setUser({ ...user, ...profileData });
+      
+      toast.success('Profile updated successfully');
+      return { success: true };
+    } catch (error) {
+      console.error('Profile update error:', error);
+      return { success: false, error };
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated, login, logout, loading, setLoading }}>
+    <AuthContext.Provider value={{
+      user,
+      session,
+      isAuthenticated,
+      login,
+      signup,
+      logout,
+      updateProfile,
+      loading,
+      setLoading
+    }}>
       {children}
     </AuthContext.Provider>
   );
