@@ -19,8 +19,8 @@ export default function Layout() {
       
       {/* Main content area */}
       <main className={`flex-grow w-full ${isDashboard ? 'h-screen' : ''} ${isMobile ? 'pt-2' : 'pt-4'}`}>
-        {/* Add safe area for mobile devices */}
-        <div className={`${isMobile ? 'px-4 max-w-full mx-auto' : 'container mx-auto px-4 sm:px-6 lg:px-8'}`}>
+        {/* Full width content area */}
+        <div className="w-full max-w-full px-4">
           <Outlet />
         </div>
       </main>

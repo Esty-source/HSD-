@@ -216,14 +216,15 @@ export default function MobileResources() {
                 className="block"
               >
                 <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                  <div className="h-32 relative">
+                  <div className="h-32 relative bg-gray-100">
                     <img
-                      src={resource.imageUrl}
+                      src={resource.imageUrl || 'https://via.placeholder.com/300x200?text=Health+Resource'}
                       alt={resource.title}
                       className="w-full h-full object-cover"
+                      loading="lazy"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = 'https://via.placeholder.com/300x200?text=Health+Resource';
+                        e.target.src = 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(resource.title);
                       }}
                     />
                     <div className="absolute top-0 left-0 bg-blue-600 text-white px-2 py-1 text-xs font-medium">

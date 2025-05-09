@@ -16,7 +16,7 @@ const DashboardCard = ({ title, icon: Icon, value, linkTo, className }) => (
   </Link>
 );
 
-const PatientDashboard = () => {
+function PatientDashboard() {
   // Use viewport hook to determine if we're on mobile
   const { isMobile } = useViewport();
   
@@ -113,4 +113,4 @@ const PatientDashboard = () => {
   );
 };
 
-export default PatientDashboard; 
+export default PatientDashboard;

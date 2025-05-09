@@ -52,7 +52,7 @@ const NotificationItem = ({ notification, onMarkAsRead }) => {
   return (
     <div
       className={`p-5 mb-3 rounded-xl shadow-sm ${notification.read ? 'bg-white/60' : 'bg-white border-l-4 border-blue-500'} 
-      hover:shadow-md transition-all duration-200 ease-in-out`}
+      hover:shadow-md transition-all duration-200 ease-in-out mx-4 sm:mx-6 md:mx-8`}
     >
       <div className="flex items-start space-x-4">
         <div className={`p-3 rounded-full ${!notification.read ? 'bg-blue-50' : 'bg-gray-50'} flex-shrink-0`}>
@@ -106,27 +106,73 @@ export default function Notifications() {
     return notification.type === filter;
   });
 
-  const notificationTypes = [
-    { value: 'all', label: 'All', icon: BellIcon, color: 'bg-blue-100 text-blue-700' },
-    { value: 'unread', label: 'Unread', icon: BellIcon, color: 'bg-red-100 text-red-700' },
-    { value: 'appointment', label: 'Appointments', icon: CalendarIcon, color: 'bg-indigo-100 text-indigo-700' },
-    { value: 'pharmacy', label: 'Pharmacy', icon: BeakerIcon, color: 'bg-green-100 text-green-700' },
-    { value: 'resource', label: 'Resources', icon: DocumentTextIcon, color: 'bg-purple-100 text-purple-700' },
-    { value: 'health-record', label: 'Health Records', icon: HeartIcon, color: 'bg-pink-100 text-pink-700' },
-    { value: 'system', label: 'System', icon: CogIcon, color: 'bg-gray-100 text-gray-700' },
-    { value: 'emergency', label: 'Emergency', icon: ExclamationTriangleIcon, color: 'bg-red-100 text-red-700' },
-  ];
-
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(notification => !notification.read).length;
+  
+  // Function to mark all notifications as read
   const markAllAsRead = () => {
-    notifications.filter(n => !n.read).forEach(n => markAsRead(n.id));
+    notifications.forEach(notification => {
+      if (!notification.read) {
+        markAsRead(notification.id);
+      }
+    });
   };
-
+  
+  const notificationTypes = [
+    {
+      label: 'All Notifications',
+      value: 'all',
+      icon: BellIcon,
+      color: 'bg-blue-100 text-blue-700',
+    },
+    {
+      label: 'Unread',
+      value: 'unread',
+      icon: BellIcon,
+      color: 'bg-red-100 text-red-700',
+    },
+    {
+      label: 'Appointments',
+      value: 'appointment',
+      icon: CalendarIcon,
+      color: 'bg-blue-100 text-blue-700',
+    },
+    {
+      label: 'Pharmacy',
+      value: 'pharmacy',
+      icon: BeakerIcon,
+      color: 'bg-green-100 text-green-700',
+    },
+    {
+      label: 'Health Records',
+      value: 'health-record',
+      icon: HeartIcon,
+      color: 'bg-pink-100 text-pink-700',
+    },
+    {
+      label: 'Resources',
+      value: 'resource',
+      icon: DocumentTextIcon,
+      color: 'bg-purple-100 text-purple-700',
+    },
+    {
+      label: 'System',
+      value: 'system',
+      icon: CogIcon,
+      color: 'bg-gray-100 text-gray-700',
+    },
+    {
+      label: 'Emergency',
+      value: 'emergency',
+      icon: ExclamationTriangleIcon,
+      color: 'bg-red-100 text-red-700',
+    },
+  ];
+  
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 py-8 pt-16 sm:pt-20 w-screen max-w-[100vw] overflow-hidden">
-      <div className="w-full max-w-none">
+    <div className="bg-gray-50 py-8 w-screen max-w-[100vw] overflow-x-hidden">
+      <div className="w-full mx-0 px-0">
         {/* Header Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl px-6 sm:px-8 py-6 mb-8 text-white w-full">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl px-6 sm:px-8 py-6 mb-8 text-white w-full mx-2 sm:mx-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/20 rounded-full">
@@ -157,7 +203,7 @@ export default function Notifications() {
         </div>
         
         {/* Filter Section */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8 w-full">
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8 w-full mx-2 sm:mx-4">
           <div className="p-4 sm:p-6 border-b border-gray-100 w-full">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Filter Notifications</h2>
@@ -204,7 +250,7 @@ export default function Notifications() {
           
           {/* Notifications List */}
           <div className="p-4 sm:p-6 w-full">
-            <div className="w-full space-y-4">
+            <div className="w-full space-y-4 pr-4 sm:pr-6 md:pr-8">
               {filteredNotifications.length > 0 ? (
                 filteredNotifications.map((notification) => (
                   <NotificationItem

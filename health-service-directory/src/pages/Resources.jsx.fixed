@@ -14,7 +14,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { useViewport } from '../components/responsive/ViewportProvider';
 import MobileResources from './MobileResources';
-import ResourceModal from '../components/resources/ResourceModal';
 
 // Resource categories
 const resourceCategories = [
@@ -149,8 +148,7 @@ export default function Resources() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedResource, setSelectedResource] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [expandedResourceId, setExpandedResourceId] = useState(null);
   
   // Filter resources based on search term and selected category
   const filteredResources = mockResources.filter(resource => {
@@ -165,13 +163,8 @@ export default function Resources() {
   
   const featuredResources = mockResources.filter(resource => resource.featured);
   
-  const openResourceModal = (resource) => {
-    setSelectedResource(resource);
-    setIsModalOpen(true);
-  };
-  
-  const closeResourceModal = () => {
-    setIsModalOpen(false);
+  const toggleResourceExpansion = (resourceId) => {
+    setExpandedResourceId(expandedResourceId === resourceId ? null : resourceId);
   };
   
   const handleDownload = (resource) => {
@@ -208,7 +201,6 @@ For more information, please visit our Health Service Directory.
         <div className="prose prose-blue max-w-none">
           <h4 className="text-lg font-semibold">{resource.title}</h4>
           <p className="text-sm text-gray-600">By {resource.author} • {resource.date}</p>
-          <p className="text-sm text-gray-600">By {resource.author} Ã¢â‚¬Â¢ {resource.date}</p>
           
           <p className="mt-4">{resource.description}</p>
           
@@ -266,7 +258,7 @@ For more information, please visit our Health Service Directory.
             <>
               <h5 className="font-medium mt-4">Key Findings:</h5>
               <ul className="list-disc pl-5 mt-2 space-y-1">
-                <li>A 1.5Ã‚Â°C increase in average temperature was associated with a 12% rise in malaria cases in northern regions</li>
+                <li>A 1.5°C increase in average temperature was associated with a 12% rise in malaria cases in northern regions</li>
                 <li>Changing rainfall patterns have led to increased breeding grounds for disease vectors in previously unaffected areas</li>
                 <li>Heat-related illnesses have increased by 23% over the study period, particularly affecting elderly populations</li>
               </ul>
@@ -291,15 +283,14 @@ For more information, please visit our Health Service Directory.
   const renderResourceCard = (resource) => {
     return (
       <div key={resource.id} className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col">
-        <div className="h-48 relative bg-gray-100">
+        <div className="h-48 relative">
           <img
-            src={resource.imageUrl || 'https://via.placeholder.com/300x200?text=Health+Resource'}
+            src={resource.imageUrl}
             alt={resource.title}
             className="w-full h-full object-cover"
-            loading="lazy"
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src = 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(resource.title);
+              e.target.src = 'https://via.placeholder.com/300x200?text=Health+Resource';
             }}
           />
           {resource.category === 'educational-videos' && (
@@ -336,15 +327,18 @@ For more information, please visit our Health Service Directory.
                 <ArrowDownTrayIcon className="h-4 w-4" />
               </button>
               <button
-                onClick={() => openResourceModal(resource)}
+                onClick={() => toggleResourceExpansion(resource.id)}
                 className="inline-flex items-center text-blue-600 hover:text-blue-800 cursor-pointer"
               >
-                Read more
-                <ChevronRightIcon className="ml-1 h-4 w-4" />
+                {expandedResourceId === resource.id ? 'Show less' : 'Read more'} 
+                <ChevronRightIcon className={`ml-1 h-4 w-4 transition-transform ${expandedResourceId === resource.id ? 'rotate-90' : ''}`} />
               </button>
             </div>
           </div>
         </div>
+        
+        {/* Expanded content */}
+        {expandedResourceId === resource.id && renderExpandedContent(resource)}
       </div>
     );
   };
@@ -453,17 +447,6 @@ For more information, please visit our Health Service Directory.
           )}
         </div>
       </div>
-      
-      {/* Resource Modal */}
-      {selectedResource && (
-        <ResourceModal 
-          resource={selectedResource}
-          isOpen={isModalOpen}
-          onClose={closeResourceModal}
-          resourceCategories={resourceCategories}
-        />
-      )}
     </div>
   );
 }
-

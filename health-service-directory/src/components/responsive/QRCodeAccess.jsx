@@ -1,120 +1,191 @@
 import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import { ArrowPathIcon, XMarkIcon, ChevronUpIcon, ChevronDownIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
+import { useViewport } from './ViewportProvider';
 
 export default function QRCodeAccess() {
-  const [networkUrl, setNetworkUrl] = useState('');
   const [ipAddresses, setIpAddresses] = useState([]);
-  const [isVisible, setIsVisible] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [collapsed, setCollapsed] = useState(true); // Default to collapsed on mobile
+  const { isMobile } = useViewport();
+  const port = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+
+  // Function to get network access information
+  const getNetworkInterfaces = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Short delay to show loading state
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      const addresses = [];
+      
+      // Get the current hostname and port
+      const hostname = window.location.hostname;
+      const port = window.location.port;
+      const protocol = window.location.protocol;
+      
+      // Add the current URL
+      addresses.push({ name: 'Current URL', address: window.location.origin });
+      
+      // Add local IP address for mobile access
+      // This is your actual local IP address from ipconfig
+      const localIpAddress = '192.168.1.95';
+      addresses.push({ 
+        name: 'Local Network IP (Use this on mobile)', 
+        address: `${protocol}//${localIpAddress}:${port}` 
+      });
+
+      setIpAddresses(addresses);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error getting access URLs:', err);
+      setError('Failed to generate access URLs. Please try again.');
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Function to get all IP addresses from the network interfaces
-    const getNetworkInterfaces = async () => {
-      try {
-        // We can't directly access network interfaces in the browser
-        // So we'll use a simple heuristic to guess the local IP
-        // This is a common pattern for local development
-        const possibleIPs = [];
-        
-        // Add localhost
-        possibleIPs.push('localhost');
-        
-        // Try to get the local IP by creating a dummy connection
-        // This is a hack but works in many browsers
-        const RTCPeerConnection = window.RTCPeerConnection || 
-                                 window.webkitRTCPeerConnection || 
-                                 window.mozRTCPeerConnection;
-                                 
-        if (RTCPeerConnection) {
-          const pc = new RTCPeerConnection({ iceServers: [] });
-          pc.createDataChannel('');
-          pc.createOffer().then(pc.setLocalDescription.bind(pc));
-          
-          pc.onicecandidate = (ice) => {
-            if (!ice || !ice.candidate || !ice.candidate.candidate) return;
-            
-            const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
-            const ipMatch = ipRegex.exec(ice.candidate.candidate);
-            
-            if (ipMatch && ipMatch[1] && !ipMatch[1].startsWith('127.')) {
-              possibleIPs.push(ipMatch[1]);
-              setIpAddresses(prev => [...new Set([...prev, ipMatch[1]])]);
-            }
-            
-            pc.onicecandidate = null;
-          };
-        }
-        
-        // Fallback to some common local network IPs
-        // We'll add these anyway as the above method doesn't always work
-        const commonLocalIPs = [
-          '192.168.1.95', // From your ipconfig output
-          '192.168.0.1',
-          '192.168.1.1',
-          '10.0.0.1'
-        ];
-        
-        setIpAddresses([...new Set([...possibleIPs, ...commonLocalIPs])]);
-      } catch (error) {
-        console.error('Error getting network interfaces:', error);
-      }
-    };
-
     getNetworkInterfaces();
   }, []);
 
-  // Toggle visibility of the QR code panel
-  const toggleVisibility = () => {
-    setIsVisible(!isVisible);
+  // Determine if we should show the QR code panel based on device
+  // Don't show on mobile devices since they're already on mobile
+  const shouldShowPanel = !isMobile;
+
+  if (!shouldShowPanel) return null;
+
+  const toggleCollapsed = () => {
+    setCollapsed(!collapsed);
+  };
+
+  const getQRCodeUrl = (address) => {
+    // Use the provided address (which could be the local IP) to create the URL
+    if (!address) {
+      // Fallback to current origin if no address is provided
+      return `${window.location.origin}/simple`;
+    }
+    
+    // If address already includes protocol, use it as is
+    if (address.startsWith('http')) {
+      return `${address}/simple`;
+    }
+    
+    // Otherwise add the simple path to the address
+    return `${address}/simple`;
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const refreshInterfaces = () => {
+    getNetworkInterfaces();
   };
 
   return (
-    <div className={`fixed bottom-20 right-4 z-50 bg-white rounded-lg shadow-lg transition-all duration-300 ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-      <div className="p-4">
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="text-sm font-semibold text-gray-700">Scan to access on mobile</h3>
-          <button 
-            onClick={toggleVisibility}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </button>
-        </div>
-        
-        <div className="space-y-4">
-          {ipAddresses.map((ip, index) => (
-            <div key={index} className="flex flex-col items-center">
-              <div className="bg-gray-100 p-2 rounded-lg">
-                <QRCodeSVG 
-                  value={`http://${ip}:5173`} 
-                  size={120}
-                  bgColor={"#ffffff"}
-                  fgColor={"#000000"}
-                  level={"L"}
-                  includeMargin={false}
-                />
-              </div>
-              <p className="text-xs text-gray-600 mt-1">{`http://${ip}:5173`}</p>
-            </div>
-          ))}
-        </div>
-        
-        <div className="mt-3 text-xs text-gray-500">
-          <p>Connect your phone to the same WiFi network as this computer.</p>
-        </div>
-      </div>
-      
-      {/* Toggle button when panel is hidden */}
-      {!isVisible && (
+    <div className={`fixed bottom-4 right-4 bg-white rounded-lg shadow-lg transition-all duration-300 z-30 ${collapsed ? 'w-12' : 'w-80'}`}>
+      {/* Header with collapse button */}
+      <div className="flex justify-between items-center p-3 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+        {!collapsed && (
+          <div className="flex items-center">
+            <DevicePhoneMobileIcon className="h-5 w-5 text-blue-600 mr-2" />
+            <h3 className="font-medium text-gray-800">Mobile Access</h3>
+          </div>
+        )}
         <button
-          onClick={toggleVisibility}
-          className="fixed bottom-4 right-4 z-50 bg-blue-600 text-white p-3 rounded-full shadow-lg"
+          onClick={toggleCollapsed}
+          className="p-1 rounded-full hover:bg-white/50 active:bg-white/80 transition-colors"
+          aria-label={collapsed ? 'Expand QR code panel' : 'Collapse QR code panel'}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2m0 0v5m0-5h2m6-6V4" />
-          </svg>
+          {collapsed ? (
+            <ChevronUpIcon className="h-5 w-5 text-gray-600" />
+          ) : (
+            <ChevronDownIcon className="h-5 w-5 text-gray-600" />
+          )}
         </button>
+      </div>
+
+      {/* Content (hidden when collapsed) */}
+      {!collapsed && (
+        <div className="p-4">
+          <p className="text-sm text-gray-600 mb-4">
+            Scan this QR code with your mobile device to access this page:
+          </p>
+
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <svg className="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+          ) : error ? (
+            <div className="text-center p-4">
+              <p className="text-red-500 mb-2">{error}</p>
+              <button
+                onClick={refreshInterfaces}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : (
+            <div>
+              {ipAddresses.map((ip, index) => (
+                <div key={index} className="mb-6 last:mb-0 bg-gray-50 p-3 rounded-lg">
+                  <p className="text-xs font-medium text-gray-700 mb-2">{ip.name}:</p>
+                  <div className="flex justify-center bg-white p-2 rounded-lg border border-gray-200">
+                    <QRCodeSVG 
+                      value={getQRCodeUrl(ip.address)}
+                      size={160}
+                      level="H"
+                      includeMargin={true}
+                      fgColor="#1e40af"
+                      bgColor="#ffffff"
+                      renderAs="svg"
+                    />
+                  </div>
+                  <div className="mt-2 relative">
+                    <p className="text-xs text-center text-gray-600 break-all bg-white p-2 rounded border border-gray-200">
+                      {getQRCodeUrl(ip.address)}
+                    </p>
+                    <button
+                      onClick={() => copyToClipboard(getQRCodeUrl(ip.address))}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-600 text-xs font-medium"
+                      aria-label="Copy URL"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              <div className="mt-4">
+                <button
+                  onClick={refreshInterfaces}
+                  className="w-full flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  <ArrowPathIcon className="h-4 w-4 mr-2" />
+                  Refresh
+                </button>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h4 className="font-medium text-sm mb-2">Troubleshooting:</h4>
+                <ul className="text-xs text-gray-600 space-y-1 list-disc pl-4">
+                  <li>Make sure your mobile device is on the same Wi-Fi network</li>
+                  <li>For local development: Replace 'localhost' with your computer's actual IP address on your network (e.g., 192.168.1.x)</li>
+                  <li>If using a VPN, try disconnecting from it</li>
+                  <li>Check your firewall settings if you can't connect</li>
+                  <li>Try accessing the URL directly in your mobile browser</li>
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: '0.0.0.0', // Expose to all network interfaces
-    port: 8080,      // Use a different port that might not be blocked
+    port: 5173,      // Use the default port
     open: false,     // Don't open browser automatically
   },
   optimizeDeps: {
