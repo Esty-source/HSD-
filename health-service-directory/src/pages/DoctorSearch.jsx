@@ -318,11 +318,11 @@ export default function DoctorSearch() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="w-screen max-w-[100vw] min-h-screen bg-gradient-to-b from-blue-50 to-white mx-0 px-0">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white w-full mt-8">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-12 sm:py-16 max-w-[1600px] mx-auto">
-          <div className="flex flex-col items-center text-center">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white w-screen max-w-[100vw] mt-8 mx-0 px-0">
+        <div className="w-full py-12 sm:py-16 max-w-[100vw] mx-0 px-0">
+          <div className="flex flex-col items-center text-center w-full mx-0 px-0">
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
               Find a Doctor
             </h1>
@@ -350,9 +350,9 @@ export default function DoctorSearch() {
       </div>
 
       {/* Filters Section */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-[1600px] mx-auto">
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="w-screen max-w-[100vw] py-6 mx-0 px-0">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden w-full mx-0 px-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full mx-0 px-0">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowFilters(!showFilters)}
@@ -466,8 +466,8 @@ export default function DoctorSearch() {
       </div>
 
       {/* Doctor Cards */}
-      <div className="w-full px-4 py-8">
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="w-screen max-w-[100vw] py-8 mx-0 px-0">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full mx-0 px-0">
           {doctors.map((doctor) => (
             <div
               key={doctor.id}

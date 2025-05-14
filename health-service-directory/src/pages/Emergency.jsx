@@ -10,6 +10,8 @@ import {
   ChevronDownIcon,
   ChevronUpIcon
 } from '@heroicons/react/24/outline';
+import { useViewport } from '../components/responsive/ViewportProvider';
+import MobileEmergency from './MobileEmergency';
 
 const emergencyContacts = [
   {
@@ -129,6 +131,10 @@ const firstAidTips = [
 ];
 
 export default function Emergency() {
+  const { isMobile } = useViewport();
+  if (isMobile) {
+    return <MobileEmergency />;
+  }
   const [selectedTip, setSelectedTip] = useState(null);
   const [hoveredCard, setHoveredCard] = useState(null);
 

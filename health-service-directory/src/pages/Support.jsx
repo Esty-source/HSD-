@@ -5,8 +5,11 @@ import {
   ChatBubbleLeftRightIcon, 
   QuestionMarkCircleIcon 
 } from '@heroicons/react/24/outline';
+import { useViewport } from '../components/responsive/ViewportProvider';
+import MobileLayout from '../components/responsive/MobileLayout';
 
 export default function Support() {
+  const { isMobile } = useViewport();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -38,6 +41,7 @@ export default function Support() {
       message: ''
     });
   };
+
   const supportOptions = [
     {
       title: 'Phone Support',
@@ -96,50 +100,50 @@ export default function Support() {
     },
   ];
 
-  return (
+  const content = (
     <div className="w-full max-w-none">
       {/* Hero Section */}
-      <div className="relative w-full bg-gradient-to-r from-blue-600 to-indigo-600 py-24">
+      <div className="relative w-full bg-gradient-to-r from-blue-600 to-indigo-600 py-12 sm:py-24">
         <div className="absolute inset-0 opacity-10">
           <svg className="h-full w-full" viewBox="0 0 800 800">
             <path d="M769 229L1037 260.9M927 880L731 737 520 660 309 538 40 599 295 764 126.5 879.5 40 599-197 493 102 382-31 229 126.5 79.5-69-63" stroke="#fff" strokeWidth="100" fill="none" />
           </svg>
         </div>
         <div className="relative w-full px-4 py-8 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
             We're Here to Help
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-xl text-blue-100">
+          <p className="mx-auto mt-4 sm:mt-6 max-w-2xl text-lg sm:text-xl text-blue-100">
             Our support team is available to assist you with any questions or concerns you may have about our services.
           </p>
         </div>
       </div>
 
       {/* Support Options */}
-      <div className="w-full px-4 py-20 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-blue-50">
-        <div className="text-center mb-16">
-          <h2 className="font-serif text-4xl font-bold tracking-tight text-gray-900">
+      <div className="w-full px-4 py-12 sm:py-20 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-blue-50">
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">
             Contact Us
           </h2>
           <div className="mx-auto mt-4 h-1.5 w-32 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-600">
+          <p className="mx-auto mt-4 sm:mt-6 max-w-2xl text-base sm:text-lg leading-relaxed text-gray-600">
             Choose the support option that works best for you
           </p>
         </div>
 
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 md:gap-8 lg:grid-cols-4">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
           {supportOptions.map((option) => (
             <div 
               key={option.title}
-              className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-lg transition-all duration-300 hover:shadow-2xl hover:translate-y-[-5px]"
+              className="group relative overflow-hidden rounded-2xl bg-white p-6 sm:p-8 shadow-lg transition-all duration-300 hover:shadow-2xl hover:translate-y-[-5px]"
             >
               <div className="relative z-10">
                 <div className={`inline-flex rounded-xl ${option.color} p-3 text-white shadow-lg`}>
-                  <option.icon className="h-7 w-7" />
+                  <option.icon className="h-6 w-6 sm:h-7 sm:w-7" />
                 </div>
-                <h3 className="mt-8 text-xl font-bold text-gray-900">{option.title}</h3>
-                <p className="mt-3 text-gray-600">{option.description}</p>
-                <div className="mt-6 font-medium text-gray-900">{option.contact}</div>
+                <h3 className="mt-6 sm:mt-8 text-lg sm:text-xl font-bold text-gray-900">{option.title}</h3>
+                <p className="mt-2 sm:mt-3 text-sm sm:text-base text-gray-600">{option.description}</p>
+                <div className="mt-4 sm:mt-6 font-medium text-gray-900">{option.contact}</div>
                 <div className="mt-1 text-sm text-gray-500">{option.availability}</div>
               </div>
               <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-blue-50 transition-all duration-300 group-hover:scale-150"></div>
@@ -149,23 +153,23 @@ export default function Support() {
       </div>
 
       {/* FAQ Section */}
-      <div className="w-full bg-gray-50 py-20">
+      <div className="w-full bg-gray-50 py-12 sm:py-20">
         <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl font-bold tracking-tight text-gray-900">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">
               Frequently Asked Questions
             </h2>
             <div className="mx-auto mt-4 h-1.5 w-32 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-600">
+            <p className="mx-auto mt-4 sm:mt-6 max-w-2xl text-base sm:text-lg leading-relaxed text-gray-600">
               Find answers to common questions about our services
             </p>
           </div>
 
           <div className="mx-auto max-w-4xl divide-y divide-gray-200 rounded-2xl bg-white shadow-xl overflow-hidden">
             {faqs.map((faq, index) => (
-              <div key={index} className="p-8 hover:bg-blue-50 transition-colors duration-300">
-                <h3 className="text-xl font-medium text-gray-900">{faq.question}</h3>
-                <p className="mt-3 text-gray-600 leading-relaxed">{faq.answer}</p>
+              <div key={index} className="p-6 sm:p-8 hover:bg-blue-50 transition-colors duration-300">
+                <h3 className="text-lg sm:text-xl font-medium text-gray-900">{faq.question}</h3>
+                <p className="mt-2 sm:mt-3 text-sm sm:text-base text-gray-600 leading-relaxed">{faq.answer}</p>
               </div>
             ))}
           </div>
@@ -173,38 +177,38 @@ export default function Support() {
       </div>
 
       {/* Contact Form */}
-      <div className="w-full px-4 py-20 sm:px-6 lg:px-8 bg-white">
-        <div className="text-center mb-16">
-          <h2 className="font-serif text-4xl font-bold tracking-tight text-gray-900">
+      <div className="w-full px-4 py-12 sm:py-20 sm:px-6 lg:px-8 bg-white">
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-gray-900">
             Send Us a Message
           </h2>
           <div className="mx-auto mt-4 h-1.5 w-32 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-600">
+          <p className="mx-auto mt-4 sm:mt-6 max-w-2xl text-base sm:text-lg leading-relaxed text-gray-600">
             We'd love to hear from you
           </p>
         </div>
 
         <div className="mx-auto max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="md:flex">
-            <div className="md:w-2/5 bg-gradient-to-br from-blue-600 to-indigo-700 p-10 text-white">
-              <h3 className="text-2xl font-bold mb-6">Contact Information</h3>
-              <div className="space-y-6">
+          <div className="flex flex-col md:flex-row">
+            <div className="w-full md:w-2/5 bg-gradient-to-br from-blue-600 to-indigo-700 p-6 sm:p-10 text-white">
+              <h3 className="text-xl sm:text-2xl font-bold mb-6">Contact Information</h3>
+              <div className="space-y-4 sm:space-y-6">
                 <div className="flex items-start">
-                  <PhoneIcon className="h-6 w-6 mr-3 mt-1" />
+                  <PhoneIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-3 mt-1" />
                   <div>
                     <p className="font-medium">Phone</p>
                     <p className="mt-1">+237 653835533</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <EnvelopeIcon className="h-6 w-6 mr-3 mt-1" />
+                  <EnvelopeIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-3 mt-1" />
                   <div>
                     <p className="font-medium">Email</p>
                     <p className="mt-1">support@hsd.com</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <ChatBubbleLeftRightIcon className="h-6 w-6 mr-3 mt-1" />
+                  <ChatBubbleLeftRightIcon className="h-5 w-5 sm:h-6 sm:w-6 mr-3 mt-1" />
                   <div>
                     <p className="font-medium">Live Chat</p>
                     <p className="mt-1">Available 8AM - 8PM</p>
@@ -212,9 +216,9 @@ export default function Support() {
                 </div>
               </div>
             </div>
-            <div className="md:w-3/5 p-10">
-              <form className="space-y-6" onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="w-full md:w-3/5 p-6 sm:p-10">
+              <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                       Name
@@ -252,7 +256,7 @@ export default function Support() {
                     type="text"
                     id="subject"
                     className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="Subject"
+                    placeholder="What is this regarding?"
                     value={formData.subject}
                     onChange={handleChange}
                     required
@@ -266,7 +270,7 @@ export default function Support() {
                     id="message"
                     rows={4}
                     className="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="Your message"
+                    placeholder="How can we help you?"
                     value={formData.message}
                     onChange={handleChange}
                     required
@@ -275,7 +279,7 @@ export default function Support() {
                 <div>
                   <button
                     type="submit"
-                    className="w-full inline-flex justify-center rounded-xl border border-transparent bg-blue-600 py-3 px-6 text-base font-medium text-white shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
                     Send Message
                   </button>
@@ -314,4 +318,12 @@ export default function Support() {
       )}
     </div>
   );
+
+  // Return the content wrapped in MobileLayout if on mobile
+  if (isMobile) {
+    return <MobileLayout title="Support">{content}</MobileLayout>;
+  }
+
+  // Return the content directly if on desktop
+  return content;
 }

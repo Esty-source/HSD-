@@ -26,6 +26,7 @@ import {
 import { VideoCameraIcon as VideoCameraSolid, MicrophoneIcon as MicrophoneSolid } from '@heroicons/react/24/solid';
 import { useViewport } from '../components/responsive/ViewportProvider';
 import MobileTelemedicine from './MobileTelemedicine';
+import ChatComponent from '../components/chat/ChatComponent';
 
 const mockDoctor = {
   id: 'mock-doctor',
@@ -729,39 +730,33 @@ export default function Telemedicine() {
     }
   };
 
-
-
-
-  ;
-
-const toggleRecording = () => {
-  if (!isRecording) {
-    setIsRecording(true);
-    // Start recording logic here
-  } else {
-    setIsRecording(false);
-    // Stop recording logic here
-  }
-};
-
-const sendQuickResponse = (response) => {
-  const newMessage = {
-    id: messages.length + 1,
-    sender: 'patient',
-    message: response,
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  const toggleRecording = () => {
+    if (!isRecording) {
+      setIsRecording(true);
+      // Start recording logic here
+    } else {
+      setIsRecording(false);
+      // Stop recording logic here
+    }
   };
-  const updatedMessages = [...messages, newMessage];
-  setMessages(updatedMessages);
-  setShowQuickResponses(false);
-  if (appointment) {
-    localStorage.setItem(
-      `chat_${appointment.doctor.id}`,
-      JSON.stringify(updatedMessages)
-    );
-  }
-};
 
+  const sendQuickResponse = (response) => {
+    const newMessage = {
+      id: messages.length + 1,
+      sender: 'patient',
+      message: response,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    const updatedMessages = [...messages, newMessage];
+    setMessages(updatedMessages);
+    setShowQuickResponses(false);
+    if (appointment) {
+      localStorage.setItem(
+        `chat_${appointment.doctor.id}`,
+        JSON.stringify(updatedMessages)
+      );
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white w-full max-w-none">
@@ -1029,89 +1024,20 @@ const sendQuickResponse = (response) => {
           </div>
           
           {/* Chat Section - Takes 1/3 of the space on large screens */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden h-full flex flex-col">
-              <div className="flex items-center justify-between border-b px-4 py-3">
-                <h3 className="text-lg font-medium text-gray-900">Chat with {appointment?.doctor?.name || 'Dr. Sarah Johnson'}</h3>
-                <span className="text-sm text-gray-500">
-                  {messages.length} messages
-                </span>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4">
-                <div className="space-y-4">
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex ${
-                        msg.sender === 'patient' ? 'justify-end' : 'justify-start'
-                      }`}
-                    >
-                      <div
-                        className={`max-w-[75%] rounded-lg px-4 py-2 ${
-                          msg.sender === 'patient'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-900'
-                        }`}
-                      >
-                        <p className="text-sm">{msg.message}</p>
-                        <p
-                          className={`mt-1 text-xs ${
-                            msg.sender === 'patient'
-                              ? 'text-blue-200'
-                              : 'text-gray-500'
-                          }`}
-                        >
-                          {msg.time}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden h-[calc(100vh-12rem)]">
+            <div className="h-full">
+              {isCallActive ? (
+                <ChatComponent 
+                  consultationId={appointment?.id || selectedSession?.id}
+                  otherUserId={appointment?.doctor?.id || selectedSession?.patient_id}
+                  className="h-full"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                  <ChatBubbleLeftIcon className="h-12 w-12 mb-2" />
+                  <p>Chat will be available when the call starts</p>
                 </div>
-              </div>
-              <div className="border-t p-4">
-                <form onSubmit={handleSendMessage} className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Type your message..."
-                    className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  />
-                  <button
-                    type="submit"
-                    className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
-                  >
-                    Send
-                  </button>
-                </form>
-              </div>
-              
-              {/* Quick Responses */}
-              <div className="relative border-t p-3">
-                <button
-                  onClick={() => setShowQuickResponses(!showQuickResponses)}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center"
-                >
-                  <FaceSmileIcon className="h-4 w-4 mr-1.5" />
-                  Quick Responses
-                  {showQuickResponses ? <ChevronUpIcon className="h-4 w-4 ml-1" /> : <ChevronDownIcon className="h-4 w-4 ml-1" />}
-                </button>
-                {showQuickResponses && (
-                  <div className="absolute bottom-full left-0 mb-2 w-64 rounded-lg bg-white p-2 shadow-lg border border-gray-200">
-                    <div className="space-y-1">
-                      {quickResponses.map((response, index) => (
-                        <button
-                          key={index}
-                          onClick={() => sendQuickResponse(response)}
-                          className="block w-full rounded-md px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          {response}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </div>

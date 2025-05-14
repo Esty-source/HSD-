@@ -1,20 +1,66 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useViewport } from './ViewportProvider';
 
 /**
  * A responsive container that adapts its padding and width based on screen size
  */
-export function ResponsiveContainer({ children, className = '', fullWidth = false }) {
-  const { isMobile, isTablet } = useViewport();
+export function ResponsiveContainer({ 
+  children, 
+  className = '', 
+  fullWidth = false,
+  padding = true,
+  maxWidth = '7xl'
+}) {
+  const { isMobile, isTablet, deviceType } = useViewport();
   
   // Determine padding based on screen size
-  const padding = isMobile ? 'px-4' : isTablet ? 'px-6' : 'px-8';
+  const getPadding = () => {
+    if (!padding) return '';
+    switch (deviceType) {
+      case 'mobile-small':
+        return 'px-2';
+      case 'mobile':
+        return 'px-3';
+      case 'mobile-large':
+        return 'px-4';
+      case 'tablet':
+        return 'px-6';
+      default:
+        return 'px-8';
+    }
+  };
   
-  // Determine max width based on fullWidth prop
-  const maxWidth = fullWidth ? 'max-w-full' : 'max-w-7xl';
+  // Determine max width based on maxWidth prop
+  const getMaxWidth = () => {
+    if (fullWidth) return 'max-w-full';
+    switch (maxWidth) {
+      case 'sm':
+        return 'max-w-sm';
+      case 'md':
+        return 'max-w-md';
+      case 'lg':
+        return 'max-w-lg';
+      case 'xl':
+        return 'max-w-xl';
+      case '2xl':
+        return 'max-w-2xl';
+      case '3xl':
+        return 'max-w-3xl';
+      case '4xl':
+        return 'max-w-4xl';
+      case '5xl':
+        return 'max-w-5xl';
+      case '6xl':
+        return 'max-w-6xl';
+      case '7xl':
+        return 'max-w-7xl';
+      default:
+        return 'max-w-7xl';
+    }
+  };
   
   return (
-    <div className={`w-full mx-auto ${padding} ${maxWidth} ${className}`}>
+    <div className={`w-full mx-auto ${getPadding()} ${getMaxWidth()} ${className}`}>
       {children}
     </div>
   );
@@ -29,24 +75,37 @@ export function ResponsiveGrid({
   mobileColumns = 1, 
   tabletColumns = 2, 
   desktopColumns = 3,
-  gap = 4
+  gap = 4,
+  autoFit = false,
+  minColumnWidth = 250
 }) {
-  const { isMobile, isTablet } = useViewport();
+  const { isMobile, isTablet, deviceType } = useViewport();
   
   // Determine grid columns based on screen size
-  const columns = isMobile 
-    ? mobileColumns 
-    : isTablet 
-      ? tabletColumns 
-      : desktopColumns;
+  const getColumns = () => {
+    if (autoFit) {
+      return `repeat(auto-fit, minmax(${minColumnWidth}px, 1fr))`;
+    }
+    
+    const columns = isMobile 
+      ? mobileColumns 
+      : isTablet 
+        ? tabletColumns 
+        : desktopColumns;
+    
+    return `repeat(${columns}, minmax(0, 1fr))`;
+  };
   
   // Convert gap number to Tailwind class (gap-4 -> "gap-4")
   const gapClass = `gap-${gap}`;
   
   return (
     <div 
-      className={`grid grid-cols-${columns} ${gapClass} ${className}`}
-      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+      className={`grid ${gapClass} ${className}`}
+      style={{ 
+        gridTemplateColumns: getColumns(),
+        gap: `${gap * 0.25}rem`
+      }}
     >
       {children}
     </div>
@@ -60,9 +119,17 @@ export function Responsive({
   children, 
   mobileContent, 
   tabletContent, 
-  desktopContent 
+  desktopContent,
+  hideOnMobile = false,
+  hideOnTablet = false,
+  hideOnDesktop = false
 }) {
   const { isMobile, isTablet, isDesktop } = useViewport();
+  
+  // Handle hiding content based on screen size
+  if (hideOnMobile && isMobile) return null;
+  if (hideOnTablet && isTablet) return null;
+  if (hideOnDesktop && isDesktop) return null;
   
   if (isMobile && mobileContent) {
     return mobileContent;
@@ -78,4 +145,25 @@ export function Responsive({
   
   // Default to children if no specific content is provided for the current viewport
   return children;
+}
+
+/**
+ * A component that provides responsive spacing
+ */
+export function ResponsiveSpacing({
+  children,
+  className = '',
+  mobile = 4,
+  tablet = 6,
+  desktop = 8
+}) {
+  const { isMobile, isTablet } = useViewport();
+  
+  const spacing = isMobile ? mobile : isTablet ? tablet : desktop;
+  
+  return (
+    <div className={`p-${spacing} ${className}`}>
+      {children}
+    </div>
+  );
 }

@@ -132,7 +132,7 @@ export default function Home() {
       </div>
 
       {/* Main Features */}
-      <div className="w-full px-4 py-16 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-blue-50">
+      <div className="w-screen max-w-[100vw] mx-0 px-0 py-16 bg-gradient-to-b from-white to-blue-50">
         <div className="mb-16">
           <h2 className="font-serif text-center text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
             Our Services
@@ -143,7 +143,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-12 grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mx-0 px-0">
           {features.map((feature) => (
             <Link
               key={feature.name}

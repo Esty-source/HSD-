@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   VideoCameraIcon,
@@ -15,11 +15,27 @@ import {
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import MobileLayout from '../components/responsive/MobileLayout';
+import ChatComponent from '../components/chat/ChatComponent';
+import { Modal } from '../components/common/Modal';
 
 export default function MobileTelemedicine() {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [showConsultation, setShowConsultation] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [isMicOn, setIsMicOn] = useState(true);
+  const [isVideoOn, setIsVideoOn] = useState(true);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [recordedChunks, setRecordedChunks] = useState([]);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageConsultation, setMessageConsultation] = useState(null);
+  const [messageText, setMessageText] = useState('');
+  const [chatVisible, setChatVisible] = useState(false);
+  const remoteVideoRef = useRef(null);
+  const localVideoRef = useRef(null);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [summaryConsultation, setSummaryConsultation] = useState(null);
   
   // Mock data for upcoming and past consultations
   const upcomingConsultations = [
@@ -97,6 +113,57 @@ export default function MobileTelemedicine() {
     setSelectedDoctor(null);
   };
   
+  // Add handlers for mic, video, recording
+  const handleToggleMic = () => setIsMicOn((v) => !v);
+  const handleToggleVideo = () => setIsVideoOn((v) => !v);
+  const handleToggleRecording = () => {
+    if (!isRecording) {
+      // Start recording (assume user video ref is available)
+      if (window.stream) {
+        const recorder = new window.MediaRecorder(window.stream);
+        setMediaRecorder(recorder);
+        setRecordedChunks([]);
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) setRecordedChunks((prev) => [...prev, e.data]);
+        };
+        recorder.start();
+        setIsRecording(true);
+      }
+    } else {
+      if (mediaRecorder) {
+        mediaRecorder.stop();
+        setIsRecording(false);
+      }
+    }
+  };
+  
+  const openMessageModal = (consultation) => {
+    setMessageConsultation(consultation);
+    setShowMessageModal(true);
+    setMessageText('');
+  };
+  const closeMessageModal = () => {
+    setShowMessageModal(false);
+    setMessageConsultation(null);
+    setMessageText('');
+  };
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    // For now, just close the modal and clear the message
+    closeMessageModal();
+    // Optionally, show a toast or feedback here
+  };
+  
+  // Add handler to open summary modal
+  const openSummaryModal = (consultation) => {
+    setSummaryConsultation(consultation);
+    setShowSummaryModal(true);
+  };
+  const closeSummaryModal = () => {
+    setShowSummaryModal(false);
+    setSummaryConsultation(null);
+  };
+  
   // Render consultation card
   const renderConsultationCard = (consultation, isPast = false) => (
     <div key={consultation.id} className="bg-white rounded-xl shadow-sm p-4 mb-4">
@@ -147,20 +214,32 @@ export default function MobileTelemedicine() {
               <VideoCameraIcon className="h-4 w-4 mr-1" />
               Start Consultation
             </button>
-            <button className="flex-1 border border-gray-300 text-gray-700 text-sm py-2 rounded-lg flex items-center justify-center">
+            <button
+              className="flex-1 border border-gray-300 text-gray-700 text-sm py-2 rounded-lg flex items-center justify-center"
+              onClick={() => openMessageModal(consultation)}
+            >
               <ChatBubbleLeftRightIcon className="h-4 w-4 mr-1" />
               Message
             </button>
           </>
         ) : (
           <>
-            <button className="flex-1 border border-gray-300 text-gray-700 text-sm py-2 rounded-lg flex items-center justify-center">
+            <Link
+              to={`/doctor-profile/${consultation.id}`}
+              className="flex-1 border border-gray-300 text-gray-700 text-sm py-2 rounded-lg flex items-center justify-center"
+            >
               <UserIcon className="h-4 w-4 mr-1" />
               Doctor Profile
+            </Link>
+            <button
+              className="flex-1 bg-blue-600 text-white text-sm py-2 rounded-lg flex items-center justify-center"
+              onClick={() => openSummaryModal(consultation)}
+            >
+              View Summary
             </button>
             <Link 
               to={`/appointments/new?doctor=${consultation.id}`}
-              className="flex-1 bg-blue-600 text-white text-sm py-2 rounded-lg flex items-center justify-center"
+              className="flex-1 border border-gray-300 text-gray-700 text-sm py-2 rounded-lg flex items-center justify-center"
             >
               <CalendarIcon className="h-4 w-4 mr-1" />
               Book Again
@@ -172,107 +251,92 @@ export default function MobileTelemedicine() {
   );
   
   // Render video consultation screen
-  const renderVideoConsultation = () => (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
-      {/* Header */}
-      <div className="bg-gray-900 text-white p-4 flex items-center justify-between">
-        <button 
-          onClick={endConsultation}
-          className="p-2 rounded-full bg-gray-800"
-        >
-          <ArrowLeftIcon className="h-5 w-5" />
-        </button>
-        <div className="text-center">
-          <h3 className="font-medium">{selectedDoctor.doctorName}</h3>
-          <p className="text-xs text-gray-400">{selectedDoctor.specialty}</p>
-        </div>
-        <div className="w-9"></div> {/* Spacer for alignment */}
-      </div>
-      
-      {/* Video area */}
-      <div className="flex-1 relative">
-        {/* Doctor video (placeholder) */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <img 
-            src={selectedDoctor.image} 
-            alt={selectedDoctor.doctorName} 
+  const renderVideoConsultation = () => {
+    return (
+      <div className="fixed inset-0 bg-black">
+        {/* Video container */}
+        <div className="relative h-full">
+          {/* Remote video (full screen) */}
+          <video
             className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = 'https://via.placeholder.com/400?text=Video';
-            }}
+            autoPlay
+            playsInline
+            ref={remoteVideoRef}
           />
-        </div>
-        
-        {/* Self video (placeholder) */}
-        <div className="absolute bottom-4 right-4 w-1/3 aspect-video bg-gray-800 rounded-lg overflow-hidden border-2 border-white">
-          <div className="w-full h-full flex items-center justify-center text-white">
-            <UserIcon className="h-8 w-8" />
+          
+          {/* Local video (picture-in-picture) */}
+          <div className="absolute bottom-20 right-4 w-1/4 aspect-video">
+            <video
+              className="w-full h-full object-cover rounded-lg border-2 border-white"
+              autoPlay
+              playsInline
+              muted
+              ref={localVideoRef}
+            />
           </div>
-        </div>
-        
-        {/* Call duration */}
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white text-xs px-3 py-1 rounded-full">
-          00:05:32
-        </div>
-      </div>
-      
-      {/* Controls */}
-      <div className="bg-gray-900 text-white p-4">
-        <div className="flex justify-around">
-          <button className="p-3 rounded-full bg-gray-800">
-            <MicrophoneIcon className="h-6 w-6" />
-          </button>
-          <button className="p-3 rounded-full bg-gray-800">
-            <VideoCameraIcon className="h-6 w-6" />
-          </button>
-          <button className="p-3 rounded-full bg-gray-800">
-            <ChatBubbleLeftRightIcon className="h-6 w-6" />
-          </button>
-          <button 
-            onClick={endConsultation}
-            className="p-3 rounded-full bg-red-600"
+
+          {/* Controls overlay */}
+          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={handleToggleMic}
+                className={`p-3 rounded-full ${
+                  isMicOn ? 'bg-gray-600' : 'bg-red-600'
+                }`}
+              >
+                <MicrophoneIcon className="h-6 w-6 text-white" />
+              </button>
+              <button
+                onClick={handleToggleVideo}
+                className={`p-3 rounded-full ${
+                  isVideoOn ? 'bg-gray-600' : 'bg-red-600'
+                }`}
+              >
+                <VideoCameraIcon className="h-6 w-6 text-white" />
+              </button>
+              <button
+                onClick={() => setChatVisible(true)}
+                className="p-3 rounded-full bg-gray-600"
+              >
+                <ChatBubbleLeftRightIcon className="h-6 w-6 text-white" />
+              </button>
+              <button
+                onClick={endConsultation}
+                className="p-3 rounded-full bg-red-600"
+              >
+                <PhoneIcon className="h-6 w-6 text-white" />
+              </button>
+            </div>
+          </div>
+
+          {/* Chat panel (slides up from bottom) */}
+          <div
+            className={`fixed inset-x-0 bottom-0 bg-white rounded-t-2xl transition-transform duration-300 transform ${
+              chatVisible ? 'translate-y-0' : 'translate-y-full'
+            }`}
+            style={{ height: '70%', zIndex: 50 }}
           >
-            <PhoneIcon className="h-6 w-6 transform rotate-135" />
-          </button>
-        </div>
-      </div>
-      
-      {/* Chat overlay */}
-      <div className="absolute bottom-20 right-4 w-2/3 bg-white rounded-t-xl shadow-lg">
-        <div className="p-3 border-b flex justify-between items-center">
-          <h4 className="font-medium text-sm">Chat</h4>
-          <button className="p-1">
-            <XMarkIcon className="h-4 w-4 text-gray-500" />
-          </button>
-        </div>
-        <div className="p-3 h-40 overflow-y-auto">
-          <div className="mb-2">
-            <p className="text-xs text-gray-500">Dr. Ngono Marie</p>
-            <div className="bg-gray-100 p-2 rounded-lg text-sm inline-block">
-              Hello, how are you feeling today?
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-medium">Chat</h3>
+              <button
+                onClick={() => setChatVisible(false)}
+                className="p-2 text-gray-500"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
             </div>
-          </div>
-          <div className="mb-2 text-right">
-            <p className="text-xs text-gray-500">You</p>
-            <div className="bg-blue-100 p-2 rounded-lg text-sm inline-block">
-              I've been having chest pain since yesterday.
+            <div className="h-[calc(100%-4rem)]">
+              <ChatComponent
+                consultationId={selectedDoctor?.id}
+                otherUserId={selectedDoctor?.id}
+                className="h-full"
+              />
             </div>
           </div>
         </div>
-        <div className="p-2 border-t flex">
-          <input 
-            type="text" 
-            placeholder="Type a message..." 
-            className="flex-1 p-2 text-sm border rounded-l-lg focus:outline-none"
-          />
-          <button className="bg-blue-600 text-white p-2 rounded-r-lg">
-            <PaperAirplaneIcon className="h-5 w-5" />
-          </button>
-        </div>
       </div>
-    </div>
-  );
+    );
+  };
   
   // Main component render
   return (
@@ -355,6 +419,73 @@ export default function MobileTelemedicine() {
             )}
           </div>
         </MobileLayout>
+      )}
+      {/* Modals */}
+      {showMessageModal && messageConsultation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-xl p-6 w-11/12 max-w-md mx-auto">
+            <h3 className="text-lg font-bold mb-4 text-blue-700">Message {messageConsultation.doctorName}</h3>
+            <form onSubmit={handleSendMessage} className="space-y-4">
+              <textarea
+                value={messageText}
+                onChange={e => setMessageText(e.target.value)}
+                className="w-full rounded-md border border-gray-300 p-2 focus:ring-2 focus:ring-blue-500"
+                rows={4}
+                placeholder="Type your message..."
+                required
+              />
+              <div className="flex space-x-2 mt-4">
+                <button
+                  type="button"
+                  onClick={closeMessageModal}
+                  className="flex-1 py-2 rounded-lg bg-gray-100 text-gray-700 font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-semibold"
+                >
+                  Send
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Summary Modal */}
+      {showSummaryModal && summaryConsultation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-xl p-6 w-11/12 max-w-md mx-auto">
+            <h3 className="text-lg font-bold mb-4 text-blue-700">Consultation Summary</h3>
+            <div className="mb-4">
+              <div className="flex items-center mb-2">
+                <img src={summaryConsultation.image} alt={summaryConsultation.doctorName} className="w-12 h-12 rounded-full mr-3" />
+                <div>
+                  <div className="font-semibold text-gray-900">{summaryConsultation.doctorName}</div>
+                  <div className="text-sm text-gray-600">{summaryConsultation.specialty}</div>
+                </div>
+              </div>
+              <div className="text-sm text-gray-700 mb-1"><CalendarIcon className="inline h-4 w-4 mr-1" /> {summaryConsultation.date}</div>
+              <div className="text-sm text-gray-700 mb-1"><ClockIcon className="inline h-4 w-4 mr-1" /> {summaryConsultation.time}</div>
+            </div>
+            <div className="border-t pt-4">
+              <h4 className="font-medium text-gray-900 mb-2">Summary</h4>
+              <p className="text-sm text-gray-700 mb-4">
+                {summaryConsultation.summary || 'No summary available for this consultation.'}
+              </p>
+            </div>
+            <div className="flex justify-end mt-4">
+              <button
+                type="button"
+                onClick={closeSummaryModal}
+                className="py-2 px-4 rounded-lg bg-blue-600 text-white font-semibold"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

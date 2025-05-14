@@ -124,7 +124,7 @@ export default function About() {
       </div>
 
       {/* Features Section */}
-      <div className="mx-auto mt-32 max-w-7xl px-6 sm:mt-40 lg:px-8">
+      <div className="mx-auto mt-32 w-screen max-w-[100vw] px-0 sm:mt-40 lg:px-8">
         <div className="mx-auto max-w-2xl lg:text-center">
           <h2 className="text-base font-semibold leading-7 text-blue-600">Comprehensive Platform</h2>
           <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -135,7 +135,7 @@ export default function About() {
           </p>
         </div>
         <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
+          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3 mx-0 px-0">
             {features.map((feature) => (
               <div key={feature.name} className="group relative transform transition-all duration-300 hover:-translate-y-2">
                 <div className="rounded-2xl bg-white p-6 ring-1 ring-gray-200 hover:ring-2 hover:ring-blue-500 hover:shadow-lg transition-all duration-300">

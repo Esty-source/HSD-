@@ -280,7 +280,7 @@ export default function MobilePharmacies() {
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = 'https://via.placeholder.com/80?text=Pharmacy';
+                      e.target.src = '/images/pharmacy-default.png';
                     }}
                   />
                 </div>
@@ -313,11 +313,14 @@ export default function MobilePharmacies() {
                   
                   {/* Services */}
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {pharmacy.services.slice(0, 2).map(service => (
-                      <span key={service} className="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">
-                        {service}
-                      </span>
-                    ))}
+                    {pharmacy.services.slice(0, 2).map((service, idx) => {
+                      const label = typeof service === 'string' ? service : service?.name;
+                      return (
+                        <span key={label + idx} className="inline-block px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">
+                          {label}
+                        </span>
+                      );
+                    })}
                     {pharmacy.services.length > 2 && (
                       <span className="inline-block px-2 py-0.5 bg-gray-50 text-gray-700 text-xs rounded-full">
                         +{pharmacy.services.length - 2} more

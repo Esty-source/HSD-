@@ -108,24 +108,6 @@ export default function MobileNavigation({ isAuthenticated = false }) {
           </div>
         </div>
       )}
-
-      {/* Bottom tab bar (always visible on mobile) */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 flex items-center justify-around h-16">
-        {tabBarItems.map((item) => (
-          <Link
-            key={item.name}
-            to={item.to}
-            className={`flex flex-col items-center justify-center h-full w-full ${
-              isActive(item.to)
-                ? 'text-blue-600'
-                : 'text-gray-500 hover:text-blue-600'
-            }`}
-          >
-            <item.icon className="h-6 w-6" />
-            <span className="text-xs mt-1">{item.name}</span>
-          </Link>
-        ))}
-      </div>
     </>
   );
 }

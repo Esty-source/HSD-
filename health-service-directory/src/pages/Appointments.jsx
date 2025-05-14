@@ -124,6 +124,7 @@ export default function Appointments() {
     location: "",
     phone: "",
   });
+  const [rescheduleForm, setRescheduleForm] = useState({ date: '', time: '' });
 
   // Handle incoming doctor data
   useEffect(() => {
@@ -252,11 +253,30 @@ export default function Appointments() {
   };
 
   const handleReschedule = (appointment) => {
+    console.log('Reschedule clicked', appointment);
     setSelectedAppointment(appointment);
+    setRescheduleForm({ date: appointment.date, time: appointment.time });
     setShowRescheduleModal(true);
   };
 
+  const handleRescheduleFormChange = (e) => {
+    setRescheduleForm({ ...rescheduleForm, [e.target.name]: e.target.value });
+  };
+
+  const handleRescheduleSubmit = (e) => {
+    e.preventDefault();
+    const updatedAppointments = appointments.map((apt) =>
+      apt.id === selectedAppointment.id
+        ? { ...apt, date: rescheduleForm.date, time: rescheduleForm.time }
+        : apt
+    );
+    setAppointments(updatedAppointments);
+    setShowRescheduleModal(false);
+    setSelectedAppointment(null);
+  };
+
   const handleCancel = (appointment) => {
+    console.log('Cancel clicked', appointment);
     setSelectedAppointment(appointment);
     setShowCancelModal(true);
   };
@@ -266,19 +286,8 @@ export default function Appointments() {
       setAppointments(appointments.filter(app => app.id !== selectedAppointment.id));
       setShowCancelModal(false);
       setSelectedAppointment(null);
+      alert('Appointment cancelled.');
     }
-  };
-
-  const handleRescheduleSubmit = (e) => {
-    e.preventDefault();
-    const updatedAppointments = appointments.map((apt) =>
-      apt.id === selectedAppointment.id
-        ? { ...apt, date: selectedAppointment.date, time: selectedAppointment.time }
-        : apt
-    );
-    setAppointments(updatedAppointments);
-    setShowRescheduleModal(false);
-    setSelectedAppointment(null);
   };
 
   const startTelemedicine = (appointment) => {
@@ -627,19 +636,13 @@ export default function Appointments() {
                             <VideoCameraIcon className="h-5 w-5" />
                           </button>
                           <button
-                            onClick={() => {
-                              setSelectedAppointment(appointment);
-                              setShowRescheduleModal(true);
-                            }}
+                            onClick={() => handleReschedule(appointment)}
                             className="col-span-1 inline-flex items-center justify-center rounded-lg bg-gray-50 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
                           >
                             <CalendarIcon className="h-5 w-5" />
                           </button>
                           <button
-                            onClick={() => {
-                              setSelectedAppointment(appointment);
-                              setShowCancelModal(true);
-                            }}
+                            onClick={() => handleCancel(appointment)}
                             className="col-span-1 inline-flex items-center justify-center rounded-lg bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700 hover:bg-red-100 transition-colors"
                           >
                             <XMarkIcon className="h-5 w-5" />
@@ -909,9 +912,10 @@ export default function Appointments() {
                             </label>
                             <input
                               type="date"
+                              name="date"
                               required
-                              value={selectedAppointment?.date || ''}
-                              onChange={(e) => setSelectedAppointment(prev => ({...prev, date: e.target.value}))}
+                              value={rescheduleForm.date}
+                              onChange={handleRescheduleFormChange}
                               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                             />
                           </div>
@@ -921,9 +925,10 @@ export default function Appointments() {
                             </label>
                             <input
                               type="time"
+                              name="time"
                               required
-                              value={selectedAppointment?.time || ''}
-                              onChange={(e) => setSelectedAppointment(prev => ({...prev, time: e.target.value}))}
+                              value={rescheduleForm.time}
+                              onChange={handleRescheduleFormChange}
                               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                             />
                           </div>

@@ -350,7 +350,7 @@ export default function Auth() {
       </div>
 
       {/* Brand Section */}
-      <div className="hidden lg:block lg:w-1/2 relative overflow-hidden mx-0 px-0">
+      <div className="hidden lg:block lg:w-1/2 relative overflow-hidden mx-0 px-0 w-screen max-w-[100vw]">
         <div className="absolute inset-0 bg-blue-600 bg-gradient-to-br from-blue-600 to-blue-800">
           <div className="absolute inset-0 opacity-10">
             <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">

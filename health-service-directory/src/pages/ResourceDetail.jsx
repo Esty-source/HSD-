@@ -9,12 +9,22 @@ import {
   ShareIcon,
   BookmarkIcon,
   VideoCameraIcon,
+  HeartIcon,
+  NewspaperIcon,
+  AcademicCapIcon,
 } from '@heroicons/react/24/outline';
 import { useViewport } from '../components/responsive/ViewportProvider';
 import toast from 'react-hot-toast';
+import { mockResources, resourceCategories } from '../lib/mockData';
 
-// Import the mock data from Resources.jsx
-import { mockResources, resourceCategories } from './Resources';
+// Map icon names to components
+const iconMap = {
+  HeartIcon,
+  DocumentTextIcon,
+  VideoCameraIcon,
+  NewspaperIcon,
+  AcademicCapIcon,
+};
 
 export default function ResourceDetail() {
   const { resourceId } = useParams();
@@ -119,6 +129,7 @@ export default function ResourceDetail() {
 
   // Find the category for this resource
   const category = resourceCategories.find(cat => cat.id === resource.category);
+  const IconComponent = category ? iconMap[category.icon] : null;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -150,10 +161,10 @@ export default function ResourceDetail() {
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
             <div className="absolute bottom-0 left-0 p-6">
-              {category?.icon && (
+              {category && IconComponent && (
                 <div className="flex items-center mb-3">
                   <div className={`p-2 rounded-full ${category.color} mr-2`}>
-                    {React.createElement(category.icon, { className: "h-5 w-5" })}
+                    <IconComponent className="h-5 w-5" />
                   </div>
                   <span className="text-sm font-medium text-white">
                     {category.name}

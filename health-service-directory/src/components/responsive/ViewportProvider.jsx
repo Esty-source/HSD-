@@ -13,12 +13,23 @@ const ViewportContext = createContext({
 
 // Define breakpoints (can be customized based on your design needs)
 const breakpoints = {
-  xs: 480,   // Extra small devices (phones)
-  sm: 640,   // Small devices (large phones)
-  md: 768,   // Medium devices (tablets)
-  lg: 1024,  // Large devices (desktops)
-  xl: 1280,  // Extra large devices
-  xxl: 1536  // Extra extra large devices
+  xs: 360,    // Extra small devices (small phones)
+  sm: 480,    // Small devices (phones)
+  md: 640,    // Medium devices (large phones)
+  lg: 768,    // Large devices (tablets)
+  xl: 1024,   // Extra large devices (small desktops)
+  xxl: 1280,  // Extra extra large devices (desktops)
+  xxxl: 1536  // Extra extra extra large devices (large desktops)
+};
+
+// Device type mapping
+const deviceTypes = {
+  MOBILE_SMALL: 'mobile-small',   // < 480px
+  MOBILE: 'mobile',              // 480px - 639px
+  MOBILE_LARGE: 'mobile-large',   // 640px - 767px
+  TABLET: 'tablet',              // 768px - 1023px
+  DESKTOP: 'desktop',            // 1024px - 1279px
+  DESKTOP_LARGE: 'desktop-large' // >= 1280px
 };
 
 export const ViewportProvider = ({ children }) => {
@@ -32,7 +43,8 @@ export const ViewportProvider = ({ children }) => {
     isTablet: false,
     isDesktop: true,
     isTouchDevice: false,
-    deviceType: 'desktop'
+    deviceType: deviceTypes.DESKTOP,
+    orientation: 'portrait'
   });
 
   // Function to detect touch device
@@ -72,18 +84,25 @@ export const ViewportProvider = ({ children }) => {
   const getDeviceType = (width, isMobileUA, isTouchDev) => {
     // First check user agent for mobile devices
     if (isMobileUA) {
-      return width < breakpoints.sm ? 'mobile-small' : 
-             width < breakpoints.md ? 'mobile-large' : 'tablet';
+      if (width < breakpoints.sm) return deviceTypes.MOBILE_SMALL;
+      if (width < breakpoints.md) return deviceTypes.MOBILE;
+      if (width < breakpoints.lg) return deviceTypes.MOBILE_LARGE;
+      if (width < breakpoints.xl) return deviceTypes.TABLET;
     }
     
     // Then check screen size
-    if (width < breakpoints.md) {
-      return isTouchDev ? 'mobile' : 'small-desktop';
-    } else if (width < breakpoints.lg) {
-      return isTouchDev ? 'tablet' : 'desktop';
-    } else {
-      return 'desktop';
-    }
+    if (width < breakpoints.sm) return isTouchDev ? deviceTypes.MOBILE_SMALL : deviceTypes.MOBILE;
+    if (width < breakpoints.md) return isTouchDev ? deviceTypes.MOBILE : deviceTypes.MOBILE_LARGE;
+    if (width < breakpoints.lg) return isTouchDev ? deviceTypes.MOBILE_LARGE : deviceTypes.TABLET;
+    if (width < breakpoints.xl) return deviceTypes.TABLET;
+    if (width < breakpoints.xxl) return deviceTypes.DESKTOP;
+    return deviceTypes.DESKTOP_LARGE;
+  };
+
+  // Function to get orientation
+  const getOrientation = () => {
+    if (typeof window === 'undefined') return 'portrait';
+    return window.innerHeight > window.innerWidth ? 'portrait' : 'landscape';
   };
 
   // Function to update viewport dimensions and device type
@@ -99,14 +118,15 @@ export const ViewportProvider = ({ children }) => {
       const touchDevice = isTouchDevice();
       const mobileUA = isMobileUserAgent();
       const deviceType = getDeviceType(width, mobileUA, touchDevice);
+      const orientation = getOrientation();
       
       // Determine device categories
-      const isMobile = deviceType.includes('mobile') || width < breakpoints.md;
-      const isTablet = deviceType === 'tablet' || (width >= breakpoints.md && width < breakpoints.lg);
-      const isDesktop = deviceType === 'desktop' || width >= breakpoints.lg;
+      const isMobile = deviceType.includes('mobile');
+      const isTablet = deviceType === deviceTypes.TABLET;
+      const isDesktop = deviceType.includes('desktop');
       
       // Debug information
-      console.log(`ViewportProvider: width=${width}, height=${height}, deviceType=${deviceType}, isMobile=${isMobile}, isTablet=${isTablet}, isDesktop=${isDesktop}, touchDevice=${touchDevice}, mobileUA=${mobileUA}`);
+      console.log(`ViewportProvider: width=${width}, height=${height}, deviceType=${deviceType}, isMobile=${isMobile}, isTablet=${isTablet}, isDesktop=${isDesktop}, touchDevice=${touchDevice}, mobileUA=${mobileUA}, orientation=${orientation}`);
       
       setViewport({
         width,
@@ -115,7 +135,8 @@ export const ViewportProvider = ({ children }) => {
         isTablet,
         isDesktop,
         isTouchDevice: touchDevice,
-        deviceType
+        deviceType,
+        orientation
       });
     } catch (error) {
       console.error('ViewportProvider: Error updating viewport', error);

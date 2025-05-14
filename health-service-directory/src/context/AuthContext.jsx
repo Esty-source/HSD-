@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
@@ -16,45 +16,41 @@ export function AuthProvider({ children }) {
     const fetchSession = async () => {
       try {
         setLoading(true);
-        
+        console.log('AuthProvider: Fetching session from Supabase...');
         // Get current session
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+        console.log('AuthProvider: getSession result:', session, error);
         if (error) {
           throw error;
         }
-        
         if (session) {
           setSession(session);
           setIsAuthenticated(true);
-          
           // Get user profile data
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .single();
-          
+          console.log('AuthProvider: profile fetch result:', profile, profileError);
           if (profileError && profileError.code !== 'PGRST116') {
             console.error('Error fetching user profile:', profileError);
           }
-          
           // Combine auth data with profile data
           const userData = {
             ...session.user,
             ...profile,
             role: profile?.role || 'patient' // Default to patient if no role specified
           };
-          
           setUser(userData);
         }
       } catch (error) {
         console.error('Error fetching session:', error);
       } finally {
         setLoading(false);
+        console.log('AuthProvider: fetchSession finished, loading:', false);
       }
     };
-    
     fetchSession();
     
     // Set up auth state change listener
@@ -62,7 +58,7 @@ export function AuthProvider({ children }) {
       async (event, session) => {
         setSession(session);
         setIsAuthenticated(!!session);
-        
+        console.log('AuthProvider: onAuthStateChange event:', event, session);
         if (session) {
           // Get user profile data when auth state changes
           const { data: profile, error: profileError } = await supabase
@@ -70,24 +66,22 @@ export function AuthProvider({ children }) {
             .select('*')
             .eq('id', session.user.id)
             .single();
-            
+          console.log('AuthProvider: profile fetch result (onAuthStateChange):', profile, profileError);
           if (profileError && profileError.code !== 'PGRST116') {
             console.error('Error fetching user profile:', profileError);
           }
-          
           // Combine auth data with profile data
           const userData = {
             ...session.user,
             ...profile,
             role: profile?.role || 'patient' // Default to patient if no role specified
           };
-          
           setUser(userData);
         } else {
           setUser(null);
         }
-        
         setLoading(false);
+        console.log('AuthProvider: onAuthStateChange finished, loading:', false);
       }
     );
     
@@ -101,17 +95,16 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     try {
       setLoading(true);
-      
+      console.log('AuthContext: Logging in with:', email, password);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
-      
+      console.log('AuthContext: Supabase login response:', data, error);
       if (error) {
         toast.error(error.message);
         throw error;
       }
-      
       // Success - the session will be picked up by the auth listener
       toast.success('Logged in successfully');
       return { success: true, data };
@@ -120,6 +113,7 @@ export function AuthProvider({ children }) {
       return { success: false, error };
     } finally {
       setLoading(false);
+      console.log('AuthContext: login finished, loading:', false);
     }
   };
   
@@ -127,7 +121,7 @@ export function AuthProvider({ children }) {
   const signup = async (email, password, userData = {}) => {
     try {
       setLoading(true);
-      
+      console.log('AuthContext: Signing up with:', email, password, userData);
       // Create the auth user
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -139,12 +133,11 @@ export function AuthProvider({ children }) {
           }
         }
       });
-      
+      console.log('AuthContext: Supabase signup response:', data, error);
       if (error) {
         toast.error(error.message);
         throw error;
       }
-      
       // If signup was successful, create a profile record
       if (data?.user) {
         const { error: profileError } = await supabase
@@ -159,7 +152,7 @@ export function AuthProvider({ children }) {
               created_at: new Date().toISOString()
             }
           ]);
-          
+        console.log('AuthContext: Supabase profile insert response:', profileError);
         if (profileError) {
           console.error('Error creating user profile:', profileError);
           toast.error('Account created but profile setup failed');
@@ -167,13 +160,13 @@ export function AuthProvider({ children }) {
           toast.success('Account created successfully');
         }
       }
-      
       return { success: true, data };
     } catch (error) {
       console.error('Signup error:', error);
       return { success: false, error };
     } finally {
       setLoading(false);
+      console.log('AuthContext: signup finished, loading:', false);
     }
   };
 

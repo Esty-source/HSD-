@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/layout/Layout';
 import { ViewportProvider } from './components/responsive/ViewportProvider';
@@ -8,6 +8,8 @@ import { NotificationsProvider } from './context/NotificationsContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import MobileNavigation from './components/responsive/MobileNavigation';
 import QRCodeAccess from './components/responsive/QRCodeAccess';
+import AdminLogin from './pages/AdminLogin';
+import MobileProfile from './pages/MobileProfile';
 
 // Loading spinner component
 const LoadingSpinner = () => (
@@ -39,9 +41,13 @@ const SupabaseCheck = lazy(() => import('./pages/SupabaseCheck'));
 const RunMigration = lazy(() => import('./utils/runMigration'));
 
 // Dashboard pages
-const PatientDashboard = lazy(() => import('./pages/dashboard/PatientDashboard'));
-const DoctorDashboard = lazy(() => import('./pages/dashboard/DoctorDashboard'));
-const AdminDashboard = lazy(() => import('./pages/dashboard/AdminDashboard'));
+const PatientDashboard = lazy(() => import('./pages/PatientDashboard'));
+const DoctorDashboard = lazy(() => import('./pages/DoctorDashboard'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+
+// New pages
+const Emergency = lazy(() => import('./pages/Emergency'));
+const Support = lazy(() => import('./pages/Support'));
 
 function App() {
   return (
@@ -64,6 +70,9 @@ function App() {
                   <Route path="/appointments" element={<Appointments />} />
                   <Route path="/resources" element={<Resources />} />
                   <Route path="/resources/:resourceId" element={<ResourceDetail />} />
+                  <Route path="/mobile-profile" element={<MobileProfile />} />
+                  <Route path="/emergency" element={<Emergency />} />
+                  <Route path="/support" element={<Support />} />
                   
                   {/* Simple mobile-optimized pages */}
                   <Route path="/simple" element={<SimpleTest />} />
@@ -85,15 +94,12 @@ function App() {
                       <DoctorDashboard />
                     </ProtectedRoute>
                   } />
-                  <Route path="/dashboard/admin" element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  } />
+                  <Route path="/dashboard/admin" element={<AdminDashboard />} />
                   
                   {/* Catch-all route */}
                   <Route path="*" element={<NotFound />} />
                 </Route>
+                <Route path="/admin-login" element={<AdminLogin />} />
               </Routes>
               
               {/* Mobile components */}

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { 
   UserGroupIcon, 
   UserCircleIcon, 
@@ -19,76 +20,63 @@ import {
   ClipboardDocumentListIcon as ClipboardDocumentListIconSolid,
   ChartBarIcon as ChartBarIconSolid
 } from '@heroicons/react/24/solid';
+import { supabase } from '../../../lib/supabase';
 
 export default function OverviewSection({ onTabChange }) {
-  const metrics = [
-    {
-      name: 'Total Users',
-      value: '1,234',
-      icon: UserGroupIconSolid,
-      iconColor: 'text-indigo-600',
-      bgColor: 'bg-indigo-100',
-      change: '+12%',
-      changeType: 'positive',
-      onClick: () => onTabChange('users'),
-      description: 'Active accounts in the system'
-    },
-    {
-      name: 'Active Doctors',
-      value: '89',
-      icon: UserCircleIconSolid,
-      iconColor: 'text-blue-600',
-      bgColor: 'bg-blue-100',
-      change: '+5%',
-      changeType: 'positive',
-      onClick: () => onTabChange('doctors'),
-      description: 'Verified medical professionals'
-    },
-    {
-      name: 'Total Patients',
-      value: '1,145',
-      icon: UserGroupIconSolid,
-      iconColor: 'text-green-600',
-      bgColor: 'bg-green-100',
-      change: '+8%',
-      changeType: 'positive',
-      onClick: () => onTabChange('patients'),
-      description: 'Registered patients'
-    },
-    {
-      name: 'Medical Records',
-      value: '4,567',
-      icon: ClipboardDocumentListIconSolid,
-      iconColor: 'text-purple-600',
-      bgColor: 'bg-purple-100',
-      change: '+15%',
-      changeType: 'positive',
-      onClick: () => onTabChange('records'),
-      description: 'Total records in the system'
-    },
-    {
-      name: 'System Uptime',
-      value: '99.9%',
-      icon: ShieldCheckIcon,
-      iconColor: 'text-emerald-600',
-      bgColor: 'bg-emerald-100',
-      change: '+0.2%',
-      changeType: 'positive',
-      onClick: () => onTabChange('security'),
-      description: 'Last 30 days availability'
-    },
-    {
-      name: 'Revenue',
-      value: '₦4.2M',
-      icon: CurrencyDollarIcon,
-      iconColor: 'text-amber-600',
-      bgColor: 'bg-amber-100',
-      change: '+22%',
-      changeType: 'positive',
-      onClick: () => onTabChange('analytics'),
-      description: 'Monthly subscription revenue'
+  const [metrics, setMetrics] = useState([
+    { name: 'Total Users', value: '0', icon: UserGroupIconSolid, iconColor: 'text-indigo-600', bgColor: 'bg-indigo-100', change: '', changeType: 'positive', onClick: () => onTabChange('users'), description: 'Active accounts in the system' },
+    { name: 'Active Doctors', value: '0', icon: UserCircleIconSolid, iconColor: 'text-blue-600', bgColor: 'bg-blue-100', change: '', changeType: 'positive', onClick: () => onTabChange('doctors'), description: 'Verified medical professionals' },
+    { name: 'Total Patients', value: '0', icon: UserGroupIconSolid, iconColor: 'text-green-600', bgColor: 'bg-green-100', change: '', changeType: 'positive', onClick: () => onTabChange('patients'), description: 'Registered patients' },
+    { name: 'Medical Records', value: '0', icon: ClipboardDocumentListIconSolid, iconColor: 'text-purple-600', bgColor: 'bg-purple-100', change: '', changeType: 'positive', onClick: () => onTabChange('records'), description: 'Total records in the system' },
+    { name: 'System Uptime', value: '99.9%', icon: ShieldCheckIcon, iconColor: 'text-emerald-600', bgColor: 'bg-emerald-100', change: '+0.2%', changeType: 'positive', onClick: () => onTabChange('security'), description: 'Last 30 days availability' },
+    { name: 'Revenue', value: '0', icon: CurrencyDollarIcon, iconColor: 'text-amber-600', bgColor: 'bg-amber-100', change: '+22%', changeType: 'positive', onClick: () => onTabChange('analytics'), description: 'Monthly subscription revenue' }
+  ]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchMetrics() {
+      setLoading(true);
+      try {
+        // Fetch total users
+        const { count: usersCount } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+        // Fetch doctors
+        const { count: doctorsCount } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', 'doctor');
+        // Fetch patients
+        const { count: patientsCount } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', 'patient');
+        // Fetch medical records
+        const { count: recordsCount } = await supabase
+          .from('medical_records')
+          .select('*', { count: 'exact', head: true });
+        // Update metrics
+        setMetrics((prev) => prev.map((metric) => {
+          if (metric.name === 'Total Users') return { ...metric, value: usersCount?.toLocaleString() ?? '0' };
+          if (metric.name === 'Active Doctors') return { ...metric, value: doctorsCount?.toLocaleString() ?? '0' };
+          if (metric.name === 'Total Patients') return { ...metric, value: patientsCount?.toLocaleString() ?? '0' };
+          if (metric.name === 'Medical Records') return { ...metric, value: recordsCount?.toLocaleString() ?? '0' };
+          if (metric.name === 'Revenue') return { ...metric, value: '0' };
+          return metric;
+        }));
+      } catch (error) {
+        // fallback to ...
+        setMetrics((prev) => prev.map((metric) =>
+          ['Total Users', 'Active Doctors', 'Total Patients', 'Medical Records', 'Revenue'].includes(metric.name)
+            ? { ...metric, value: '0' }
+            : metric
+        ));
+      } finally {
+        setLoading(false);
+      }
     }
-  ];
+    fetchMetrics();
+  }, [onTabChange]);
 
   const quickActions = [
     {

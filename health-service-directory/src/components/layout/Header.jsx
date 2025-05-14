@@ -129,6 +129,13 @@ export default function Header() {
               <span className="ml-2 text-gray-800 font-semibold group-hover:text-blue-700 transition-all">patient</span>
             </Link>
           )}
+          <Link
+            to="/admin-login"
+            className="text-indigo-600 font-semibold hover:underline px-3 py-2 rounded transition-colors duration-200"
+            title="Admin Login"
+          >
+            Admin Login
+          </Link>
           <div className="hidden lg:flex lg:items-center">
             <Link
               to="/auth"
@@ -179,6 +186,13 @@ export default function Header() {
                         {item.name}
                       </Link>
                     ))}
+                    <Link
+                      to="/admin-login"
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-indigo-600 hover:bg-indigo-50"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Admin Login
+                    </Link>
                   </div>
                 </div>
               </div>

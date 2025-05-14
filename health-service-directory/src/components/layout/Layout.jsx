@@ -13,14 +13,14 @@ export default function Layout() {
   const mobilePadding = isMobile ? 'pb-16' : '';
 
   return (
-    <div className={`min-h-screen bg-gray-50 flex flex-col ${mobilePadding}`}>
+    <div className={`min-h-screen bg-gray-50 flex flex-col ${mobilePadding} w-screen max-w-[100vw] mx-0 px-0`}>
       {/* Only show header if not on dashboard and not on mobile */}
       {!isDashboard && (!isMobile || (isMobile && location.pathname === '/')) && <Header />}
       
       {/* Main content area */}
-      <main className={`flex-grow w-full ${isDashboard ? 'h-screen' : ''} ${isMobile ? 'pt-2' : 'pt-4'}`}>
+      <main className={`flex-grow w-full ${isDashboard ? 'h-screen' : ''} ${isMobile ? 'pt-2' : 'pt-4'} mx-0 px-0`}>
         {/* Full width content area */}
-        <div className="w-full max-w-full px-4">
+        <div className="w-full max-w-full mx-0 px-0">
           <Outlet />
         </div>
       </main>

@@ -210,7 +210,7 @@ export default function Contact() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-2 w-screen max-w-[100vw] mx-0 px-0">
             {/* Contact Information */}
             <div
               className={`${activeTab === 'form' ? 'lg:order-2' : 'lg:order-1'}`}
