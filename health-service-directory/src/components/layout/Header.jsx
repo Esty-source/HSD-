@@ -8,6 +8,7 @@ import {
   UserCircleIcon
 } from '@heroicons/react/24/outline';
 import { useNotifications } from '../../context/NotificationsContext';
+import { createPortal } from 'react-dom';
 
 // Base navigation items that are always visible
 const baseNavigation = [
@@ -148,8 +149,8 @@ export default function Header() {
         </div>
 
         {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden">
+        {mobileMenuOpen && createPortal(
+          <div className="fixed inset-0 z-[9999] lg:hidden">
             <div className="fixed inset-0 bg-gray-900/80" onClick={() => setMobileMenuOpen(false)} />
             <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
               <div className="flex items-center justify-between">
@@ -197,7 +198,8 @@ export default function Header() {
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </nav>
     </header>

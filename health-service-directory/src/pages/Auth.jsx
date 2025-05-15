@@ -41,7 +41,7 @@ export default function Auth() {
   const [isAdminLogin, setIsAdminLogin] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, signup, isAuthenticated, user, setLoading, loading } = useAuth();
+  const { login, signup, isAuthenticated, user, loading } = useAuth();
   
   // Check if this is an admin login request based on URL parameters or route
   useEffect(() => {
@@ -84,7 +84,6 @@ export default function Auth() {
   });
 
   const onSubmit = async (data) => {
-    setLoading(true);
     try {
       if (isLogin) {
         console.log('Attempting login with:', { email: data.email, userType });
@@ -95,7 +94,6 @@ export default function Auth() {
         if (!success) {
           console.error('Login error:', error);
           toast.error(error?.message || 'Invalid login credentials');
-          setLoading(false);
           return;
         }
         
@@ -119,7 +117,6 @@ export default function Auth() {
         if (!success) {
           console.error('Registration error:', error);
           toast.error(error?.message || 'Registration failed');
-          setLoading(false);
           return;
         }
         
@@ -133,8 +130,6 @@ export default function Auth() {
     } catch (error) {
       console.error('Authentication error:', error);
       toast.error('An unexpected error occurred');
-    } finally {
-      setLoading(false);
     }
   };
 

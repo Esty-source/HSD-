@@ -15,6 +15,11 @@ import {
   ArrowRightIcon
 } from '@heroicons/react/24/outline';
 import MobileLayout from '../components/responsive/MobileLayout';
+import UsersSection from '../components/dashboard/admin/UsersSection';
+import MedicalRecordsSection from '../components/dashboard/admin/MedicalRecordsSection';
+import AnalyticsSection from '../components/dashboard/admin/AnalyticsSection';
+import SecuritySection from '../components/dashboard/admin/SecuritySection';
+import NotificationsSection from '../components/dashboard/admin/NotificationsSection';
 
 export default function MobileAdminDashboard() {
   const navigate = useNavigate();
@@ -433,17 +438,48 @@ export default function MobileAdminDashboard() {
     </div>
   );
   
-  // Render content based on active tab
+  // Add render functions for missing sections
+  const renderUsers = () => (
+    <UsersSection />
+  );
+
+  const renderMedicalRecords = () => (
+    <MedicalRecordsSection />
+  );
+
+  const renderAnalytics = () => (
+    <AnalyticsSection />
+  );
+
+  const renderSecurity = () => (
+    <SecuritySection />
+  );
+
+  const renderNotifications = () => (
+    <NotificationsSection />
+  );
+  
+  // Update renderContent to include new tabs
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
         return renderOverview();
+      case 'users':
+        return renderUsers();
       case 'doctors':
         return renderDoctors();
       case 'patients':
         return renderPatients();
+      case 'records':
+        return renderMedicalRecords();
+      case 'analytics':
+        return renderAnalytics();
+      case 'security':
+        return renderSecurity();
       case 'settings':
         return renderSettings();
+      case 'notifications':
+        return renderNotifications();
       default:
         return renderOverview();
     }
@@ -460,6 +496,12 @@ export default function MobileAdminDashboard() {
           Overview
         </button>
         <button
+          className={`px-3 py-2 text-sm whitespace-nowrap ${activeTab === 'users' ? 'text-indigo-600 border-b-2 border-indigo-600 font-medium' : 'text-gray-500'}`}
+          onClick={() => setActiveTab('users')}
+        >
+          Users
+        </button>
+        <button
           className={`px-3 py-2 text-sm whitespace-nowrap ${activeTab === 'doctors' ? 'text-indigo-600 border-b-2 border-indigo-600 font-medium' : 'text-gray-500'}`}
           onClick={() => setActiveTab('doctors')}
         >
@@ -470,6 +512,30 @@ export default function MobileAdminDashboard() {
           onClick={() => setActiveTab('patients')}
         >
           Patients
+        </button>
+        <button
+          className={`px-3 py-2 text-sm whitespace-nowrap ${activeTab === 'records' ? 'text-indigo-600 border-b-2 border-indigo-600 font-medium' : 'text-gray-500'}`}
+          onClick={() => setActiveTab('records')}
+        >
+          Medical Records
+        </button>
+        <button
+          className={`px-3 py-2 text-sm whitespace-nowrap ${activeTab === 'analytics' ? 'text-indigo-600 border-b-2 border-indigo-600 font-medium' : 'text-gray-500'}`}
+          onClick={() => setActiveTab('analytics')}
+        >
+          Analytics
+        </button>
+        <button
+          className={`px-3 py-2 text-sm whitespace-nowrap ${activeTab === 'security' ? 'text-indigo-600 border-b-2 border-indigo-600 font-medium' : 'text-gray-500'}`}
+          onClick={() => setActiveTab('security')}
+        >
+          Security
+        </button>
+        <button
+          className={`px-3 py-2 text-sm whitespace-nowrap ${activeTab === 'notifications' ? 'text-indigo-600 border-b-2 border-indigo-600 font-medium' : 'text-gray-500'}`}
+          onClick={() => setActiveTab('notifications')}
+        >
+          Notifications
         </button>
         <button
           className={`px-3 py-2 text-sm whitespace-nowrap ${activeTab === 'settings' ? 'text-indigo-600 border-b-2 border-indigo-600 font-medium' : 'text-gray-500'}`}

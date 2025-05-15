@@ -14,9 +14,8 @@ export default function Layout() {
 
   return (
     <div className={`min-h-screen bg-gray-50 flex flex-col ${mobilePadding} w-screen max-w-[100vw] mx-0 px-0`}>
-      {/* Only show header if not on dashboard and not on mobile */}
-      {!isDashboard && (!isMobile || (isMobile && location.pathname === '/')) && <Header />}
-      
+      {/* Show header on all pages except dashboards */}
+      {!isDashboard && <Header />}
       {/* Main content area */}
       <main className={`flex-grow w-full ${isDashboard ? 'h-screen' : ''} ${isMobile ? 'pt-2' : 'pt-4'} mx-0 px-0`}>
         {/* Full width content area */}
@@ -24,7 +23,6 @@ export default function Layout() {
           <Outlet />
         </div>
       </main>
-      
       {/* Only show footer if not on dashboard and not on mobile */}
       {!isDashboard && !isMobile && <Footer />}
     </div>

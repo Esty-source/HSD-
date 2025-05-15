@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { toast } from 'react-hot-toast';
-import { supabase } from '../lib/supabase';
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -37,7 +36,7 @@ export default function MobileAuth() {
   const [isAdminLogin, setIsAdminLogin] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, setLoading, loading } = useAuth();
+  const { login, signup, isAuthenticated, user, loading } = useAuth();
   
   // Check if this is an admin login request based on URL parameters or route
   useEffect(() => {
@@ -56,6 +55,19 @@ export default function MobileAuth() {
     }
   }, [location]);
 
+  // Add useEffect for redirection, similar to Auth.jsx
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') {
+        navigate('/dashboard/admin'); // Or /admin-dashboard if that's the route
+      } else if (user.role === 'doctor') {
+        navigate('/dashboard/doctor'); // Or /doctor-dashboard
+      } else {
+        navigate('/dashboard/patient'); // Or / if that's the patient default
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
+
   const {
     register,
     handleSubmit,
@@ -66,170 +78,52 @@ export default function MobileAuth() {
   });
 
   const onSubmit = async (data) => {
-    setLoading(true);
     try {
       if (isLogin) {
         console.log('Attempting login with:', { email: data.email, userType });
         
-        // Handle login with Supabase
-        const { data: authData, error } = await supabase.auth.signInWithPassword({
-          email: data.email,
-          password: data.password
-        });
+        // Use the login function from AuthContext
+        const { success, error } = await login(data.email, data.password);
         
-        if (error) {
+        if (!success) {
           console.error('Login error:', error);
-          toast.error('Invalid login credentials');
-          setLoading(false);
+          toast.error(error?.message || 'Invalid login credentials');
           return;
         }
         
-        if (!authData || !authData.user) {
-          console.error('No user data returned from authentication');
-          toast.error('Authentication failed');
-          setLoading(false);
-          return;
-        }
-        
-        // Get user profile - handle case where profile might not exist yet
-        console.log('Fetching profile for user ID:', authData.user.id);
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', authData.user.id)
-          .single();
-        
-        // If profile doesn't exist or we're overriding the role
-        let userData = {
-          id: authData.user.id,
-          email: authData.user.email,
-          name: '',
-          role: ''
-        };
-        
-        if (profileError) {
-          console.log('Profile not found, creating new profile');
-          // Create a new profile with the selected role
-          // Don't allow creating admin accounts during login if profile doesn't exist
-          const safeRole = userType === 'admin' ? 'patient' : userType;
-          
-          userData.name = authData.user.email.split('@')[0]; // Use part of email as name
-          userData.role = safeRole;
-          
-          const { error: insertError } = await supabase
-            .from('profiles')
-            .insert([
-              { 
-                id: authData.user.id,
-                email: authData.user.email,
-                name: userData.name,
-                role: safeRole
-              }
-            ]);
-            
-          if (insertError) {
-            console.error('Error creating profile:', insertError);
-            toast.error('Failed to create user profile');
-            setLoading(false);
-            return;
-          }
-        } else {
-          console.log('Profile found:', profileData);
-          userData = {
-            ...userData,
-            name: profileData.name || userData.name,
-            role: profileData.role || userType
-          };
-          
-          // For admin login, verify the user actually has admin role
-          if (isAdminLogin && userData.role !== 'admin') {
-            console.error('User attempted admin login but does not have admin role');
-            toast.error('You do not have administrator privileges');
-            setLoading(false);
-            return;
-          }
-        }
-        
-        // Store user data in context
-        login({
-          id: userData.id,
-          email: userData.email,
-          name: userData.name,
-          role: userData.role
-        });
-        
-        // Redirect based on role
-        if (userData.role === 'admin') {
-          navigate('/admin-dashboard');
-        } else if (userData.role === 'doctor') {
-          navigate('/doctor-dashboard');
-        } else {
-          navigate('/');
-        }
-        
+        console.log('MobileAuth: Login successful');
         toast.success('Login successful!');
+
       } else {
-        // Handle registration with Supabase
-        const { data: authData, error } = await supabase.auth.signUp({
-          email: data.email,
-          password: data.password
+        // Registration
+        console.log('Attempting registration with:', { 
+          email: data.email, 
+          name: data.name, 
+          userType 
         });
         
-        if (error) {
-          console.error('Registration error:', error);
-          toast.error(error.message || 'Registration failed');
-          setLoading(false);
-          return;
-        }
-        
-        if (!authData || !authData.user) {
-          console.error('No user data returned from registration');
-          toast.error('Registration failed');
-          setLoading(false);
-          return;
-        }
-        
-        // Create profile with selected role
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            { 
-              id: authData.user.id,
-              email: data.email,
-              name: data.name,
-              role: userType
-            }
-          ]);
-          
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-          toast.error('Failed to create user profile');
-          setLoading(false);
-          return;
-        }
-        
-        // Store user data in context
-        login({
-          id: authData.user.id,
-          email: data.email,
-          name: data.name,
+        // Use the signup function from AuthContext
+        const { success, error } = await signup(data.email, data.password, {
+          fullName: data.name,
           role: userType
         });
         
-        // Redirect based on role
-        if (userType === 'doctor') {
-          navigate('/doctor-dashboard');
-        } else {
-          navigate('/');
+        if (!success) {
+          console.error('Registration error:', error);
+          toast.error(error?.message || 'Registration failed');
+          return;
         }
         
-        toast.success('Registration successful!');
+        console.log('MobileAuth: Registration successful');
+        toast.success('Account created successfully! You can now log in.');
+        
+        // Reset form and switch to login mode
+        reset();
+        setIsLogin(true);
       }
     } catch (error) {
-      console.error('Auth error:', error);
-      toast.error('An error occurred during authentication');
-    } finally {
-      setLoading(false);
+      console.error('MobileAuth: Authentication error:', error);
+      toast.error('An unexpected error occurred');
     }
   };
 

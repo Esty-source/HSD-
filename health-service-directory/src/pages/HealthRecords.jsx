@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useViewport } from '../components/responsive/ViewportProvider';
 import MobileHealthRecords from './MobileHealthRecords';
+import jsPDF from 'jspdf';
 
 const mockRecords = {
   medicalHistory: [
@@ -112,6 +113,10 @@ export default function HealthRecords() {
   const [showMedicalHistoryModal, setShowMedicalHistoryModal] = useState(false);
   const [selectedMedicalRecord, setSelectedMedicalRecord] = useState(null);
   const fileInputRef = useRef(null);
+  const [showFollowUpModal, setShowFollowUpModal] = useState(false);
+  const [followUpDate, setFollowUpDate] = useState('');
+  const [followUpTime, setFollowUpTime] = useState('');
+  const [followUpNotes, setFollowUpNotes] = useState('');
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -180,13 +185,27 @@ export default function HealthRecords() {
   };
 
   const handleDownloadPDF = (result) => {
-    // In a real app, this would trigger a download of the lab result PDF
-    alert(`Downloading PDF for ${result.title}...`);
-    
-    // Simulate download delay
-    setTimeout(() => {
-      alert(`${result.title} PDF has been downloaded successfully.`);
-    }, 1500);
+    console.log('Download PDF clicked', result);
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text(result.title || 'Health Record', 10, 20);
+    doc.setFontSize(12);
+    doc.text(`Date: ${result.date || ''}`, 10, 30);
+    doc.text(`Type: ${result.type || ''}`, 10, 40);
+    doc.text(`Status: ${result.status || ''}`, 10, 50);
+    if (result.doctor) doc.text(`Doctor: ${result.doctor}`, 10, 60);
+    if (result.notes) doc.text(`Notes: ${result.notes}`, 10, 70);
+    doc.save(`${result.title || 'health_record'}.pdf`);
+  };
+
+  const handleScheduleFollowUp = (e) => {
+    e.preventDefault();
+    console.log('Schedule Follow-up submitted', followUpDate, followUpTime, followUpNotes);
+    setShowFollowUpModal(false);
+    setFollowUpDate('');
+    setFollowUpTime('');
+    setFollowUpNotes('');
+    alert('Follow-up scheduled successfully!');
   };
 
   const handleViewMedicalHistory = (record) => {
@@ -710,13 +729,20 @@ export default function HealthRecords() {
                   </div>
                 </div>
               </div>
-              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+              <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-2">
                 <button
                   type="button"
                   onClick={() => handleDownloadPDF(selectedResult)}
                   className="inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto"
                 >
                   Download PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowFollowUpModal(true)}
+                  className="inline-flex w-full justify-center rounded-md bg-blue-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-600 sm:ml-3 sm:w-auto"
+                >
+                  Schedule Follow-up
                 </button>
                 <button
                   type="button"
@@ -768,6 +794,35 @@ export default function HealthRecords() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showFollowUpModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center px-4 py-10 text-center sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+            <div className="inline-block transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
+              <h3 className="text-lg font-semibold leading-6 text-gray-900 mb-4">Schedule Follow-up</h3>
+              <form onSubmit={handleScheduleFollowUp} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Date</label>
+                  <input type="date" value={followUpDate} onChange={e => setFollowUpDate(e.target.value)} required className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Time</label>
+                  <input type="time" value={followUpTime} onChange={e => setFollowUpTime(e.target.value)} required className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Notes</label>
+                  <textarea value={followUpNotes} onChange={e => setFollowUpNotes(e.target.value)} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500" />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button type="button" onClick={() => setShowFollowUpModal(false)} className="inline-flex justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Cancel</button>
+                  <button type="submit" className="inline-flex justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500">Schedule</button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
