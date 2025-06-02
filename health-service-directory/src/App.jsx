@@ -38,6 +38,8 @@ const SimpleTest = lazy(() => import('./pages/SimpleTest'));
 const SimpleResources = lazy(() => import('./pages/SimpleResources'));
 const SimpleAppointments = lazy(() => import('./pages/SimpleAppointments'));
 const SupabaseCheck = lazy(() => import('./pages/SupabaseCheck'));
+const SupabaseTest = lazy(() => import('./pages/SupabaseTest'));
+const DirectTest = lazy(() => import('./pages/DirectTest'));
 const RunMigration = lazy(() => import('./utils/runMigration'));
 
 // Dashboard pages
@@ -81,6 +83,8 @@ function App() {
                   
                   {/* Database check page */}
                   <Route path="/supabase-check" element={<SupabaseCheck />} />
+                  <Route path="/supabase-test" element={<SupabaseTest />} />
+                  <Route path="/direct-test" element={<DirectTest />} />
                   <Route path="/run-migration" element={<RunMigration />} />
                   
                   {/* Dashboard routes */}

@@ -15,11 +15,11 @@ import {
 // Validation schemas
 const loginSchema = yup.object().shape({
   email: yup.string().email('Invalid email').required('Email is required'),
-  password: yup.string().required('Password is required'),
+  password: yup.string().required('Password is required').min(6, 'Password must be at least 6 characters'),
 });
 
 const registerSchema = yup.object().shape({
-  name: yup.string().required('Name is required'),
+  name: yup.string().required('Name is required').min(2, 'Name must be at least 2 characters'),
   email: yup.string().email('Invalid email').required('Email is required'),
   password: yup.string().required('Password is required').min(6, 'Password must be at least 6 characters'),
   confirmPassword: yup
@@ -34,6 +34,7 @@ export default function MobileAuth() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isAdminLogin, setIsAdminLogin] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Local loading state
   const navigate = useNavigate();
   const location = useLocation();
   const { login, signup, isAuthenticated, user, loading } = useAuth();
@@ -71,59 +72,48 @@ export default function MobileAuth() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting: formSubmitting },
     reset,
   } = useForm({
     resolver: yupResolver(isLogin ? loginSchema : registerSchema),
+    mode: 'onSubmit'
   });
 
   const onSubmit = async (data) => {
     try {
+      setIsSubmitting(true);
+      
       if (isLogin) {
         console.log('Attempting login with:', { email: data.email, userType });
-        
-        // Use the login function from AuthContext
         const { success, error } = await login(data.email, data.password);
-        
-        if (!success) {
-          console.error('Login error:', error);
-          toast.error(error?.message || 'Invalid login credentials');
-          return;
+        if (!success || error) {
+          throw new Error(error?.message || 'Login failed. Please try again.');
         }
-        
-        console.log('MobileAuth: Login successful');
         toast.success('Login successful!');
-
       } else {
-        // Registration
-        console.log('Attempting registration with:', { 
-          email: data.email, 
-          name: data.name, 
-          userType 
-        });
-        
-        // Use the signup function from AuthContext
-        const { success, error } = await signup(data.email, data.password, {
+        if (!userType) {
+          throw new Error('Please select whether you are a Patient or Doctor');
+        }
+
+        const { success, error, requiresEmailConfirmation } = await signup(data.email, data.password, {
           fullName: data.name,
           role: userType
         });
-        
-        if (!success) {
-          console.error('Registration error:', error);
-          toast.error(error?.message || 'Registration failed');
-          return;
+
+        if (!success || error) {
+          throw new Error(error?.message || 'Registration failed. Please try again.');
         }
-        
-        console.log('MobileAuth: Registration successful');
-        toast.success('Account created successfully! You can now log in.');
-        
-        // Reset form and switch to login mode
-        reset();
-        setIsLogin(true);
+
+        toast.success(requiresEmailConfirmation 
+          ? 'Please check your email to confirm your account.' 
+          : 'Registration successful!');
       }
     } catch (error) {
-      console.error('MobileAuth: Authentication error:', error);
-      toast.error('An unexpected error occurred');
+      console.error('Form submission error:', error);
+      setError(error.message);
+      toast.error(error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -320,16 +310,36 @@ export default function MobileAuth() {
             <div className="mt-8">
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                disabled={formSubmitting || isSubmitting}
               >
-                {loading ? (
-                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : null}
-                {isLogin ? 'Sign In' : 'Create Account'}
+                {(formSubmitting || isSubmitting) ? (
+                  <>
+                    <svg
+                      className="animate-spin h-5 w-5 mr-2"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    <span>Authenticating...</span>
+                  </>
+                ) : (
+                  isLogin ? 'Sign In' : 'Create Account'
+                )}
               </button>
             </div>
             

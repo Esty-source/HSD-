@@ -1,133 +1,146 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabaseClient';
+import { toast } from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 
 export default function SupabaseCheck() {
   const [tables, setTables] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [connectionStatus, setConnectionStatus] = useState('checking');
 
+  // Initial connection check
   useEffect(() => {
-    async function checkTables() {
+    const checkConnection = async () => {
       try {
-        setLoading(true);
-        const results = {};
-
-        // Check profiles table
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('count')
-          .limit(1)
-          .single();
+        console.log('Checking Supabase connection...');
+        // Simple ping test to see if Supabase is reachable
+        const { data, error } = await supabase.from('profiles').select('count()', { count: 'exact', head: true });
         
-        results.profiles = {
-          exists: !profilesError,
-          error: profilesError?.message,
-          count: profilesData?.count || 0
-        };
-        
-        // Check doctors table
-        const { data: doctorsData, error: doctorsError } = await supabase
-          .from('doctors')
-          .select('count')
-          .limit(1)
-          .single();
-        
-        results.doctors = {
-          exists: !doctorsError,
-          error: doctorsError?.message,
-          count: doctorsData?.count || 0
-        };
-        
-        // Check patients table
-        const { data: patientsData, error: patientsError } = await supabase
-          .from('patients')
-          .select('count')
-          .limit(1)
-          .single();
-        
-        results.patients = {
-          exists: !patientsError,
-          error: patientsError?.message,
-          count: patientsData?.count || 0
-        };
-        
-        // Check appointments table
-        const { data: appointmentsData, error: appointmentsError } = await supabase
-          .from('appointments')
-          .select('count')
-          .limit(1)
-          .single();
-        
-        results.appointments = {
-          exists: !appointmentsError,
-          error: appointmentsError?.message,
-          count: appointmentsData?.count || 0
-        };
-        
-        // Check telemedicine table
-        const { data: telemedicineData, error: telemedicineError } = await supabase
-          .from('telemedicine')
-          .select('count')
-          .limit(1)
-          .single();
-        
-        results.telemedicine = {
-          exists: !telemedicineError,
-          error: telemedicineError?.message,
-          count: telemedicineData?.count || 0
-        };
-        
-        // Check resources table
-        const { data: resourcesData, error: resourcesError } = await supabase
-          .from('resources')
-          .select('count')
-          .limit(1)
-          .single();
-        
-        results.resources = {
-          exists: !resourcesError,
-          error: resourcesError?.message,
-          count: resourcesData?.count || 0
-        };
-        
-        // Check pharmacies table
-        const { data: pharmaciesData, error: pharmaciesError } = await supabase
-          .from('pharmacies')
-          .select('count')
-          .limit(1)
-          .single();
-        
-        results.pharmacies = {
-          exists: !pharmaciesError,
-          error: pharmaciesError?.message,
-          count: pharmaciesData?.count || 0
-        };
-
-        setTables(results);
+        if (error) {
+          console.error('Failed to connect to Supabase:', error);
+          setConnectionStatus('failed');
+          setError(`Connection error: ${error.message}`);
+          toast.error(`Supabase connection failed: ${error.message}`);
+        } else {
+          console.log('Successfully connected to Supabase');
+          setConnectionStatus('connected');
+          toast.success('Connected to Supabase!');
+          // Only try to check tables if we have a connection
+          checkTables();
+        }
       } catch (err) {
-        setError(err.message);
-      } finally {
+        console.error('Exception during connection check:', err);
+        setConnectionStatus('failed');
+        setError(`Connection error: ${err.message}`);
+        toast.error(`Supabase connection error: ${err.message}`);
         setLoading(false);
       }
-    }
-
-    checkTables();
+    };
+    
+    checkConnection();
   }, []);
+
+  const checkTables = async () => {
+    try {
+      console.log('Checking Supabase tables...');
+      const results = {};
+      const tableNames = ['profiles', 'doctors', 'patients', 'appointments', 'telemedicine', 'resources', 'pharmacies'];
+      
+      // Check each table with a simpler approach
+      for (const table of tableNames) {
+        try {
+          console.log(`Checking table: ${table}`);
+          // Just query a count with no data return
+          const { count, error } = await supabase
+            .from(table)
+            .select('*', { count: 'exact', head: true });
+          
+          results[table] = {
+            exists: !error,
+            error: error?.message,
+            count: count || 0
+          };
+          
+          console.log(`Table ${table} check result:`, results[table]);
+        } catch (tableError) {
+          console.error(`Error checking table ${table}:`, tableError);
+          results[table] = {
+            exists: false,
+            error: tableError.message,
+            count: 0
+          };
+        }
+      }
+      
+      setTables(results);
+    } catch (err) {
+      console.error('Exception during table checks:', err);
+      setError(`Error checking tables: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+        <p className="text-gray-700 text-center">
+          {connectionStatus === 'checking' ? 'Checking connection to Supabase...' : 'Checking database tables...'}
+        </p>
       </div>
     );
   }
 
-  if (error) {
+  if (connectionStatus === 'failed') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+          <h1 className="text-xl font-bold text-red-600 mb-4">Connection Failed</h1>
+          <p className="text-gray-700 mb-4">{error}</p>
+          <p className="text-gray-600 mb-6">
+            There might be an issue with your Supabase URL or API key, or the Supabase service might be unavailable.
+          </p>
+          <div className="flex flex-col space-y-3">
+            <Link 
+              to="/supabase-test" 
+              className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 text-center"
+            >
+              Try Detailed Debug Page
+            </Link>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300"
+            >
+              Retry Connection
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
           <h1 className="text-xl font-bold text-red-600 mb-4">Error Checking Supabase</h1>
-          <p className="text-gray-700">{error}</p>
+          <p className="text-gray-700 mb-4">{error}</p>
+          <div className="flex justify-between">
+            <Link 
+              to="/supabase-test" 
+              className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+            >
+              Try Detailed Debug Page
+            </Link>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -142,9 +155,21 @@ export default function SupabaseCheck() {
           </div>
           
           <div className="p-6">
-            <p className="text-gray-700 mb-4">
-              This page checks your Supabase database for existing tables and their status.
-            </p>
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-gray-700">
+                Connection status: 
+                <span className="ml-2 px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                  Connected
+                </span>
+              </p>
+              
+              <Link 
+                to="/supabase-test" 
+                className="bg-blue-600 text-white py-1 px-3 text-sm rounded hover:bg-blue-700"
+              >
+                Advanced Testing
+              </Link>
+            </div>
             
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -180,13 +205,20 @@ export default function SupabaseCheck() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {info.exists ? (
-                          `Table has ${info.count} rows`
+                          `Table exists`
                         ) : (
                           <span className="text-red-500">{info.error}</span>
                         )}
                       </td>
                     </tr>
                   ))}
+                  {Object.keys(tables).length === 0 && (
+                    <tr>
+                      <td colSpan="3" className="px-6 py-4 text-center text-sm text-gray-500">
+                        No table information available
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

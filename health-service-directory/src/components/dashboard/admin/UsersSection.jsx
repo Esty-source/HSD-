@@ -72,27 +72,45 @@ export default function UsersSection() {
   const handleAddUser = async (e) => {
     e.preventDefault();
     try {
-      // First, create a user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: newUser.email,
-        password: 'tempPassword123', // You'd want to generate this or have the user set it
-        email_confirm: true,
-        user_metadata: {
-          name: newUser.name,
-          role: newUser.role
-        }
+      // Call the backend to create the user
+      const response = await fetch('http://localhost:4000/admin/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: newUser.email,
+          password: 'tempPassword123', // Consider a more secure way to handle passwords
+          user_metadata: {
+            name: newUser.name,
+            role: newUser.role,
+            // email: newUser.email // email is top-level, not needed in user_metadata here
+          },
+        }),
       });
-      
-      if (authError) throw authError;
-      
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create user');
+      }
+
+      // The backend now handles Supabase Auth user creation.
+      // If your backend also handles creating the profile and role-specific entries,
+      // you might not need the following Supabase calls on the client-side.
+      // For now, let's assume the backend primarily handles the auth user.
+      // We'll keep the profile/role creation here but link it to the user ID from the backend response.
+
+      const authUserId = data.user.id; // Get user ID from backend response
+
       // Create a profile record
       const { error: profileError } = await supabase
         .from('profiles')
         .insert([{ 
-          id: authData.user.id,
+          id: authUserId, // Use ID from backend response
           name: newUser.name,
           role: newUser.role,
-          email: newUser.email
+          email: newUser.email 
         }]);
       
       if (profileError) throw profileError;
@@ -101,21 +119,18 @@ export default function UsersSection() {
       if (newUser.role === 'doctor') {
         const { error: doctorError } = await supabase
           .from('doctors')
-          .insert([{ id: authData.user.id }]);
+          .insert([{ id: authUserId }]); // Use ID from backend response
         
         if (doctorError) throw doctorError;
       } else if (newUser.role === 'patient') {
         const { error: patientError } = await supabase
           .from('patients')
-          .insert([{ id: authData.user.id }]);
+          .insert([{ id: authUserId }]); // Use ID from backend response
         
         if (patientError) throw patientError;
       }
       
-      // Refresh the users list
       fetchUsers();
-      
-      // Reset form and close modal
       setShowNewUserModal(false);
       setNewUser({
         name: '',

@@ -8,133 +8,149 @@ import { toast } from 'react-hot-toast';
 import { useViewport } from '../components/responsive/ViewportProvider';
 import MobileAuth from './MobileAuth';
 
-// Validation schemas
+// Form validation schemas
 const loginSchema = yup.object().shape({
-  email: yup.string().email('Invalid email').required('Email is required'),
-  password: yup.string().required('Password is required'),
+  email: yup
+    .string()
+    .email('Please enter a valid email address')
+    .required('Email is required'),
+  password: yup
+    .string()
+    .required('Password is required')
 });
 
 const registerSchema = yup.object().shape({
-  name: yup.string().required('Name is required'),
-  email: yup.string().email('Invalid email').required('Email is required'),
-  password: yup.string().required('Password is required').min(6, 'Password must be at least 6 characters'),
+  name: yup
+    .string()
+    .required('Full name is required')
+    .min(2, 'Name must be at least 2 characters'),
+  email: yup
+    .string()
+    .email('Please enter a valid email address')
+    .required('Email is required'),
+  password: yup
+    .string()
+    .required('Password is required')
+    .min(6, 'Password must be at least 6 characters'),
   confirmPassword: yup
     .string()
-    .oneOf([yup.ref('password'), null], 'Passwords must match')
-    .required('Confirm password is required'),
+    .required('Please confirm your password')
+    .oneOf([yup.ref('password')], 'Passwords must match'),
+  role: yup
+    .string()
+    .oneOf(['patient', 'doctor'], 'Please select your role')
+    .required('Please select whether you are a Patient or Doctor')
 });
 
 export default function Auth() {
-  // Use viewport hook to determine if we're on mobile
   const { isMobile } = useViewport();
-  
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login, signup, isAuthenticated, user } = useAuth();
+
   // If on mobile, render the mobile-optimized version
   if (isMobile) {
     return <MobileAuth />;
   }
-  
-  // Desktop version continues below
+
+  // State management
   const [isLogin, setIsLogin] = useState(true);
-  const [userType, setUserType] = useState('patient');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isAdminLogin, setIsAdminLogin] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { login, signup, isAuthenticated, user, loading } = useAuth();
-  
-  // Check if this is an admin login request based on URL parameters or route
-  useEffect(() => {
-    // Check for admin mode in URL parameters
-    const searchParams = new URLSearchParams(location.search);
-    const adminModeParam = searchParams.get('mode') === 'admin';
-    
-    // Check if we're on the admin-login route
-    const isAdminRoute = location.pathname === '/admin-login';
-    
-    if (adminModeParam || isAdminRoute) {
-      setIsAdminLogin(true);
-      setUserType('admin');
-      setIsLogin(true); // Force login mode for admin
-      console.log('Admin login mode activated');
-    }
-  }, [location]);
-  
-  // Redirect user if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      // Redirect based on user role
-      if (user.role === 'admin') {
-        navigate('/dashboard/admin');
-      } else if (user.role === 'doctor') {
-        navigate('/dashboard/doctor');
-      } else {
-        navigate('/dashboard/patient');
-      }
-    }
-  }, [isAuthenticated, user, navigate]);
+  const [error, setError] = useState(null);
 
+  // Form handling with react-hook-form
   const {
     register,
     handleSubmit,
-    formState: { errors },
-    reset,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting }
   } = useForm({
     resolver: yupResolver(isLogin ? loginSchema : registerSchema),
+    mode: 'onChange',
+    defaultValues: {
+      role: 'patient'
+    }
   });
 
+  // Watch form values
+  const role = watch('role');
+
+  // Check for admin login
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const isAdminRoute = location.pathname === '/admin-login';
+    const isAdminMode = searchParams.get('mode') === 'admin';
+
+    if (isAdminRoute || isAdminMode) {
+      setValue('role', 'admin');
+      setIsLogin(true);
+    }
+  }, [location, setValue]);
+
+  // Handle authenticated user redirects
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const dashboardPath = user.role === 'admin' 
+        ? '/dashboard/admin' 
+        : user.role === 'doctor' 
+          ? '/dashboard/doctor' 
+          : '/dashboard/patient';
+      navigate(dashboardPath);
+    }
+  }, [isAuthenticated, user, navigate]);
+
   const onSubmit = async (data) => {
+    if (isSubmitting) return;
+    
     try {
+      setError(null);
+      
       if (isLogin) {
-        console.log('Attempting login with:', { email: data.email, userType });
-        
-        // Use the login function from AuthContext
         const { success, error } = await login(data.email, data.password);
-        
-        if (!success) {
-          console.error('Login error:', error);
-          toast.error(error?.message || 'Invalid login credentials');
-          return;
+        if (!success || error) {
+          throw new Error(error?.message || 'Login failed. Please try again.');
         }
-        
-        console.log('Login successful');
         toast.success('Login successful!');
-        // Redirect will happen in the useEffect above
       } else {
-        // Registration
-        console.log('Attempting registration with:', { 
-          email: data.email, 
-          name: data.name, 
-          userType 
-        });
-        
-        // Use the signup function from AuthContext
-        const { success, error } = await signup(data.email, data.password, {
-          fullName: data.name,
-          role: userType
-        });
-        
-        if (!success) {
-          console.error('Registration error:', error);
-          toast.error(error?.message || 'Registration failed');
-          return;
+        if (!data.role) {
+          throw new Error('Please select whether you are a Patient or Doctor');
         }
-        
-        console.log('Registration successful');
-        toast.success('Account created successfully! You can now log in.');
-        
-        // Reset form and switch to login mode
+
+        const { success, error, requiresEmailConfirmation } = await signup(
+          data.email,
+          data.password,
+          {
+            fullName: data.name,
+            role: data.role
+          }
+        );
+
+        if (!success || error) {
+          throw new Error(error?.message || 'Registration failed. Please try again.');
+        }
+
+        toast.success(
+          requiresEmailConfirmation
+            ? 'Please check your email to confirm your account.'
+            : 'Registration successful!'
+        );
+
+        // Clear form after successful registration
         reset();
         setIsLogin(true);
       }
     } catch (error) {
-      console.error('Authentication error:', error);
-      toast.error('An unexpected error occurred');
+      console.error('Form submission error:', error);
+      setError(error.message);
+      toast.error(error.message);
     }
   };
 
   const toggleAuthMode = () => {
     setIsLogin(!isLogin);
+    setValue('role', 'patient');
     reset();
   };
 
@@ -164,48 +180,51 @@ export default function Auth() {
             {!isLogin && (
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">I am a:</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="flex justify-center space-x-4">
                   <button
                     type="button"
-                    className={`py-2 px-4 rounded-lg border ${
-                      userType === 'patient'
-                        ? 'bg-blue-50 border-blue-500 text-blue-700'
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    } transition-colors`}
-                    onClick={() => setUserType('patient')}
+                    onClick={() => setValue('role', 'patient')}
+                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${role === 'patient' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                    disabled={isSubmitting}
                   >
                     Patient
                   </button>
                   <button
                     type="button"
-                    className={`py-2 px-4 rounded-lg border ${
-                      userType === 'doctor'
-                        ? 'bg-blue-50 border-blue-500 text-blue-700'
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    } transition-colors`}
-                    onClick={() => setUserType('doctor')}
+                    onClick={() => setValue('role', 'doctor')}
+                    className={`flex-1 py-2 px-4 rounded-lg transition-colors ${role === 'doctor' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                    disabled={isSubmitting}
                   >
                     Doctor
                   </button>
                 </div>
+                {errors.role && (
+                  <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
+                )}
+              </div>
+            )}
+
+            {/* Add error display */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                <p className="text-sm">{error}</p>
               </div>
             )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Name field (only for registration) */}
               {!isLogin && (
-                <div>
+                <div className="mb-4">
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                     Full Name
                   </label>
                   <input
-                    id="name"
                     type="text"
-                    className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.name ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Enter your full name"
+                    id="name"
                     {...register('name')}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+                    placeholder="John Doe"
+                    disabled={isSubmitting}
                   />
                   {errors.name && (
                     <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
@@ -293,41 +312,56 @@ export default function Auth() {
                       {showConfirmPassword ? (
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                        </svg>
-                      ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                  {errors.confirmPassword && (
-                    <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
-                  )}
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    )}
+                  </button>
                 </div>
+                {errors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                )}
+              </div>
               )}
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                className="w-full py-3 px-4 border border-transparent rounded-lg shadow-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors text-base font-medium"
-                disabled={loading}
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Authenticating...
-                  </span>
-                ) : isLogin ? (
-                  'Sign In'
-                ) : (
-                  'Create Account'
-                )}
-              </button>
+              <div className="mt-4">
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <svg
+                        className="animate-spin h-5 w-5 mr-2"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      <span>Authenticating...</span>
+                    </>
+                  ) : (
+                    isLogin ? 'Sign In' : 'Create Account'
+                  )}
+                </button>
+              </div>
 
               {/* Toggle between login and register */}
               <div className="text-center mt-4">

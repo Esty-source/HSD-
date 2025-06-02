@@ -21,63 +21,63 @@ export default function MobileAppointments() {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [appointmentsState, setAppointmentsState] = useState({
     upcoming: [
-      {
-        id: 1,
-        doctorName: 'Dr. Ngono Marie',
-        specialty: 'General Medicine',
-        date: '2025-05-15',
-        time: '09:30 AM',
-        location: 'Yaoundé General Hospital',
-        type: 'in-person',
-        status: 'confirmed',
-        image: 'https://randomuser.me/api/portraits/women/76.jpg'
-      },
-      {
-        id: 2,
-        doctorName: 'Dr. Fon Peter',
-        specialty: 'Cardiology',
-        date: '2025-05-20',
-        time: '02:15 PM',
-        location: 'Laquintinie Hospital',
-        type: 'video',
-        status: 'pending',
-        image: 'https://randomuser.me/api/portraits/men/32.jpg'
-      }
+    {
+      id: 1,
+      doctorName: 'Dr. Ngono Marie',
+      specialty: 'General Medicine',
+      date: '2025-05-15',
+      time: '09:30 AM',
+      location: 'Yaoundé General Hospital',
+      type: 'in-person',
+      status: 'confirmed',
+      image: 'https://randomuser.me/api/portraits/women/76.jpg'
+    },
+    {
+      id: 2,
+      doctorName: 'Dr. Fon Peter',
+      specialty: 'Cardiology',
+      date: '2025-05-20',
+      time: '02:15 PM',
+      location: 'Laquintinie Hospital',
+      type: 'video',
+      status: 'pending',
+      image: 'https://randomuser.me/api/portraits/men/32.jpg'
+    }
     ],
     past: [
-      {
-        id: 3,
-        doctorName: 'Dr. Biya Rose',
-        specialty: 'Pediatrics',
-        date: '2025-04-28',
-        time: '11:00 AM',
-        location: 'Mother and Child Hospital',
-        type: 'in-person',
-        status: 'completed',
-        image: 'https://randomuser.me/api/portraits/women/45.jpg'
-      },
-      {
-        id: 4,
-        doctorName: 'Dr. Tchamba Paul',
-        specialty: 'Internal Medicine',
-        date: '2025-04-15',
-        time: '10:30 AM',
-        location: 'Regional Hospital Bamenda',
-        type: 'video',
-        status: 'cancelled',
-        image: 'https://randomuser.me/api/portraits/men/67.jpg'
-      },
-      {
-        id: 5,
-        doctorName: 'Dr. Eyenga Sarah',
-        specialty: 'Obstetrics & Gynecology',
-        date: '2025-04-05',
-        time: '09:45 AM',
-        location: 'Gyneco-Obstetric Hospital',
-        type: 'in-person',
-        status: 'completed',
-        image: 'https://randomuser.me/api/portraits/women/22.jpg'
-      }
+    {
+      id: 3,
+      doctorName: 'Dr. Biya Rose',
+      specialty: 'Pediatrics',
+      date: '2025-04-28',
+      time: '11:00 AM',
+      location: 'Mother and Child Hospital',
+      type: 'in-person',
+      status: 'completed',
+      image: 'https://randomuser.me/api/portraits/women/45.jpg'
+    },
+    {
+      id: 4,
+      doctorName: 'Dr. Tchamba Paul',
+      specialty: 'Internal Medicine',
+      date: '2025-04-15',
+      time: '10:30 AM',
+      location: 'Regional Hospital Bamenda',
+      type: 'video',
+      status: 'cancelled',
+      image: 'https://randomuser.me/api/portraits/men/67.jpg'
+    },
+    {
+      id: 5,
+      doctorName: 'Dr. Eyenga Sarah',
+      specialty: 'Obstetrics & Gynecology',
+      date: '2025-04-05',
+      time: '09:45 AM',
+      location: 'Gyneco-Obstetric Hospital',
+      type: 'in-person',
+      status: 'completed',
+      image: 'https://randomuser.me/api/portraits/women/22.jpg'
+    }
     ]
   });
   const [rescheduleForm, setRescheduleForm] = useState({ date: '', time: '' });

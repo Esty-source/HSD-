@@ -730,33 +730,33 @@ export default function Telemedicine() {
     }
   };
 
-  const toggleRecording = () => {
-    if (!isRecording) {
-      setIsRecording(true);
-      // Start recording logic here
-    } else {
-      setIsRecording(false);
-      // Stop recording logic here
-    }
-  };
+const toggleRecording = () => {
+  if (!isRecording) {
+    setIsRecording(true);
+    // Start recording logic here
+  } else {
+    setIsRecording(false);
+    // Stop recording logic here
+  }
+};
 
-  const sendQuickResponse = (response) => {
-    const newMessage = {
-      id: messages.length + 1,
-      sender: 'patient',
-      message: response,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    const updatedMessages = [...messages, newMessage];
-    setMessages(updatedMessages);
-    setShowQuickResponses(false);
-    if (appointment) {
-      localStorage.setItem(
-        `chat_${appointment.doctor.id}`,
-        JSON.stringify(updatedMessages)
-      );
-    }
+const sendQuickResponse = (response) => {
+  const newMessage = {
+    id: messages.length + 1,
+    sender: 'patient',
+    message: response,
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
   };
+  const updatedMessages = [...messages, newMessage];
+  setMessages(updatedMessages);
+  setShowQuickResponses(false);
+  if (appointment) {
+    localStorage.setItem(
+      `chat_${appointment.doctor.id}`,
+      JSON.stringify(updatedMessages)
+    );
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white w-full max-w-none">
@@ -1036,8 +1036,8 @@ export default function Telemedicine() {
                 <div className="flex flex-col items-center justify-center h-full text-gray-500">
                   <ChatBubbleLeftIcon className="h-12 w-12 mb-2" />
                   <p>Chat will be available when the call starts</p>
-                </div>
-              )}
+                  </div>
+                )}
             </div>
           </div>
         </div>

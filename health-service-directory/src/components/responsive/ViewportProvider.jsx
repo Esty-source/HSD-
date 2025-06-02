@@ -33,7 +33,7 @@ const deviceTypes = {
 };
 
 export const ViewportProvider = ({ children }) => {
-  console.log('ViewportProvider: Component initializing');
+  // console.log('ViewportProvider: Component initializing');
   
   // Initialize with safe default values
   const [viewport, setViewport] = useState({
@@ -109,7 +109,7 @@ export const ViewportProvider = ({ children }) => {
   const updateViewport = () => {
     try {
       if (typeof window === 'undefined') {
-        console.log('ViewportProvider: Window is undefined');
+        // console.log('ViewportProvider: Window is undefined');
         return;
       }
       
@@ -124,9 +124,9 @@ export const ViewportProvider = ({ children }) => {
       const isMobile = deviceType.includes('mobile');
       const isTablet = deviceType === deviceTypes.TABLET;
       const isDesktop = deviceType.includes('desktop');
-      
+
       // Debug information
-      console.log(`ViewportProvider: width=${width}, height=${height}, deviceType=${deviceType}, isMobile=${isMobile}, isTablet=${isTablet}, isDesktop=${isDesktop}, touchDevice=${touchDevice}, mobileUA=${mobileUA}, orientation=${orientation}`);
+      // console.log(`ViewportProvider: width=${width}, height=${height}, deviceType=${deviceType}, isMobile=${isMobile}, isTablet=${isTablet}, isDesktop=${isDesktop}, touchDevice=${touchDevice}, mobileUA=${mobileUA}, orientation=${orientation}`);
       
       setViewport({
         width,
@@ -139,18 +139,18 @@ export const ViewportProvider = ({ children }) => {
         orientation
       });
     } catch (error) {
-      console.error('ViewportProvider: Error updating viewport', error);
+      // console.error('ViewportProvider: Error updating viewport', error);
       // Keep using default values on error
     }
   };
 
   // Update viewport on mount and when window is resized
   useEffect(() => {
-    console.log('ViewportProvider: Setting up effect');
+    // console.log('ViewportProvider: Setting up effect');
     
     // Only run in browser environment
     if (typeof window === 'undefined') {
-      console.log('ViewportProvider: Window is undefined, skipping effect');
+      // console.log('ViewportProvider: Window is undefined, skipping effect');
       return;
     }
     
@@ -160,11 +160,11 @@ export const ViewportProvider = ({ children }) => {
       
       // Add event listener for resize
       window.addEventListener('resize', updateViewport);
-      console.log('ViewportProvider: Added resize listener');
+      // console.log('ViewportProvider: Added resize listener');
       
       // Add orientation change listener for mobile devices
       window.addEventListener('orientationchange', updateViewport);
-      console.log('ViewportProvider: Added orientation change listener');
+      // console.log('ViewportProvider: Added orientation change listener');
       
       // Cleanup event listeners on unmount
       return () => {
@@ -191,6 +191,6 @@ export const ViewportProvider = ({ children }) => {
 // Custom hook to use the viewport context
 export const useViewport = () => {
   const context = useContext(ViewportContext);
-  console.log('useViewport hook called, returning:', context);
+  // console.log('useViewport hook called, returning:', );
   return context;
 };
