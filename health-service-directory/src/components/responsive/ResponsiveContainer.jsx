@@ -15,7 +15,7 @@ export function ResponsiveContainer({
   
   // Determine padding based on screen size
   const getPadding = () => {
-    if (!padding) return '';
+    if (!padding) return 'px-0';
     switch (deviceType) {
       case 'mobile-small':
         return 'px-2';
@@ -32,7 +32,7 @@ export function ResponsiveContainer({
   
   // Determine max width based on maxWidth prop
   const getMaxWidth = () => {
-    if (fullWidth) return 'max-w-full';
+    if (fullWidth) return 'w-screen max-w-[100vw] overflow-x-hidden';
     switch (maxWidth) {
       case 'sm':
         return 'max-w-sm';
@@ -60,7 +60,7 @@ export function ResponsiveContainer({
   };
   
   return (
-    <div className={`w-full mx-auto ${getPadding()} ${getMaxWidth()} ${className}`}>
+    <div className={`w-full mx-0 ${getPadding()} ${getMaxWidth()} ${className}`}>
       {children}
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { XMarkIcon, HomeIcon, UserIcon, CalendarIcon, PhoneIcon, BuildingStorefrontIcon, DocumentTextIcon, BookOpenIcon, BellIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, HomeIcon, UserIcon, PhoneIcon, BuildingStorefrontIcon, BookOpenIcon, BellIcon } from '@heroicons/react/24/outline';
 import { useViewport } from './ViewportProvider';
 
 export default function MobileNavigation({ isAuthenticated = false }) {
@@ -14,13 +14,10 @@ export default function MobileNavigation({ isAuthenticated = false }) {
   // Base navigation items
   const baseNavItems = [
     { name: 'Home', to: '/', icon: HomeIcon },
-    { name: 'Find Doctors', to: '/doctors', icon: UserIcon },
-    { name: 'Appointments', to: '/appointments', icon: CalendarIcon },
+    { name: 'Find Doctors', to: '/find-doctors', icon: UserIcon },
     { name: 'Telemedicine', to: '/telemedicine', icon: PhoneIcon },
     { name: 'Pharmacies', to: '/pharmacies', icon: BuildingStorefrontIcon },
-    { name: 'Health Records', to: '/health-records', icon: DocumentTextIcon },
     { name: 'Resources', to: '/resources', icon: BookOpenIcon },
-    { name: 'Notifications', to: '/notifications', icon: BellIcon },
   ];
 
   // Auth navigation items
@@ -44,8 +41,8 @@ export default function MobileNavigation({ isAuthenticated = false }) {
   // Bottom tab bar navigation (always visible on mobile)
   const tabBarItems = [
     { name: 'Home', to: '/', icon: HomeIcon },
-    { name: 'Doctors', to: '/doctors', icon: UserIcon },
-    { name: 'Appointments', to: '/appointments', icon: CalendarIcon },
+    { name: 'Doctors', to: '/find-doctors', icon: UserIcon },
+    { name: 'Resources', to: '/resources', icon: BookOpenIcon },
     { name: 'Profile', to: isAuthenticated ? '/dashboard/patient' : '/auth', icon: UserIcon },
   ];
 

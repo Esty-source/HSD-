@@ -1,12 +1,94 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
 import toast from 'react-hot-toast';
 
 // IMPORTANT: For best performance, ensure the 'profiles' table has an index on the 'email' column.
 // Example (run in Supabase SQL editor):
 // CREATE INDEX IF NOT EXISTS profiles_email_idx ON profiles (email);
 
-const AuthContext = createContext({});
+const AuthContext = createContext(null);
+const API_URL = 'http://localhost:5001/api/auth';
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // This effect could be used to verify a token from localStorage
+    // For now, we'll just set loading to false
+    setLoading(false);
+  }, []);
+
+  const login = async (email, password) => {
+    try {
+      const response = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.message || 'Login failed');
+        return { success: false, error: data.message };
+      }
+
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+      toast.success('Logged in successfully!');
+      return { success: true };
+
+    } catch (error) {
+      toast.error('A network error occurred. Is the backend server running?');
+      return { success: false, error: error.message };
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      const response = await fetch(`${API_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.message || 'Registration failed');
+        return { success: false, error: data.message };
+      }
+
+      toast.success(data.message || 'Registration successful!');
+      return { success: true };
+
+    } catch (error) {
+      toast.error('A network error occurred. Is the backend server running?');
+      return { success: false, error: error.message };
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+    toast.success('Logged out successfully');
+  };
+
+  const value = {
+    user,
+    loading,
+    login,
+    register,
+    logout,
+    isAuthenticated: !!user,
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -15,365 +97,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [session, setSession] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [authError, setAuthError] = useState(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    let timeoutId;
-
-    const fetchSession = async () => {
-      try {
-        if (!isMounted) return;
-        setLoading(true);
-        setAuthError(null);
-        
-        console.log('AuthProvider: Fetching session from Supabase...');
-        const { data: { session }, error } = await supabase.auth.getSession();
-        console.log('AuthProvider: getSession result:', session, error);
-        
-        if (error) {
-          console.error('Session fetch error:', error);
-          if (isMounted) {
-            setAuthError(error.message);
-            setLoading(false);
-          }
-          return;
-        }
-        
-        if (session && isMounted) {
-          setSession(session);
-          setIsAuthenticated(true);
-          
-          try {
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-              
-            console.log('AuthProvider: profile fetch result:', profile, profileError);
-            
-            if (profileError && profileError.code !== 'PGRST116') {
-              console.error('Error fetching user profile:', profileError);
-              if (isMounted) {
-                setAuthError(profileError.message);
-              }
-            }
-            
-            if (isMounted) {
-              // Always ensure role is set and valid
-              let role = profile?.role;
-              if (!role || !['admin','doctor','patient'].includes(role)) {
-                role = 'patient'; // fallback
-                console.warn('User profile missing or invalid role, defaulting to patient');
-              }
-              const userData = {
-                ...session.user,
-                ...profile,
-                role
-              };
-              setUser(userData);
-            }
-          } catch (profileError) {
-            console.error('Profile fetch error:', profileError);
-            if (isMounted) {
-              setAuthError(profileError.message);
-            }
-          }
-        } else if (isMounted) {
-          setSession(null);
-          setUser(null);
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        console.error('Error in fetchSession:', error);
-        if (isMounted) {
-          setAuthError(error.message);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    // Add a small delay to allow Supabase to recover session from storage
-    timeoutId = setTimeout(fetchSession, 100);
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!isMounted) return;
-        
-        try {
-          setLoading(true);
-          setAuthError(null);
-          setSession(session);
-          setIsAuthenticated(!!session);
-          
-          console.log('AuthProvider: onAuthStateChange event:', event, session);
-          
-          if (session) {
-            try {
-              const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .single();
-              
-              console.log('AuthProvider: profile fetch result:', profile, profileError);
-              
-              if (profileError && profileError.code !== 'PGRST116') {
-                console.error('Error fetching user profile:', profileError);
-                if (isMounted) {
-                  setAuthError(profileError.message);
-                }
-              }
-              
-              if (isMounted) {
-                // Always ensure role is set and valid
-                let role = profile?.role;
-                if (!role || !['admin','doctor','patient'].includes(role)) {
-                  role = 'patient'; // fallback
-                  console.warn('User profile missing or invalid role, defaulting to patient');
-                }
-                const userData = {
-                  ...session.user,
-                  ...profile,
-                  role
-                };
-                setUser(userData);
-              }
-            } catch (profileError) {
-              console.error('Profile fetch error:', profileError);
-              if (isMounted) {
-                setAuthError(profileError.message);
-              }
-            }
-          } else if (isMounted) {
-            setUser(null);
-          }
-        } catch (error) {
-          console.error('Error in onAuthStateChange:', error);
-          if (isMounted) {
-            setAuthError(error.message);
-          }
-        } finally {
-          if (isMounted) {
-            setLoading(false);
-          }
-        }
-      }
-    );
-
-    return () => {
-      isMounted = false;
-      clearTimeout(timeoutId);
-      subscription?.unsubscribe();
-    };
-  }, []);
-
-  const login = async (email, password) => {
-    try {
-      setAuthError(null);
-      setLoading(true);
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password
-      });
-
-      if (error) {
-        let errorMessage = 'Invalid login credentials';
-        if (error.message.includes('Email not confirmed')) {
-          errorMessage = 'Please check your email and confirm your account before logging in';
-        }
-        throw new Error(errorMessage);
-      }
-
-      if (!data?.session) {
-        throw new Error('Login failed. Please try again.');
-      }
-
-      // After successful login, fetch the user's profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', data.session.user.id)
-        .single();
-
-      if (profileError) {
-        console.error('Error fetching profile:', profileError);
-        throw new Error('Error fetching user profile');
-      }
-
-      // Update context
-      setSession(data.session);
-      setUser({ ...data.session.user, ...profile });
-      setIsAuthenticated(true);
-      
-      toast.success('Logged in successfully!');
-      return { success: true, data };
-    } catch (error) {
-      console.error('Login error:', error);
-      setAuthError(error.message);
-      toast.error(error.message);
-      return { success: false, error };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signup = async (email, password, userData = {}) => {
-    try {
-      setAuthError(null);
-      setLoading(true);
-      
-      // 1. Validate inputs
-      if (!email || !password) {
-        throw new Error('Email and password are required');
-      }
-      
-      const role = userData.role;
-      if (!role || !['patient', 'doctor'].includes(role)) {
-        throw new Error('Please select whether you are a Patient or Doctor');
-      }
-      
-      // 2. Create auth user
-      const { data: signupData, error: signupError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          data: {
-            full_name: userData.fullName || '',
-            avatar_url: userData.avatarUrl || '',
-            role: role
-          }
-        }
-      });
-
-      if (signupError || !signupData?.user) {
-        throw new Error(signupError?.message || 'Registration failed');
-      }
-
-      // 3. Create profile
-      const { error: profileError } = await supabase.from('profiles').insert([
-        {
-          id: signupData.user.id,
-          email: email.trim(),
-          full_name: userData.fullName || '',
-          avatar_url: userData.avatarUrl || '',
-          role: role,
-          created_at: new Date().toISOString()
-        }
-      ]);
-
-      if (profileError) {
-        await supabase.auth.signOut();
-        throw new Error('Failed to create user profile');
-      }
-
-      // 4. Insert into role-specific table
-      const tableName = role === 'doctor' ? 'doctors' : 'patients';
-      const { error: roleError } = await supabase.from(tableName).insert([
-        { 
-          id: signupData.user.id,
-          created_at: new Date().toISOString()
-        }
-      ]);
-
-      if (roleError) {
-        await supabase.from('profiles').delete().eq('id', signupData.user.id);
-        await supabase.auth.signOut();
-        throw new Error('Failed to complete registration');
-      }
-
-      // 5. Return success
-      return {
-        success: true,
-        requiresEmailConfirmation: true,
-        data: signupData
-      };
-
-    } catch (error) {
-      console.error('Signup error:', error);
-      setAuthError(error.message);
-      return { success: false, error };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast.error(error.message);
-        throw error;
-      }
-      setSession(null);
-      setUser(null);
-      setIsAuthenticated(false);
-      toast.success('Logged out successfully');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateProfile = async (profileData) => {
-    try {
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-      
-      setLoading(true);
-      
-      // Update the profile in the database
-      const { error } = await supabase
-        .from('profiles')
-        .update(profileData)
-        .eq('id', user.id);
-      
-      if (error) {
-        toast.error(error.message);
-        throw error;
-      }
-      
-      // Update the local user state
-      setUser({ ...user, ...profileData });
-      
-      toast.success('Profile updated successfully');
-      return { success: true };
-    } catch (error) {
-      console.error('Profile update error:', error);
-      return { success: false, error };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <AuthContext.Provider value={{
-      user,
-      session,
-      isAuthenticated,
-      login,
-      signup,
-      logout,
-      updateProfile,
-      loading,
-      setLoading,
-      error: authError
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}

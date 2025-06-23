@@ -3,23 +3,19 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Bars3Icon,
   XMarkIcon,
-  BellIcon,
-  UserIcon,
-  UserCircleIcon
+  ArrowRightOnRectangleIcon,
+  UserPlusIcon
 } from '@heroicons/react/24/outline';
-import { useNotifications } from '../../context/NotificationsContext';
 import { createPortal } from 'react-dom';
 
 // Base navigation items that are always visible
 const baseNavigation = [
   { name: 'Home', to: '/' },
-  { name: 'Find Doctors', to: '/doctors' },
-  { name: 'Appointments', to: '/appointments' },
+  { name: 'Find Doctors', to: '/find-doctors' },
   { name: 'Telemedicine', to: '/telemedicine' },
   { name: 'Pharmacies', to: '/pharmacies' },
-  { name: 'Health Records', to: '/health-records' },
   { name: 'Resources', to: '/resources' },
-  { name: 'Notifications', to: '/notifications' },
+  { name: 'Contact', to: '/contact' },
 ];
 
 // Navigation items that require authentication
@@ -30,7 +26,6 @@ const authNavigation = [
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { unreadCount } = useNotifications();
   const isAuthenticated = false; // TODO: Replace with actual auth check
 
   // Combine navigation items based on authentication status
@@ -62,7 +57,7 @@ export default function Header() {
         <div className="flex lg:hidden">
           <button
             type="button"
-            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 transition-all duration-300 hover:bg-gray-100 hover:text-blue-600"
+            className="inline-flex items-center justify-center rounded-lg p-2.5 text-gray-700 bg-white shadow-sm hover:bg-gray-50 hover:text-blue-600 transition-all duration-300"
             onClick={() => setMobileMenuOpen(true)}
           >
             <span className="sr-only">Open main menu</span>
@@ -73,87 +68,55 @@ export default function Header() {
         {/* Desktop navigation */}
         <div className="hidden lg:flex lg:gap-x-8">
           {navigation.map((item) => (
-            item.name === 'Notifications' ? (
-              <Link
-                key={item.name}
-                to={item.to}
-                className={`group relative text-sm font-semibold leading-6 transition-all duration-300 ${
-                  isActive(item.to)
-                    ? 'text-blue-600'
-                    : 'text-gray-900 hover:text-blue-600'
+            <Link
+              key={item.name}
+              to={item.to}
+              className={`group relative text-sm font-semibold leading-6 transition-all duration-300 ${
+                isActive(item.to)
+                  ? 'text-blue-600'
+                  : 'text-gray-900 hover:text-blue-600'
+              }`}
+            >
+              {item.name}
+              <span 
+                className={`absolute -bottom-4 left-0 h-0.5 w-full transform bg-blue-600 transition-all duration-300 ${
+                  isActive(item.to) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                 }`}
-              >
-                <div className="relative">
-                  <BellIcon className="h-6 w-6 transition-colors duration-200" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                      {unreadCount}
-                    </span>
-                  )}
-                  <span className="invisible group-hover:visible absolute left-1/2 -translate-x-1/2 -bottom-8 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    Notifications
-                  </span>
-                </div>
-              </Link>
-            ) : (
-              <Link
-                key={item.name}
-                to={item.to}
-                className={`group relative text-sm font-semibold leading-6 transition-all duration-300 ${
-                  isActive(item.to)
-                    ? 'text-blue-600'
-                    : 'text-gray-900 hover:text-blue-600'
-                }`}
-              >
-                {item.name}
-                <span 
-                  className={`absolute -bottom-4 left-0 h-0.5 w-full transform bg-blue-600 transition-all duration-300 ${
-                    isActive(item.to) ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-                  }`}
-                />
-              </Link>
-            )
+              />
+            </Link>
           ))}
         </div>
 
         {/* Desktop right section */}
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-6">
-          {location.pathname.startsWith('/dashboard/patient') && (
-            <Link
-              to="/profile"
-              className="flex items-center gap-x-2 group"
-              title="Go to Profile"
-            >
-              <span className="flex items-center justify-center h-9 w-9 rounded-full bg-blue-100 text-blue-700 font-bold text-lg uppercase border-2 border-blue-300 shadow group-hover:bg-blue-200 transition-all">
-                p
-              </span>
-              <span className="ml-2 text-gray-800 font-semibold group-hover:text-blue-700 transition-all">patient</span>
-            </Link>
-          )}
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
           <Link
-            to="/admin-login"
-            className="text-indigo-600 font-semibold hover:underline px-3 py-2 rounded transition-colors duration-200"
-            title="Admin Login"
+            to="/login"
+            className="inline-flex items-center gap-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors duration-200"
           >
-            Admin Login
+            <ArrowRightOnRectangleIcon className="h-5 w-5" />
+            Sign In
           </Link>
-          <div className="hidden lg:flex lg:items-center">
-            <Link
-              to="/auth"
-              className="text-yellow-400 hover:text-yellow-300 transition duration-150 ease-in-out bg-yellow-500/20 p-1.5 rounded-full hover:bg-yellow-500/30"
-              title="Sign in"
-            >
-              <UserIcon className="h-5 w-5" />
-            </Link>
-          </div>
+          <Link
+            to="/register"
+            className="inline-flex items-center gap-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors duration-200"
+          >
+            <UserPlusIcon className="h-5 w-5" />
+            Sign Up
+          </Link>
         </div>
 
         {/* Mobile menu */}
         {mobileMenuOpen && createPortal(
           <div className="fixed inset-0 z-[9999] lg:hidden">
-            <div className="fixed inset-0 bg-gray-900/80" onClick={() => setMobileMenuOpen(false)} />
-            <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
-              <div className="flex items-center justify-between">
+            {/* Backdrop */}
+            <div 
+              className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" 
+              onClick={() => setMobileMenuOpen(false)} 
+            />
+            
+            {/* Menu panel */}
+            <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10 transform transition-all duration-300 ease-in-out">
+              <div className="flex items-center justify-between mb-8">
                 <Link to="/" className="-m-1.5 p-1.5">
                   <span className="sr-only">Health Service Directory</span>
                   <span className="text-xl font-bold">
@@ -163,13 +126,14 @@ export default function Header() {
                 </Link>
                 <button
                   type="button"
-                  className="-m-2.5 rounded-md p-2.5 text-gray-700"
+                  className="rounded-lg p-2.5 text-gray-700 bg-white shadow-sm hover:bg-gray-50 hover:text-blue-600 transition-all duration-300"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <span className="sr-only">Close menu</span>
                   <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                 </button>
               </div>
+              
               <div className="mt-6 flow-root">
                 <div className="-my-6 divide-y divide-gray-500/10">
                   <div className="space-y-2 py-6">
@@ -177,9 +141,9 @@ export default function Header() {
                       <Link
                         key={item.name}
                         to={item.to}
-                        className={`-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 ${
+                        className={`-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 ${
                           isActive(item.to)
-                            ? 'text-blue-600'
+                            ? 'text-blue-600 bg-blue-50'
                             : 'text-gray-900 hover:bg-gray-50'
                         }`}
                         onClick={() => setMobileMenuOpen(false)}
@@ -187,12 +151,23 @@ export default function Header() {
                         {item.name}
                       </Link>
                     ))}
+                  </div>
+                  <div className="py-6 space-y-4">
                     <Link
-                      to="/admin-login"
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-indigo-600 hover:bg-indigo-50"
+                      to="/login"
+                      className="-mx-3 flex items-center gap-x-2 rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Admin Login
+                      <ArrowRightOnRectangleIcon className="h-5 w-5" />
+                      Sign In
+                    </Link>
+                    <Link
+                      to="/register"
+                      className="-mx-3 flex items-center gap-x-2 rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-white bg-blue-600 hover:bg-blue-700"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <UserPlusIcon className="h-5 w-5" />
+                      Sign Up
                     </Link>
                   </div>
                 </div>

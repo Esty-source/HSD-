@@ -12,6 +12,11 @@ import {
   StarIcon,
   ChevronRightIcon,
   ArrowRightIcon,
+  BuildingStorefrontIcon,
+  BookOpenIcon,
+  ShieldCheckIcon,
+  MapPinIcon,
+  UserCircleIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import FloatingNotifications from '../components/home/FloatingNotifications';
@@ -31,32 +36,28 @@ export default function Home() {
   const features = [
     {
       name: 'Find Doctors',
-      description: 'Search and connect with qualified healthcare professionals.',
+      description: 'Connect with qualified healthcare providers in your area.',
       icon: UserGroupIcon,
-      to: '/doctors',
-      color: 'bg-blue-600',
-    },
-    {
-      name: 'Book Appointments',
-      description: 'Schedule visits with your preferred healthcare providers.',
-      icon: ClockIcon,
-      to: '/appointments',
-      color: 'bg-indigo-600',
+      link: '/find-doctors'
     },
     {
       name: 'Telemedicine',
-      description: 'Virtual consultations from the comfort of your home.',
-      icon: VideoCameraIcon,
-      to: '/telemedicine',
-      color: 'bg-purple-600',
+      description: 'Get medical consultations from the comfort of your home.',
+      icon: PhoneIcon,
+      link: '/telemedicine'
     },
     {
-      name: 'Health Records',
-      description: 'Access and manage your medical history securely.',
-      icon: DocumentTextIcon,
-      to: '/health-records',
-      color: 'bg-blue-600',
+      name: 'Pharmacies',
+      description: 'Locate nearby pharmacies and order medications online.',
+      icon: BuildingStorefrontIcon,
+      link: '/pharmacies'
     },
+    {
+      name: 'Health Resources',
+      description: 'Access reliable health information and wellness tips.',
+      icon: BookOpenIcon,
+      link: '/resources'
+    }
   ];
 
   const additionalServices = [
@@ -91,267 +92,187 @@ export default function Home() {
   ];
 
   return (
-    <div className="w-full max-w-none relative">
-      <FloatingNotifications />
+    <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-white to-indigo-100">
       {/* Hero Section */}
-      <div className="relative w-full min-h-[600px]">
-        {/* Background image */}
+      <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 mt-12" style={{ backgroundImage: "url('/images/doctors/portrait-happy-african-american-woman-surgeon-standing-operating-room-ready-work-patient-female-medical-worker-surgical-uniform-operation-theater.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
         <div className="absolute inset-0">
-          <img
-            className="h-full w-full object-cover"
-            src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80"
-            alt="Medical background"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-blue-800/75 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40 mix-blend-multiply" />
         </div>
-
-        {/* Content */}
-        <div className="relative w-full px-4 py-32 sm:px-6 sm:py-40 lg:px-8 flex flex-col items-center justify-center text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+        <div className="relative max-w-7xl mx-auto py-28 px-4 sm:py-36 sm:px-6 lg:px-8">
+          <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-6xl lg:text-7xl drop-shadow-lg">
             Your Health, Our Priority
           </h1>
-          <p className="mt-6 max-w-xl mx-auto text-xl text-gray-100">
-            Find and book appointments with qualified healthcare providers. Access emergency services
-            and locate nearby pharmacies all in one place.
+          <p className="mt-8 text-2xl text-blue-100 max-w-3xl drop-shadow">
+            Access quality healthcare services, connect with medical professionals, and manage your health journey all in one place.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-x-6">
+          <div className="mt-12 flex flex-col sm:flex-row gap-4">
             <Link
-              to="/doctors"
-              className="rounded-xl bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+              to="/find-doctors"
+              className="inline-flex items-center justify-center px-7 py-4 bg-white text-blue-700 font-bold text-lg rounded-2xl shadow-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
             >
               Find a Doctor
+              <ArrowRightIcon className="ml-2 h-6 w-6" />
             </Link>
             <Link
-              to="/appointments"
-              className="rounded-xl bg-white/10 px-6 py-3 text-base font-semibold text-white backdrop-blur-sm hover:bg-white/20"
+              to="/register"
+              className="inline-flex items-center justify-center px-7 py-4 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold text-lg rounded-2xl shadow-lg hover:from-blue-600 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
             >
-              Book Appointment
+              Get Started
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Main Features */}
-      <div className="w-screen max-w-[100vw] mx-0 px-0 py-16 bg-gradient-to-b from-white to-blue-50">
-        <div className="mb-16">
-          <h2 className="font-serif text-center text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-            Our Services
-          </h2>
-          <div className="mx-auto mt-4 h-1.5 w-32 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-          <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-relaxed text-gray-600">
-            Everything you need to manage your healthcare journey in one place.
-          </p>
-        </div>
-
-        <div className="mt-12 grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mx-0 px-0">
-          {features.map((feature) => (
-            <Link
-              key={feature.name}
-              to={feature.to}
-              className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-lg transition-all duration-300 hover:shadow-2xl hover:translate-y-[-5px]"
-            >
-              <div className="relative z-10">
-                <div
-                  className={`inline-flex rounded-xl ${feature.color} p-3 text-white shadow-lg`}
-                >
-                  <feature.icon className="h-7 w-7" />
-                </div>
-                <h3 className="mt-8 text-xl font-bold text-gray-900">{feature.name}</h3>
-                <p className="mt-3 text-gray-600">{feature.description}</p>
-                <div className="mt-6 flex items-center text-sm font-medium text-blue-600">
-                  <span>Learn more</span>
-                  <ChevronRightIcon className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </div>
-              </div>
-              <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-blue-50 transition-all duration-300 group-hover:scale-150"></div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Additional Services */}
-        <div className="my-20">
-          <h2 className="font-serif text-center text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-            Additional Services
-          </h2>
-          <div className="mx-auto mt-4 h-1.5 w-32 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600"></div>
-          <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-relaxed text-gray-600">
-            Comprehensive healthcare solutions to support your well-being.
-          </p>
-        </div>
-
-        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {additionalServices.map((service) => (
-            <Link
-              key={service.name}
-              to={service.to}
-              className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-lg transition-all duration-300 hover:shadow-2xl hover:translate-y-[-5px]"
-            >
-              <div className="relative z-10">
-                <div
-                  className={`inline-flex rounded-xl ${service.color} p-3 text-white shadow-lg`}
-                >
-                  <service.icon className="h-7 w-7" />
-                </div>
-                <h3 className="mt-8 text-xl font-bold text-gray-900">{service.name}</h3>
-                <p className="mt-3 text-gray-600">{service.description}</p>
-                <div className="mt-6 flex items-center text-sm font-medium text-blue-600">
-                  <span>Explore</span>
-                  <ChevronRightIcon className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </div>
-              </div>
-              <div className="absolute -right-4 -top-4 h-32 w-32 rounded-full bg-blue-50 transition-all duration-300 group-hover:scale-150"></div>
-            </Link>
-          ))}
-        </div>
-      </div>
-      
-      {/* Testimonials Section */}
-      <div className="w-full bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-              What Our Patients Say
-            </h2>
-            <div className="mx-auto mt-4 h-1.5 w-32 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-            <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-relaxed text-gray-600">
-              Hear from people who have experienced our healthcare services.
-            </p>
-          </div>
-          
-          <div className="grid gap-8 md:grid-cols-3">
-            {/* Testimonial 1 */}
-            <div className="bg-white p-8 rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl">
-              <div className="flex items-center mb-6">
-                <div className="flex -space-x-2">
-                  {[...Array(5)].map((_, i) => (
-                    <StarIconSolid key={i} className="h-5 w-5 text-yellow-400" />
-                  ))}
-                </div>
-                <span className="ml-2 text-sm font-medium text-gray-600">5.0</span>
-              </div>
-              <p className="text-gray-700 mb-6">
-                "Finding the right doctor has never been easier. The platform is intuitive and the booking process is seamless. I was able to schedule an appointment with a specialist within minutes."
-              </p>
-              <div className="flex items-center">
-                <img 
-                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=987&q=80" 
-                  alt="Patient" 
-                  className="h-12 w-12 rounded-full object-cover"
-                />
-                <div className="ml-4">
-                  <h4 className="font-semibold text-gray-900">Sarah Johnson</h4>
-                  <p className="text-sm text-gray-600">Patient since 2023</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Testimonial 2 */}
-            <div className="bg-white p-8 rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl">
-              <div className="flex items-center mb-6">
-                <div className="flex -space-x-2">
-                  {[...Array(5)].map((_, i) => (
-                    <StarIconSolid key={i} className="h-5 w-5 text-yellow-400" />
-                  ))}
-                </div>
-                <span className="ml-2 text-sm font-medium text-gray-600">5.0</span>
-              </div>
-              <p className="text-gray-700 mb-6">
-                "The telemedicine feature saved me so much time. I had a virtual consultation with a doctor who provided excellent care and advice. Highly recommend this service!"
-              </p>
-              <div className="flex items-center">
-                <img 
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=987&q=80" 
-                  alt="Patient" 
-                  className="h-12 w-12 rounded-full object-cover"
-                />
-                <div className="ml-4">
-                  <h4 className="font-semibold text-gray-900">Michael Thompson</h4>
-                  <p className="text-sm text-gray-600">Patient since 2022</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Testimonial 3 */}
-            <div className="bg-white p-8 rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl">
-              <div className="flex items-center mb-6">
-                <div className="flex -space-x-2">
-                  {[...Array(5)].map((_, i) => (
-                    <StarIconSolid key={i} className="h-5 w-5 text-yellow-400" />
-                  ))}
-                </div>
-                <span className="ml-2 text-sm font-medium text-gray-600">5.0</span>
-              </div>
-              <p className="text-gray-700 mb-6">
-                "Having all my health records in one place has been a game-changer. I can easily share my medical history with new doctors, making transitions between providers smooth and efficient."
-              </p>
-              <div className="flex items-center">
-                <img 
-                  src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=987&q=80" 
-                  alt="Patient" 
-                  className="h-12 w-12 rounded-full object-cover"
-                />
-                <div className="ml-4">
-                  <h4 className="font-semibold text-gray-900">Jennifer Williams</h4>
-                  <p className="text-sm text-gray-600">Patient since 2021</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Section */}
-      <div className="w-full bg-white py-20 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
-            <div className="text-center">
-              <div className="text-5xl font-bold text-blue-600">10k+</div>
-              <p className="mt-2 text-gray-600">Registered Patients</p>
-            </div>
-            <div className="text-center">
-              <div className="text-5xl font-bold text-indigo-600">500+</div>
-              <p className="mt-2 text-gray-600">Healthcare Providers</p>
-            </div>
-            <div className="text-center">
-              <div className="text-5xl font-bold text-purple-600">98%</div>
-              <p className="mt-2 text-gray-600">Patient Satisfaction</p>
-            </div>
-            <div className="text-center">
-              <div className="text-5xl font-bold text-blue-600">24/7</div>
-              <p className="mt-2 text-gray-600">Support Available</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* CTA Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 w-full overflow-hidden relative">
-        <div className="absolute inset-0 opacity-10">
-          <svg className="h-full w-full" viewBox="0 0 800 800">
-            <path d="M769 229L1037 260.9M927 880L731 737 520 660 309 538 40 599 295 764 126.5 879.5 40 599-197 493 102 382-31 229 126.5 79.5-69-63" stroke="#fff" strokeWidth="100" fill="none" />
-          </svg>
-        </div>
-        <div className="w-full px-4 py-24 sm:px-6 lg:px-8 relative z-10">
+      {/* Features Section */}
+      <div className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="font-serif text-4xl font-bold tracking-tight text-white sm:text-5xl">
-              Ready to take control of your health?
+            <h2 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
+              Comprehensive Healthcare Services
             </h2>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-blue-100">
-              Join thousands of satisfied patients who trust us with their healthcare needs.
+            <p className="mt-4 text-lg text-gray-500">
+              Everything you need for your health and wellness journey
             </p>
-            <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
+          </div>
+
+          <div className="mt-20">
+            <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+              {features.map((feature) => (
+                <Link
+                  key={feature.name}
+                  to={feature.link}
+                  className="relative group bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col items-center text-center"
+                >
+                  <div className="inline-flex items-center justify-center h-16 w-16 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white mb-6 shadow-md">
+                    <feature.icon className="h-8 w-8" aria-hidden="true" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600">
+                    {feature.name}
+                  </h3>
+                  <p className="mt-3 text-base text-gray-600">
+                    {feature.description}
+                  </p>
+                  <div className="mt-6">
+                    <span className="inline-flex items-center text-base font-medium text-blue-600 group-hover:text-blue-700">
+                      Learn more
+                      <ArrowRightIcon className="ml-1 h-5 w-5" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* How It Works Section */}
+      <div className="py-20 bg-gradient-to-r from-blue-50 to-blue-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">How It Works</h2>
+            <p className="mt-4 text-lg text-gray-600">Get started with HealthConnect in just a few steps</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <div className="flex flex-col items-center text-center bg-white rounded-2xl shadow-lg p-8">
+              <UserGroupIcon className="h-12 w-12 text-blue-500 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Create an Account</h3>
+              <p className="text-gray-600">Sign up for free and set up your profile in minutes.</p>
+            </div>
+            <div className="flex flex-col items-center text-center bg-white rounded-2xl shadow-lg p-8">
+              <VideoCameraIcon className="h-12 w-12 text-blue-500 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Book a Service</h3>
+              <p className="text-gray-600">Find doctors, book appointments, or start a telemedicine session.</p>
+            </div>
+            <div className="flex flex-col items-center text-center bg-white rounded-2xl shadow-lg p-8">
+              <HeartIcon className="h-12 w-12 text-blue-500 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Get Care</h3>
+              <p className="text-gray-600">Receive quality care and manage your health with ease.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Why Choose Us Section */}
+      <div className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">Why Choose HealthConnect?</h2>
+            <p className="mt-4 text-lg text-gray-600">We're committed to making healthcare accessible, reliable, and personal.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl shadow-lg p-8">
+              <ShieldCheckIcon className="h-12 w-12 text-blue-600 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Trusted Professionals</h3>
+              <p className="text-gray-600">All providers are verified and highly qualified.</p>
+            </div>
+            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl shadow-lg p-8">
+              <ClockIcon className="h-12 w-12 text-blue-600 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">24/7 Access</h3>
+              <p className="text-gray-600">Get care anytime, anywhere, even on weekends and holidays.</p>
+            </div>
+            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl shadow-lg p-8">
+              <MapPinIcon className="h-12 w-12 text-blue-600 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Nationwide Coverage</h3>
+              <p className="text-gray-600">Access healthcare services across Cameroon.</p>
+            </div>
+            <div className="flex flex-col items-center text-center bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl shadow-lg p-8">
+              <HeartIcon className="h-12 w-12 text-blue-600 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Personalized Care</h3>
+              <p className="text-gray-600">Your health journey is unique—so is our support.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Testimonials Section */}
+      <div className="py-20 bg-gradient-to-r from-blue-50 to-blue-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">What Our Users Say</h2>
+            <p className="mt-4 text-lg text-gray-600">Real stories from patients and providers</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center text-center">
+              <UserCircleIcon className="h-12 w-12 text-blue-400 mb-4" />
+              <p className="text-lg text-gray-700 mb-4">"HealthConnect made it so easy to find a doctor and book an appointment. The telemedicine feature is a lifesaver!"</p>
+              <span className="font-semibold text-blue-700">— Marie T., Douala</span>
+            </div>
+            <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center text-center">
+              <UserCircleIcon className="h-12 w-12 text-blue-400 mb-4" />
+              <p className="text-lg text-gray-700 mb-4">"I love the convenience and the quality of care. The platform is user-friendly and reliable."</p>
+              <span className="font-semibold text-blue-700">— Dr. Jean K., Yaoundé</span>
+            </div>
+            <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center text-center">
+              <UserCircleIcon className="h-12 w-12 text-blue-400 mb-4" />
+              <p className="text-lg text-gray-700 mb-4">"The resources and support are top-notch. I feel empowered to manage my health."</p>
+              <span className="font-semibold text-blue-700">— Samuel N., Bamenda</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700">
+        <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:py-24 lg:px-8 lg:flex lg:items-center lg:justify-between">
+          <h2 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl drop-shadow-lg">
+            <span className="block">Ready to get started?</span>
+            <span className="block text-blue-200">Join our healthcare community today.</span>
+          </h2>
+          <div className="mt-10 flex lg:mt-0 lg:flex-shrink-0">
+            <div className="inline-flex rounded-2xl shadow-lg">
               <Link
-                to="/doctors"
-                className="rounded-xl bg-white px-8 py-4 text-base font-semibold text-blue-600 shadow-lg transition-all duration-300 hover:bg-blue-50 hover:shadow-xl hover:translate-y-[-2px] flex items-center justify-center"
+                to="/register"
+                className="inline-flex items-center justify-center px-7 py-4 bg-white text-blue-700 font-bold text-lg rounded-2xl hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
               >
-                Get Started
-                <ArrowRightIcon className="ml-2 h-5 w-5" />
+                Get started
               </Link>
+            </div>
+            <div className="ml-4 inline-flex rounded-2xl shadow-lg">
               <Link
-                to="/resources"
-                className="rounded-xl border-2 border-white bg-transparent px-8 py-4 text-base font-semibold text-white transition-all duration-300 hover:bg-white hover:text-blue-600 hover:shadow-xl hover:translate-y-[-2px] flex items-center justify-center"
+                to="/login"
+                className="inline-flex items-center justify-center px-7 py-4 bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold text-lg rounded-2xl hover:from-blue-600 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
               >
-                Learn More
+                Sign in
               </Link>
             </div>
           </div>

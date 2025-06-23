@@ -1,134 +1,81 @@
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import Layout from './components/layout/Layout';
-import { ViewportProvider } from './components/responsive/ViewportProvider';
 import { AuthProvider } from './context/AuthContext';
-import { NotificationsProvider } from './context/NotificationsContext';
-import ProtectedRoute from './components/auth/ProtectedRoute';
+import Layout from './components/layout/Layout';
 import MobileNavigation from './components/responsive/MobileNavigation';
 import QRCodeAccess from './components/responsive/QRCodeAccess';
 import AdminLogin from './pages/AdminLogin';
 import MobileProfile from './pages/MobileProfile';
+import LoadingSpinner from './components/common/LoadingSpinner';
 
-// Loading spinner component
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-  </div>
-);
-
-// Lazy load key components
+// Lazy load components
 const Home = lazy(() => import('./pages/Home'));
-const About = lazy(() => import('./pages/About'));
-const Contact = lazy(() => import('./pages/Contact'));
-const NotFound = lazy(() => import('./pages/NotFound'));
-const Auth = lazy(() => import('./pages/Auth'));
-const DoctorSearch = lazy(() => import('./pages/DoctorSearch'));
-const Pharmacies = lazy(() => import('./pages/Pharmacies'));
-const Telemedicine = lazy(() => import('./pages/Telemedicine'));
-const HealthRecords = lazy(() => import('./pages/HealthRecords'));
-const Notifications = lazy(() => import('./pages/Notifications'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Doctors = lazy(() => import('./pages/Doctors'));
 const Appointments = lazy(() => import('./pages/Appointments'));
+const Profile = lazy(() => import('./pages/Profile'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const Telemedicine = lazy(() => import('./pages/Telemedicine'));
+const Pharmacies = lazy(() => import('./pages/Pharmacies'));
 const Resources = lazy(() => import('./pages/Resources'));
-const ResourceDetail = lazy(() => import('./pages/ResourceDetail'));
-
-// Simple test pages
+const FindDoctors = lazy(() => import('./pages/FindDoctors'));
+const Contact = lazy(() => import('./pages/Contact'));
 const SimpleTest = lazy(() => import('./pages/SimpleTest'));
-const SimpleResources = lazy(() => import('./pages/SimpleResources'));
-const SimpleAppointments = lazy(() => import('./pages/SimpleAppointments'));
-const SupabaseCheck = lazy(() => import('./pages/SupabaseCheck'));
-const SupabaseTest = lazy(() => import('./pages/SupabaseTest'));
-const DirectTest = lazy(() => import('./pages/DirectTest'));
-const RunMigration = lazy(() => import('./utils/runMigration'));
 
-// Dashboard pages
-const PatientDashboard = lazy(() => import('./pages/PatientDashboard'));
-const DoctorDashboard = lazy(() => import('./pages/DoctorDashboard'));
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-
-// New pages
-const Emergency = lazy(() => import('./pages/Emergency'));
-const Support = lazy(() => import('./pages/Support'));
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/doctors" element={<Doctors />} />
+        <Route path="/appointments" element={<Appointments />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/telemedicine" element={<Telemedicine />} />
+        <Route path="/pharmacies" element={<Pharmacies />} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/find-doctors" element={<FindDoctors />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/simple-test" element={<SimpleTest />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
+  );
+}
 
 function App() {
   return (
-    <ViewportProvider>
+    <BrowserRouter>
       <AuthProvider>
-        <NotificationsProvider>
-          <BrowserRouter>
-            <Suspense fallback={<LoadingSpinner />}>
-              <Routes>
-                <Route element={<Layout />}>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/doctors" element={<DoctorSearch />} />
-                  <Route path="/pharmacies" element={<Pharmacies />} />
-                  <Route path="/telemedicine" element={<Telemedicine />} />
-                  <Route path="/health-records" element={<HealthRecords />} />
-                  <Route path="/notifications" element={<Notifications />} />
-                  <Route path="/appointments" element={<Appointments />} />
-                  <Route path="/resources" element={<Resources />} />
-                  <Route path="/resources/:resourceId" element={<ResourceDetail />} />
-                  <Route path="/mobile-profile" element={<MobileProfile />} />
-                  <Route path="/emergency" element={<Emergency />} />
-                  <Route path="/support" element={<Support />} />
-                  
-                  {/* Simple mobile-optimized pages */}
-                  <Route path="/simple" element={<SimpleTest />} />
-                  <Route path="/simple-resources" element={<SimpleResources />} />
-                  <Route path="/simple-appointments" element={<SimpleAppointments />} />
-                  
-                  {/* Database check page */}
-                  <Route path="/supabase-check" element={<SupabaseCheck />} />
-                  <Route path="/supabase-test" element={<SupabaseTest />} />
-                  <Route path="/direct-test" element={<DirectTest />} />
-                  <Route path="/run-migration" element={<RunMigration />} />
-                  
-                  {/* Dashboard routes */}
-                  <Route path="/dashboard/patient" element={
-                    <ProtectedRoute allowedRoles={['patient']}>
-                      <PatientDashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/dashboard/doctor" element={
-                    <ProtectedRoute allowedRoles={['doctor']}>
-                      <DoctorDashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/dashboard/admin" element={<AdminDashboard />} />
-                  
-                  {/* Catch-all route */}
-                  <Route path="*" element={<NotFound />} />
-                </Route>
-                <Route path="/admin-login" element={<AdminLogin />} />
-              </Routes>
-              
-              {/* Mobile components */}
-              <MobileNavigation />
-              <QRCodeAccess />
-              
-              {/* Toast notifications */}
-              <Toaster 
-                position="top-center" 
-                toastOptions={{
-                  style: {
-                    background: '#363636',
-                    color: '#fff',
-                    maxWidth: '90vw',
-                    width: 'auto',
-                    padding: '12px 16px',
-                    borderRadius: '8px',
-                  }
-                }}
-              />
-            </Suspense>
-          </BrowserRouter>
-        </NotificationsProvider>
+        <Suspense fallback={<LoadingSpinner />}>
+          <AppRoutes />
+        </Suspense>
+        
+        {/* Mobile components */}
+        <MobileNavigation />
+        <QRCodeAccess />
+        
+        {/* Toast notifications */}
+        <Toaster 
+          position="top-center" 
+          toastOptions={{
+            style: {
+              background: '#363636',
+              color: '#fff',
+              maxWidth: '90vw',
+              width: 'auto',
+              padding: '12px 16px',
+              borderRadius: '8px',
+            }
+          }}
+        />
       </AuthProvider>
-    </ViewportProvider>
+    </BrowserRouter>
   );
 }
 

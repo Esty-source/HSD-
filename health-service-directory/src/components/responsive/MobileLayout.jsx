@@ -92,11 +92,11 @@ export default function MobileLayout({
     : 'bg-white shadow-sm';
   
   return (
-    <div className={`flex flex-col h-screen bg-gray-50 max-w-[100vw] overflow-x-hidden ${className}`} style={{background: '#f8fafc'}}>
+    <div className="flex flex-col h-screen w-screen max-w-[100vw] overflow-x-hidden bg-gray-50" style={{background: '#f8fafc'}}>
       {/* Mobile Header */}
       <header 
         ref={headerRef}
-        className={`sticky top-0 z-20 ${headerBackground} transition-all duration-200`}
+        className={`sticky top-0 z-20 ${headerBackground} transition-all duration-200 w-full`}
       >
         <div className="flex items-center justify-between px-4 py-3">
           {showBackButton ? (
@@ -160,7 +160,7 @@ export default function MobileLayout({
       </main>
       
       {/* Footer for all mobile pages */}
-      <div style={{margin: 0, padding: 0}}>
+      <div className="w-full m-0 p-0">
         <MobileFooter />
       </div>
       

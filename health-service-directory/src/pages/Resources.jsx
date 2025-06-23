@@ -10,7 +10,9 @@ import {
   MagnifyingGlassIcon,
   ChevronRightIcon,
   ArrowDownTrayIcon,
-  XMarkIcon
+  XMarkIcon,
+  ShieldCheckIcon,
+  UserGroupIcon
 } from '@heroicons/react/24/outline';
 import { useViewport } from '../components/responsive/ViewportProvider';
 import MobileResources from './MobileResources';
@@ -125,7 +127,7 @@ const mockResources = [
     description: 'Academic research on how climate change is affecting public health outcomes in Cameroon.',
     date: '2024-03-10',
     author: 'Prof. Nkengasong John',
-    imageUrl: 'https://images.unsplash.com/photo-1581093458791-9d15482aae65?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+    imageUrl: '/images/doctors/group-african-doctors-students-near-medical-university-outdoor.jpg',
     featured: false,
   },
   {
@@ -140,7 +142,7 @@ const mockResources = [
   },
 ];
 
-export default function Resources() {
+const Resources = () => {
   const { isMobile } = useViewport();
   
   if (isMobile) {
@@ -293,13 +295,13 @@ For more information, please visit our Health Service Directory.
       <div key={resource.id} className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col">
         <div className="h-48 relative bg-gray-100">
           <img
-            src={resource.imageUrl || 'https://via.placeholder.com/300x200?text=Health+Resource'}
+            src={resource.imageUrl || '/images/resource-placeholder.png'}
             alt={resource.title}
             className="w-full h-full object-cover"
             loading="lazy"
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src = 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(resource.title);
+              e.target.src = '/images/resource-placeholder.png';
             }}
           />
           {resource.category === 'educational-videos' && (
@@ -349,121 +351,225 @@ For more information, please visit our Health Service Directory.
     );
   };
   
+  const categories = [
+    {
+      title: 'Health Articles',
+      description: 'Expert-written articles on various health topics',
+      icon: BookOpenIcon,
+      articles: [
+        {
+          title: 'Understanding Your Health Insurance',
+          excerpt: 'A comprehensive guide to navigating your health insurance coverage.',
+          readTime: '5 min read'
+        },
+        {
+          title: 'Preventive Care Tips',
+          excerpt: 'Learn about important preventive measures for maintaining good health.',
+          readTime: '4 min read'
+        },
+        {
+          title: 'Managing Chronic Conditions',
+          excerpt: 'Expert advice on living well with chronic health conditions.',
+          readTime: '6 min read'
+        }
+      ]
+    },
+    {
+      title: 'Wellness Tips',
+      description: 'Daily tips for maintaining a healthy lifestyle',
+      icon: HeartIcon,
+      articles: [
+        {
+          title: 'Healthy Eating Habits',
+          excerpt: 'Simple changes to improve your diet and overall health.',
+          readTime: '3 min read'
+        },
+        {
+          title: 'Exercise Routines',
+          excerpt: 'Effective workout routines for different fitness levels.',
+          readTime: '4 min read'
+        },
+        {
+          title: 'Stress Management',
+          excerpt: 'Techniques for managing stress in your daily life.',
+          readTime: '5 min read'
+        }
+      ]
+    },
+    {
+      title: 'Safety Guidelines',
+      description: 'Important health and safety information',
+      icon: ShieldCheckIcon,
+      articles: [
+        {
+          title: 'Emergency Preparedness',
+          excerpt: 'How to prepare for medical emergencies.',
+          readTime: '5 min read'
+        },
+        {
+          title: 'Medication Safety',
+          excerpt: 'Best practices for medication management.',
+          readTime: '4 min read'
+        },
+        {
+          title: 'Home Safety Tips',
+          excerpt: 'Creating a safe environment for your family.',
+          readTime: '3 min read'
+        }
+      ]
+    },
+    {
+      title: 'Community Support',
+      description: 'Resources for community health and support',
+      icon: UserGroupIcon,
+      articles: [
+        {
+          title: 'Support Groups',
+          excerpt: 'Find local support groups for various health conditions.',
+          readTime: '4 min read'
+        },
+        {
+          title: 'Community Programs',
+          excerpt: 'Health and wellness programs in your community.',
+          readTime: '3 min read'
+        },
+        {
+          title: 'Volunteer Opportunities',
+          excerpt: 'Ways to get involved in community health initiatives.',
+          readTime: '5 min read'
+        }
+      ]
+    }
+  ];
+
   return (
-    <div className="bg-white py-8 w-full">
-      <div className="w-full px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8 bg-gradient-to-r from-blue-700 to-blue-500 rounded-2xl shadow-xl p-6 text-white">
-          <div className="sm:flex sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Health Resources</h1>
-              <p className="mt-2 text-blue-100">Access health information, guides, and educational materials</p>
-            </div>
-            <div className="mt-4 sm:mt-0">
-              <p className="text-sm text-blue-100">Last updated: May 9, 2025</p>
-            </div>
+    <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-white to-indigo-100">
+      {/* Hero Section */}
+      <div className="bg-white">
+        <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
+              Health Resources
+            </h1>
+            <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-500">
+              Access reliable health information, wellness tips, and community resources to support your health journey.
+            </p>
           </div>
-        </div>
-        
-        {/* Featured Resources */}
-        <div className="mt-8 mb-12 w-full">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Featured Resources</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-            {featuredResources.map(resource => renderResourceCard(resource))}
-          </div>
-        </div>
-        
-        {/* Search and Filter Section */}
-        <div className="mt-12 w-full">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0 w-full">
-            <h2 className="text-2xl font-bold text-gray-900">All Resources</h2>
-            
-            {/* Search Bar */}
-            <div className="relative w-full md:w-64 lg:w-96">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search resources..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-              </div>
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  <span className="text-gray-400 hover:text-gray-500">&times;</span>
-                </button>
-              )}
-            </div>
-          </div>
-          
-          {/* Category Filters */}
-          <div className="mb-8 overflow-x-auto w-full">
-            <div className="flex space-x-2 pb-2">
-              <button
-                onClick={() => setSelectedCategory('all')}
-                className={`px-4 py-2 rounded-full text-sm font-medium ${selectedCategory === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'} transition-colors whitespace-nowrap`}
-              >
-                All Categories
-              </button>
-              
-              {resourceCategories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center px-4 py-2 rounded-full text-sm font-medium ${selectedCategory === category.id ? `${category.color.replace('bg-', 'bg-').replace('text-', 'text-white')}` : 'bg-gray-100 text-gray-800 hover:bg-gray-200'} transition-colors whitespace-nowrap`}
-                >
-                  {React.createElement(category.icon, { className: "h-4 w-4 mr-2" })}
-                  {category.name}
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          {/* Resource Cards */}
-          {filteredResources.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-              {filteredResources.map(resource => renderResourceCard(resource))}
-            </div>
-          ) : (
-            <div className="text-center py-12 bg-gray-50 rounded-xl">
-              <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-gray-100">
-                <BookOpenIcon className="h-8 w-8 text-gray-400" />
-              </div>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">No resources found</h3>
-              <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto">
-                {searchTerm
-                  ? `No resources match your search for "${searchTerm}". Try different keywords or clear your search.`
-                  : `No resources found in the selected category. Try selecting a different category.`}
-              </p>
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedCategory('all');
-                }}
-                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-              >
-                Clear filters
-              </button>
-            </div>
-          )}
         </div>
       </div>
-      
+
+      {/* Search and Filter Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+        <div className="bg-white/50 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search resources by title or description"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-white/70 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-400"
+              />
+            </div>
+            <select
+              className="w-full md:w-64 px-4 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-700"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <option value="all">All Categories</option>
+              {resourceCategories.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Featured Resources Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Featured Resources</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {featuredResources.map(resource => (
+            <div key={resource.id} className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+              <img src={resource.imageUrl} alt={resource.title} className="w-full h-48 object-cover rounded-t-xl" onError={e => { e.target.onerror = null; e.target.src = '/images/resource-placeholder.png'; }} />
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-medium bg-gradient-to-r from-blue-200 to-blue-300 text-blue-800 border border-blue-200 shadow-sm`}>
+                    {resourceCategories.find(cat => cat.id === resource.category)?.name || resource.category}
+                  </span>
+                  <span className="text-xs text-gray-400">{resource.date}</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{resource.title}</h3>
+                <p className="text-sm text-gray-600 mb-4">{resource.description}</p>
+                <button
+                  onClick={() => openResourceModal(resource)}
+                  className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                >
+                  Read More
+                  <ChevronRightIcon className="h-5 w-5 ml-2" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* All Resources Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">All Resources</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredResources.map(resource => (
+            <div key={resource.id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-100">
+              <img src={resource.imageUrl} alt={resource.title} className="w-full h-40 object-cover rounded-t-xl" onError={e => { e.target.onerror = null; e.target.src = '/images/resource-placeholder.png'; }} />
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-medium bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border border-blue-200 shadow-sm`}>
+                    {resourceCategories.find(cat => cat.id === resource.category)?.name || resource.category}
+                  </span>
+                  <span className="text-xs text-gray-400">{resource.date}</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{resource.title}</h3>
+                <p className="text-sm text-gray-600 mb-4">{resource.description}</p>
+                <button
+                  onClick={() => openResourceModal(resource)}
+                  className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                >
+                  Read More
+                  <ChevronRightIcon className="h-5 w-5 ml-2" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="bg-blue-600">
+        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
+          <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+            <span className="block">Stay informed about your health</span>
+            <span className="block text-blue-200">Subscribe to our newsletter for the latest health tips and updates.</span>
+          </h2>
+          <div className="mt-8 flex lg:mt-0 lg:flex-shrink-0">
+            <div className="inline-flex rounded-md shadow">
+              <button className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50">
+                Subscribe Now
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Resource Modal */}
-      {selectedResource && (
-        <ResourceModal 
-          resource={selectedResource}
-          isOpen={isModalOpen}
-          onClose={closeResourceModal}
-          resourceCategories={resourceCategories}
-        />
-      )}
+      <ResourceModal
+        isOpen={isModalOpen}
+        onClose={closeResourceModal}
+        resource={selectedResource}
+      />
     </div>
   );
-}
+};
+
+export default Resources;
 
