@@ -5,7 +5,6 @@ import {
   ChatBubbleLeftRightIcon, 
   QuestionMarkCircleIcon 
 } from '@heroicons/react/24/outline';
-import MobileLayout from '../components/responsive/MobileLayout';
 
 export default function Support() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -317,11 +316,5 @@ export default function Support() {
     </div>
   );
 
-  // Return the content wrapped in MobileLayout if on mobile
-  if (isMobile) {
-    return <MobileLayout title="Support">{content}</MobileLayout>;
-  }
-
-  // Return the content directly if on desktop
   return content;
 }

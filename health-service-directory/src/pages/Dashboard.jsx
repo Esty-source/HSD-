@@ -132,7 +132,7 @@ const Dashboard = () => {
 
           {/* Example Health Tip Section (Cameroonian context) */}
           <div className="mt-12 p-6 rounded-2xl bg-gradient-to-br from-green-50 to-blue-50 shadow-inner flex flex-col md:flex-row items-center gap-6">
-            <img src="/images/doctors/doctor-cameroon-1.jpg" alt="Cameroonian Doctor" className="h-20 w-20 rounded-full object-cover border-4 border-white shadow-md" />
+            <img src="/images/doctors/african-american-black-doctor-man-with-stethoscope-isolated-white-background.jpg" alt="Cameroonian Doctor" className="h-20 w-20 rounded-full object-cover border-4 border-white shadow-md" />
             <div>
               <h3 className="text-lg font-bold text-green-800 mb-1">Health Tip of the Day</h3>
               <p className="text-gray-700">Drink plenty of water and eat local fruits like papaya and mango for a healthy immune system. 🇨🇲</p>
