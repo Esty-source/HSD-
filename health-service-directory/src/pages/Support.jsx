@@ -5,11 +5,9 @@ import {
   ChatBubbleLeftRightIcon, 
   QuestionMarkCircleIcon 
 } from '@heroicons/react/24/outline';
-import { useViewport } from '../components/responsive/ViewportProvider';
 import MobileLayout from '../components/responsive/MobileLayout';
 
 export default function Support() {
-  const { isMobile } = useViewport();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',

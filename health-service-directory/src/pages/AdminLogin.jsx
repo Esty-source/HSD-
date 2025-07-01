@@ -24,32 +24,20 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      // First try to login with the auth context
-      const { success, error: loginError } = await login(email, password);
+      // Try to login with the auth context
+      const { success, user, error: loginError } = await login(email, password);
       
-      if (success) {
-        // Get the user data
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        
+      if (success && user) {
         // Check if user is an admin
         if (user.role === 'admin') {
           navigate('/dashboard/admin');
           return;
+        } else {
+          setError('Access denied. Admin privileges required.');
         }
-      }
-      
-      // If auth context login fails or user is not admin, try hardcoded admin credentials
-      if (email === 'admin@healthdirectory.com' && password === 'AdminAccess2025!') {
-        localStorage.setItem('user', JSON.stringify({ 
-          name: 'System Administrator', 
-          role: 'admin', 
-          email,
-          id: 'admin-1'
-        }));
-        localStorage.setItem('token', 'admin-demo-token');
-        navigate('/dashboard/admin');
       } else {
-        setError(loginError?.message || 'Invalid admin credentials.');
+        // If login failed, show the error
+        setError(loginError || 'Invalid admin credentials. Please check your email and password.');
       }
     } catch (err) {
       console.error('Login error:', err);
@@ -65,6 +53,11 @@ export default function AdminLogin() {
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-indigo-700">Admin Login</h2>
           <p className="text-gray-600 mt-2">Access the admin dashboard</p>
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+            <p><strong>Demo Credentials:</strong></p>
+            <p>Email: admin@example.com</p>
+            <p>Password: admin123</p>
+          </div>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -75,7 +68,7 @@ export default function AdminLogin() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-colors"
-              placeholder="admin@healthdirectory.com"
+              placeholder="admin@example.com"
               required
             />
           </div>

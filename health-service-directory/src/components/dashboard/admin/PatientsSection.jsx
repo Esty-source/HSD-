@@ -6,7 +6,7 @@ import {
   TrashIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
-import { supabase } from '../../../lib/supabase';
+// import { supabase } from '../../../lib/supabase';
 
 // Helper function to calculate age from date of birth
 function calculateAge(dateOfBirth) {
@@ -29,200 +29,15 @@ export default function PatientsSection() {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    fetchPatients();
+    // TODO: Replace with mock data or new backend logic
+    setPatients([]);
+    setLoading(false);
+    // fetchPatients();
   }, []);
   
-  async function fetchPatients() {
-    try {
-      setLoading(true);
-      console.log('Fetching patients data...');
-      
-      // First approach: Try to get patients from the patients table with joined profiles
-      let { data, error } = await supabase
-        .from('patients')
-        .select(`
-          id,
-          profiles (id, name, email, phone, address, date_of_birth, gender),
-          medical_history,
-          allergies,
-          blood_type,
-          date_of_birth,
-          gender,
-          created_at,
-          updated_at
-        `);
-      
-      // If the patients table doesn't exist or there's an error, fall back to profiles
-      if (error) {
-        console.log('Patients table error:', error.message);
-        console.log('Falling back to profiles table for patients');
-        
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('role', 'patient');
-          
-        if (profilesError) {
-          console.error('Error fetching from profiles table:', profilesError.message);
-          throw profilesError;
-        }
-        
-        console.log(`Found ${profilesData?.length || 0} patients in profiles table`);
-        
-        // Transform profiles data to match expected format, safely handling missing fields
-        data = profilesData?.map(profile => ({
-          id: profile.id,
-          profiles: {
-            id: profile.id,
-            name: profile.name || 'Unknown',
-            email: profile.email || '', // Handle missing email field
-            phone: profile.phone || '',
-            address: profile.address || '',
-            date_of_birth: profile.date_of_birth || null,
-            gender: profile.gender || '',
-            created_at: profile.created_at || new Date().toISOString(),
-            updated_at: profile.updated_at || new Date().toISOString()
-          },
-          medical_history: '',
-          allergies: '',
-          blood_type: '',
-          date_of_birth: profile.date_of_birth || null,
-          gender: profile.gender || 'Unknown',
-          created_at: profile.created_at || new Date().toISOString(),
-          updated_at: profile.updated_at || new Date().toISOString()
-        })) || [];
-      } else {
-        console.log(`Found ${data?.length || 0} patients in patients table`);
-      }
-      
-      if (!data || data.length === 0) {
-        console.log('No patients found in database');
-        setPatients([]);
-        setLoading(false);
-        return;
-      }
-      
-      // Get appointment data for each patient
-      console.log('Fetching appointment data for patients...');
-      const patientsWithAppointments = await Promise.all(data.map(async (patient) => {
-        try {
-          // Get the most recent appointment
-          const { data: recentAppointment, error: recentAppointmentError } = await supabase
-            .from('appointments')
-            .select('id, created_at, status, doctor_id, appointment_date, reason, notes')
-            .eq('patient_id', patient.id)
-            .order('appointment_date', { ascending: false })
-            .limit(1);
-            
-          if (recentAppointmentError) {
-            console.warn(`Error fetching recent appointment for patient ${patient.id}:`, recentAppointmentError.message);
-          }
-          
-          // Get the total number of appointments
-          const { count: appointmentCount, error: countError } = await supabase
-            .from('appointments')
-            .select('id', { count: 'exact', head: true })
-            .eq('patient_id', patient.id);
-            
-          if (countError) {
-            console.warn(`Error counting appointments for patient ${patient.id}:`, countError.message);
-          }
-          
-          // Get doctor information if we have a recent appointment with doctor_id
-          let doctorInfo = null;
-          if (recentAppointment?.[0]?.doctor_id) {
-            const { data: doctorData, error: doctorError } = await supabase
-              .from('profiles')
-              .select('name')
-              .eq('id', recentAppointment[0].doctor_id)
-              .single();
-              
-            if (doctorError) {
-              console.warn(`Error fetching doctor info for appointment:`, doctorError.message);
-            } else {
-              doctorInfo = doctorData;
-            }
-          }
-            
-          const lastVisit = recentAppointment?.[0]?.appointment_date || null;
-          const lastVisitFormatted = lastVisit ? new Date(lastVisit).toISOString().split('T')[0] : 'No visits';
-          
-          // Use the appointment status if available, otherwise default to 'active'
-          const status = recentAppointment?.[0]?.status || 'active';
-          
-          const lastAppointmentDetails = recentAppointment?.[0] ? {
-            id: recentAppointment[0].id,
-            date: recentAppointment[0].appointment_date,
-            reason: recentAppointment[0].reason || '',
-            notes: recentAppointment[0].notes || '',
-            doctor: doctorInfo?.name || 'Unknown Doctor'
-          } : null;
-            
-          return {
-            ...patient,
-            lastVisit: lastVisitFormatted,
-            lastVisitDate: lastVisit,
-            lastAppointment: lastAppointmentDetails,
-            appointmentCount: appointmentCount || 0,
-            status
-          };
-        } catch (err) {
-          console.error(`Error processing appointments for patient ${patient.id}:`, err);
-          return {
-            ...patient,
-            lastVisit: 'No visits',
-            appointmentCount: 0,
-            status: 'active'
-          };
-        }
-      }));
-      
-      console.log('Transforming patient data for display...');
-      // Transform the data to match our component's expected format
-      const formattedPatients = patientsWithAppointments.map(patient => {
-        // Calculate age if date_of_birth exists
-        const age = patient.date_of_birth ? calculateAge(patient.date_of_birth) : 0;
-        
-        // Format dates for display
-        const createdAt = patient.created_at ? new Date(patient.created_at).toLocaleDateString() : 'Unknown';
-        const updatedAt = patient.updated_at ? new Date(patient.updated_at).toLocaleDateString() : 'Unknown';
-        
-        return {
-          id: patient.id,
-          name: patient.profiles?.name || 'Unknown',
-          email: patient.profiles?.email || '',
-          phone: patient.profiles?.phone || '',
-          address: patient.profiles?.address || '',
-          age: age,
-          gender: patient.gender || patient.profiles?.gender || 'Unknown',
-          lastVisit: patient.lastVisit || 'No visits',
-          lastVisitDate: patient.lastVisitDate || null,
-          lastAppointment: patient.lastAppointment || null,
-          appointmentCount: patient.appointmentCount || 0,
-          status: patient.status || 'active',
-          medical_history: patient.medical_history || '',
-          allergies: patient.allergies || '',
-          blood_type: patient.blood_type || 'Unknown',
-          date_of_birth: patient.date_of_birth || patient.profiles?.date_of_birth || null,
-          createdAt: createdAt,
-          updatedAt: updatedAt
-        };
-      });
-      
-      // Sort patients by name for better usability
-      formattedPatients.sort((a, b) => a.name.localeCompare(b.name));
-      
-      console.log(`Successfully processed ${formattedPatients.length} patients`);
-      setPatients(formattedPatients);
-    } catch (error) {
-      console.error('Error fetching patients:', error);
-      alert(`Error loading patients: ${error.message || 'Unknown error'}`);
-      // Set an empty array to avoid undefined errors in the UI
-      setPatients([]);
-  } finally {
-      setLoading(false);
-    }
-  }
+  // async function fetchPatients() {
+  //   ... (all supabase code commented out)
+  // }
 
   const [showNewPatientModal, setShowNewPatientModal] = useState(false);
   const [showEditPatientModal, setShowEditPatientModal] = useState(false);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../../../lib/supabase';
+// import { supabase } from '../../../lib/supabase';
 import { 
   ClipboardDocumentListIcon, 
   PlusIcon, 
@@ -15,156 +15,21 @@ export default function MedicalRecordsSection() {
   const [doctors, setDoctors] = useState([]);
   
   useEffect(() => {
-    fetchRecords();
-    fetchPatientsAndDoctors();
+    // TODO: Replace with mock data or new backend logic
+    setRecords([]);
+    setPatients([]);
+    setDoctors([]);
+    setLoading(false);
+    // fetchRecords();
+    // fetchPatientsAndDoctors();
   }, []);
   
-  async function fetchRecords() {
-    try {
-      setLoading(true);
-      
-      // Try to fetch all medical records from Supabase
-      try {
-        const { data, error } = await supabase
-          .from('medical_records')
-          .select(`
-            id,
-            patient_id,
-            doctor_id,
-            date,
-            type,
-            status,
-            diagnosis,
-            treatment,
-            notes,
-            patients:patient_id(id, name),
-            doctors:doctor_id(id, name)
-          `);
-        
-        if (error) {
-          console.warn('Error fetching medical records:', error);
-          throw error;
-        }
-        
-        // Transform the data to match our component's expected format
-        const formattedRecords = data.map(record => ({
-          id: record.id,
-          patientId: record.patient_id,
-          doctorId: record.doctor_id,
-          patientName: record.patients?.name || 'Unknown Patient',
-          doctorName: record.doctors?.name || 'Unknown Doctor',
-          date: record.date || new Date().toISOString().split('T')[0],
-          type: record.type || 'Consultation',
-          status: record.status || 'pending',
-          diagnosis: record.diagnosis || '',
-          treatment: record.treatment || '',
-          notes: record.notes || ''
-        }));
-        
-        setRecords(formattedRecords);
-      } catch (recordsError) {
-        console.warn('Medical records table may not exist or has an error:', recordsError);
-        // If there's an error, set empty records
-        setRecords([]);
-      }
-    } catch (error) {
-      console.error('Error fetching medical records:', error.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-  
-  async function fetchPatientsAndDoctors() {
-    // Fetch patients
-    try {
-      // First try to get patients from the patients table with joined profiles
-      try {
-        const { data: patientsData, error: patientsError } = await supabase
-          .from('patients')
-          .select(`
-            id,
-            profiles(id, name)
-          `);
-        
-        if (patientsError) throw patientsError;
-        
-        const formattedPatients = patientsData.map(patient => ({
-          id: patient.id,
-          name: patient.profiles?.name || 'Unknown Patient'
-        }));
-        
-        setPatients(formattedPatients);
-      } catch (patientsTableError) {
-        console.warn('Patients table may not exist, falling back to profiles:', patientsTableError);
-        
-        // Fall back to profiles table for patients
-        try {
-          const { data: profilesData, error: profilesError } = await supabase
-            .from('profiles')
-            .select('id, name, role')
-            .eq('role', 'patient');
-            
-          if (profilesError) throw profilesError;
-          
-          const formattedPatients = profilesData.map(profile => ({
-            id: profile.id,
-            name: profile.name || 'Unknown Patient'
-          }));
-          
-          setPatients(formattedPatients);
-        } catch (profilesError) {
-          console.error('Error fetching patient profiles:', profilesError);
-          setPatients([]);
-        }
-      }
-      
-      // Fetch doctors
-      try {
-        // First try to get doctors from the doctors table with joined profiles
-        const { data: doctorsData, error: doctorsError } = await supabase
-          .from('doctors')
-          .select(`
-            id,
-            profiles(id, name)
-          `);
-        
-        if (doctorsError) throw doctorsError;
-        
-        const formattedDoctors = doctorsData.map(doctor => ({
-          id: doctor.id,
-          name: doctor.profiles?.name || 'Unknown Doctor'
-        }));
-        
-        setDoctors(formattedDoctors);
-      } catch (doctorsTableError) {
-        console.warn('Doctors table may not exist, falling back to profiles:', doctorsTableError);
-        
-        // Fall back to profiles table for doctors
-        try {
-          const { data: profilesData, error: profilesError } = await supabase
-            .from('profiles')
-            .select('id, name, role')
-            .eq('role', 'doctor');
-            
-          if (profilesError) throw profilesError;
-          
-          const formattedDoctors = profilesData.map(profile => ({
-            id: profile.id,
-            name: profile.name || 'Unknown Doctor'
-          }));
-          
-          setDoctors(formattedDoctors);
-        } catch (profilesError) {
-          console.error('Error fetching doctor profiles:', profilesError);
-          setDoctors([]);
-        }
-      }
-    } catch (error) {
-      console.error('Error in fetchPatientsAndDoctors:', error.message);
-      setPatients([]);
-      setDoctors([]);
-    }
-  }
+  // async function fetchRecords() {
+  //   ... (all supabase code commented out)
+  // }
+  // async function fetchPatientsAndDoctors() {
+  //   ... (all supabase code commented out)
+  // }
 
   const [showNewRecordModal, setShowNewRecordModal] = useState(false);
   const [showEditRecordModal, setShowEditRecordModal] = useState(false);
@@ -205,44 +70,44 @@ export default function MedicalRecordsSection() {
       try {
         // First, try to create the medical_records table if it doesn't exist
         // This is a simplified approach - in a production app, you'd use migrations
-        const { error: createTableError } = await supabase.rpc('create_medical_records_if_not_exists');
+        // const { error: createTableError } = await supabase.rpc('create_medical_records_if_not_exists');
         
-        if (createTableError) {
-          console.warn('Error creating medical_records table:', createTableError);
-          // Continue anyway and try to insert
-        }
+        // if (createTableError) {
+        //   console.warn('Error creating medical_records table:', createTableError);
+        //   // Continue anyway and try to insert
+        // }
       } catch (tableCheckError) {
         console.warn('Error checking/creating medical_records table:', tableCheckError);
         // Continue anyway and try to insert
       }
       
       // Insert the new record into Supabase
-      const { data, error } = await supabase
-        .from('medical_records')
-        .insert([
-          {
-            patient_id: newRecord.patientId,
-            doctor_id: newRecord.doctorId,
-            date: newRecord.date,
-            type: newRecord.type,
-            status: newRecord.status,
-            diagnosis: newRecord.diagnosis || '',
-            treatment: newRecord.treatment || '',
-            notes: newRecord.notes || ''
-          }
-        ])
-        .select();
+      // const { data, error } = await supabase
+      //   .from('medical_records')
+      //   .insert([
+      //     {
+      //       patient_id: newRecord.patientId,
+      //       doctor_id: newRecord.doctorId,
+      //       date: newRecord.date,
+      //       type: newRecord.type,
+      //       status: newRecord.status,
+      //       diagnosis: newRecord.diagnosis || '',
+      //       treatment: newRecord.treatment || '',
+      //       notes: newRecord.notes || ''
+      //     }
+      //   ])
+      //   .select();
       
-      if (error) {
-        console.error('Error adding medical record:', error);
-        throw error;
-      }
+      // if (error) {
+      //   console.error('Error adding medical record:', error);
+      //   throw error;
+      // }
       
       // Show success message
       alert('Medical record has been successfully added.');
       
       // Refresh the records list
-      fetchRecords();
+      // fetchRecords();
       
       // Reset form and close modal
       setShowNewRecordModal(false);
@@ -266,21 +131,21 @@ export default function MedicalRecordsSection() {
     
     try {
       // Delete the record from Supabase
-      const { error } = await supabase
-        .from('medical_records')
-        .delete()
-        .eq('id', recordId);
+      // const { error } = await supabase
+      //   .from('medical_records')
+      //   .delete()
+      //   .eq('id', recordId);
       
-      if (error) {
-        console.error('Error deleting medical record:', error);
-        throw error;
-      }
+      // if (error) {
+      //   console.error('Error deleting medical record:', error);
+      //   throw error;
+      // }
       
       // Show success message
       alert('Medical record has been successfully deleted.');
       
       // Refresh the records list
-      fetchRecords();
+      // fetchRecords();
     } catch (error) {
       console.error('Error deleting medical record:', error.message);
       alert('Failed to delete medical record: ' + error.message);
@@ -317,30 +182,30 @@ export default function MedicalRecordsSection() {
       }
       
       // Update the record in Supabase
-      const { error } = await supabase
-        .from('medical_records')
-        .update({
-          patient_id: editRecord.patientId,
-          doctor_id: editRecord.doctorId,
-          date: editRecord.date,
-          type: editRecord.type,
-          status: editRecord.status,
-          diagnosis: editRecord.diagnosis || '',
-          treatment: editRecord.treatment || '',
-          notes: editRecord.notes || ''
-        })
-        .eq('id', editRecord.id);
+      // const { error } = await supabase
+      //   .from('medical_records')
+      //   .update({
+      //     patient_id: editRecord.patientId,
+      //     doctor_id: editRecord.doctorId,
+      //     date: editRecord.date,
+      //     type: editRecord.type,
+      //     status: editRecord.status,
+      //     diagnosis: editRecord.diagnosis || '',
+      //     treatment: editRecord.treatment || '',
+      //     notes: editRecord.notes || ''
+      //   })
+      //   .eq('id', editRecord.id);
       
-      if (error) {
-        console.error('Error updating medical record:', error);
-        throw error;
-      }
+      // if (error) {
+      //   console.error('Error updating medical record:', error);
+      //   throw error;
+      // }
       
       // Show success message
       alert('Medical record has been successfully updated.');
       
       // Refresh the records list
-      fetchRecords();
+      // fetchRecords();
       
       // Close modal
       setShowEditRecordModal(false);

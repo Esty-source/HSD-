@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { toast } from 'react-hot-toast';
-import { useViewport } from '../components/responsive/ViewportProvider';
 import MobileAuth from './MobileAuth';
 
 // Form validation schemas
@@ -43,7 +42,6 @@ const registerSchema = yup.object().shape({
 });
 
 export default function Auth() {
-  const { isMobile } = useViewport();
   const navigate = useNavigate();
   const location = useLocation();
   const { login, signup, isAuthenticated, user } = useAuth();

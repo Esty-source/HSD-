@@ -13,7 +13,6 @@ import {
   NewspaperIcon,
   AcademicCapIcon,
 } from '@heroicons/react/24/outline';
-import { useViewport } from '../components/responsive/ViewportProvider';
 import toast from 'react-hot-toast';
 import { mockResources, resourceCategories } from '../lib/mockData';
 
@@ -28,7 +27,6 @@ const iconMap = {
 
 export default function ResourceDetail() {
   const { resourceId } = useParams();
-  const { isMobile } = useViewport();
   const [resource, setResource] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

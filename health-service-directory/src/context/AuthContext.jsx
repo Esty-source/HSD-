@@ -1,75 +1,128 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
-// IMPORTANT: For best performance, ensure the 'profiles' table has an index on the 'email' column.
-// Example (run in Supabase SQL editor):
-// CREATE INDEX IF NOT EXISTS profiles_email_idx ON profiles (email);
-
 const AuthContext = createContext(null);
-const API_URL = 'http://localhost:5001/api/auth';
+
+// Mock Users Data
+const MOCK_USERS = [
+  {
+    id: 1,
+    email: 'admin@example.com',
+    password: 'admin123',
+    name: 'Admin User',
+    role: 'admin',
+    phone: '+1234567890'
+  },
+  {
+    id: 2,
+    email: 'doctor@example.com',
+    password: 'doctor123',
+    name: 'Dr. John Smith',
+    role: 'doctor',
+    phone: '+1234567891',
+    specialty: 'Cardiology'
+  },
+  {
+    id: 3,
+    email: 'patient@example.com',
+    password: 'patient123',
+    name: 'Jane Doe',
+    role: 'patient',
+    phone: '+1234567892'
+  }
+];
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // This effect could be used to verify a token from localStorage
-    // For now, we'll just set loading to false
+    // Check for existing token and user data on app load
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+    
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     try {
-      const response = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        toast.error(data.message || 'Login failed');
-        return { success: false, error: data.message };
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Find user by email and password
+      const foundUser = MOCK_USERS.find(u => 
+        u.email === email && u.password === password
+      );
+      
+      if (foundUser) {
+        // Remove password from user object
+        const { password, ...userWithoutPassword } = foundUser;
+        
+        // Create mock token
+        const mockToken = `mock-token-${Date.now()}`;
+        
+        localStorage.setItem('token', mockToken);
+        localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+        setUser(userWithoutPassword);
+        toast.success('Logged in successfully!');
+        return { success: true, user: userWithoutPassword };
       }
-
-      localStorage.setItem('token', data.token);
-      setUser(data.user);
-      toast.success('Logged in successfully!');
-      return { success: true };
+      
+      toast.error('Invalid credentials');
+      return { success: false, error: 'Invalid credentials' };
 
     } catch (error) {
-      toast.error('A network error occurred. Is the backend server running?');
+      toast.error('An error occurred during login');
       return { success: false, error: error.message };
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await fetch(`${API_URL}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        toast.error(data.message || 'Registration failed');
-        return { success: false, error: data.message };
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Check if email already exists
+      if (MOCK_USERS.some(u => u.email === userData.email)) {
+        toast.error('User already exists');
+        return { 
+          success: false, 
+          error: 'User already exists'
+        };
       }
-
-      toast.success(data.message || 'Registration successful!');
+      
+      // Create new user with mock ID
+      const newUser = {
+        id: Math.floor(Math.random() * 1000) + 10,
+        ...userData
+      };
+      
+      // Just log the registration - in a real app we would add to database
+      console.log('Registered new user:', newUser);
+      
+      toast.success('Registration successful!');
       return { success: true };
 
     } catch (error) {
-      toast.error('A network error occurred. Is the backend server running?');
+      toast.error('An error occurred during registration');
       return { success: false, error: error.message };
     }
   };
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
     toast.success('Logged out successfully');
   };

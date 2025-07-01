@@ -17,8 +17,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import Emergency from './Emergency';
-import { useViewport } from '../components/responsive/ViewportProvider';
-import MobilePharmacies from './MobilePharmacies';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
 
 const mockPharmacies = [
@@ -128,16 +126,11 @@ const serviceIcons = {
 };
 
 const Pharmacies = () => {
-  const { isMobile } = useViewport();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [pharmacies, setPharmacies] = useState(mockPharmacies);
-
-  if (isMobile) {
-    return <MobilePharmacies />;
-  }
 
   const handleFilterToggle = (filter) => {
     setSelectedFilters(prev => 

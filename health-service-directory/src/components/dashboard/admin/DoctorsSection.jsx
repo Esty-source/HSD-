@@ -6,51 +6,22 @@ import {
   TrashIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
-import { supabase } from '../../../lib/supabase';
+// import { supabase } from '../../../lib/supabase';
 
 export default function DoctorsSection() {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    fetchDoctors();
+    // TODO: Replace with mock data or new backend logic
+    setDoctors([]);
+    setLoading(false);
+    // fetchDoctors();
   }, []);
   
-  async function fetchDoctors() {
-    try {
-      setLoading(true);
-      console.log('Fetching doctors data...');
-      
-      // Fetch doctors from Supabase
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, name, role')
-        .eq('role', 'doctor');
-        
-      if (error) {
-        console.error('Error fetching doctors:', error);
-        throw error;
-      }
-      
-      // Transform the data
-      const formattedDoctors = data?.map(doctor => ({
-        id: doctor.id,
-        name: doctor.name || 'Unknown Doctor',
-        specialty: 'General',
-        hospital: 'Unknown',
-        status: 'active',
-        patients: 0
-      })) || [];
-      
-      setDoctors(formattedDoctors);
-    } catch (error) {
-      console.error('Error fetching doctors:', error);
-      alert(`Error loading doctors: ${error.message || 'Unknown error'}`);
-      setDoctors([]);
-    } finally {
-      setLoading(false);
-    }
-  }
+  // async function fetchDoctors() {
+  //   ... (all supabase code commented out)
+  // }
 
   const [showNewDoctorModal, setShowNewDoctorModal] = useState(false);
   const [showEditDoctorModal, setShowEditDoctorModal] = useState(false);

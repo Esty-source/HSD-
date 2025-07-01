@@ -7,7 +7,6 @@ import {
   ArrowUpTrayIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { useViewport } from '../components/responsive/ViewportProvider';
 import MobileHealthRecords from './MobileHealthRecords';
 import jsPDF from 'jspdf';
 
@@ -87,9 +86,6 @@ const tabs = [
 ];
 
 export default function HealthRecords() {
-  // Use viewport hook to determine if we're on mobile
-  const { isMobile } = useViewport();
-  
   // If on mobile, render the mobile-optimized version
   if (isMobile) {
     return <MobileHealthRecords />;

@@ -11,7 +11,6 @@ import {
   CogIcon,
   HeartIcon,
 } from '@heroicons/react/24/outline';
-import { useViewport } from '../components/responsive/ViewportProvider';
 import MobileNotifications from './MobileNotifications';
 
 const timeAgo = (date) => {
@@ -87,9 +86,6 @@ const NotificationItem = ({ notification, onMarkAsRead }) => {
 };
 
 export default function Notifications() {
-  // Use viewport hook to determine if we're on mobile
-  const { isMobile } = useViewport();
-  
   // If on mobile, render the mobile-optimized version
   if (isMobile) {
     return <MobileNotifications />;

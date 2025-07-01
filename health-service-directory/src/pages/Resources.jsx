@@ -14,7 +14,6 @@ import {
   ShieldCheckIcon,
   UserGroupIcon
 } from '@heroicons/react/24/outline';
-import { useViewport } from '../components/responsive/ViewportProvider';
 import MobileResources from './MobileResources';
 import ResourceModal from '../components/resources/ResourceModal';
 
@@ -143,12 +142,6 @@ const mockResources = [
 ];
 
 const Resources = () => {
-  const { isMobile } = useViewport();
-  
-  if (isMobile) {
-    return <MobileResources />;
-  }
-  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedResource, setSelectedResource] = useState(null);

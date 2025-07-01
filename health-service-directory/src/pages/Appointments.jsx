@@ -16,7 +16,6 @@ import {
   ChevronRightIcon,
   UserCircleIcon,
 } from '@heroicons/react/24/outline';
-import { useViewport } from '../components/responsive/ViewportProvider';
 import MobileAppointments from './MobileAppointments';
 import { appointments } from '../lib/api';
 import { useAuth } from '../context/AuthContext';

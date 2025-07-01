@@ -10,8 +10,6 @@ import {
   ChevronDownIcon,
   ChevronUpIcon
 } from '@heroicons/react/24/outline';
-import { useViewport } from '../components/responsive/ViewportProvider';
-import MobileEmergency from './MobileEmergency';
 
 const emergencyContacts = [
   {
@@ -131,18 +129,14 @@ const firstAidTips = [
 ];
 
 export default function Emergency() {
-  const { isMobile } = useViewport();
-  if (isMobile) {
-    return <MobileEmergency />;
-  }
   const [selectedTip, setSelectedTip] = useState(null);
   const [hoveredCard, setHoveredCard] = useState(null);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-blue-50 overflow-x-hidden pt-20">
       {/* Emergency Alert Banner */}
       <div className="bg-gradient-to-r from-red-600 to-red-500 shadow-lg">
-        <div className="w-full py-4 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-screen-xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-between">
             <div className="flex w-0 flex-1 items-center">
               <span className="flex rounded-lg bg-red-800 p-2 shadow-inner">
@@ -168,7 +162,7 @@ export default function Emergency() {
         </div>
       </div>
 
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Emergency Contacts Section */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-gray-900 flex items-center mb-8">

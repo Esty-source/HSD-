@@ -26,19 +26,24 @@ export default function ProfileSection() {
 
   useEffect(() => {
     // Get user data from localStorage
-    const storedUserData = JSON.parse(localStorage.getItem('userData') || '{}');
-    
-    // In a real app, you would fetch the full profile from an API
-    // For this demo, we'll use the stored data and add some mock fields
+    let storedUserData = {};
+    try {
+      storedUserData = JSON.parse(localStorage.getItem('userData') || '{}');
+    } catch (e) {
+      storedUserData = {};
+    }
+    // Provide safe defaults if missing
     const enhancedUserData = {
-      ...storedUserData,
-      phone: '+237 677-123-456',
-      address: 'Yaoundé, Cameroon',
-      bio: 'System administrator for the Health Service Directory platform. Responsible for managing users, security, and system maintenance.',
-      joinDate: '2024-01-15',
-      lastActive: new Date().toISOString().split('T')[0]
+      id: storedUserData.id || 'admin-id',
+      name: storedUserData.name || 'Admin User',
+      email: storedUserData.email || 'admin@healthconnect.com',
+      role: storedUserData.role || 'admin',
+      phone: storedUserData.phone || '+237 677-123-456',
+      address: storedUserData.address || 'Yaoundé, Cameroon',
+      bio: storedUserData.bio || 'System administrator for the Health Service Directory platform. Responsible for managing users, security, and system maintenance.',
+      joinDate: storedUserData.joinDate || '2024-01-15',
+      lastActive: storedUserData.lastActive || new Date().toISOString().split('T')[0]
     };
-    
     setUserData(enhancedUserData);
     setFormData(enhancedUserData);
   }, []);

@@ -6,43 +6,22 @@ import {
   TrashIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
-import { supabase } from '../../../lib/supabase';
+// import { supabase } from '../../../lib/supabase';
 
 export default function UsersSection() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    fetchUsers();
+    // TODO: Replace with mock data or new backend logic
+    setUsers([]);
+    setLoading(false);
+    // fetchUsers();
   }, []);
   
-  async function fetchUsers() {
-    try {
-      setLoading(true);
-      
-      // Fetch all profiles from Supabase
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*');
-      
-      if (error) throw error;
-      
-      // Transform the data to match our component's expected format
-      const formattedUsers = data.map(user => ({
-        id: user.id,
-        name: user.name || 'Unknown',
-        email: user.email || '',
-        role: user.role || 'patient',
-        status: 'active' // You might want to add a status field to your database
-      }));
-      
-      setUsers(formattedUsers);
-    } catch (error) {
-      console.error('Error fetching users:', error.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  // async function fetchUsers() {
+  //   ... (all supabase code commented out)
+  // }
 
   const [showNewUserModal, setShowNewUserModal] = useState(false);
   const [showEditUserModal, setShowEditUserModal] = useState(false);

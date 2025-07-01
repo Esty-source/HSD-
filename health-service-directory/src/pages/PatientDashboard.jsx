@@ -1,84 +1,73 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  BellIcon, 
-  CalendarIcon, 
-  ClipboardIcon, 
-  UserCircleIcon, 
-  ChartBarIcon, 
-  CreditCardIcon, 
-  ArrowLeftOnRectangleIcon,
+import React, { useState } from 'react';
+import {
   HomeIcon,
+  CalendarIcon,
+  ClipboardIcon,
+  UserCircleIcon,
+  CreditCardIcon,
+  ArrowLeftOnRectangleIcon,
   Cog6ToothIcon,
-  MagnifyingGlassIcon,
+  BellIcon,
   VideoCameraIcon
 } from '@heroicons/react/24/outline';
 import { BellIcon as BellIconSolid } from '@heroicons/react/24/solid';
-import AppointmentsSection from '../../components/dashboard/patient/AppointmentsSection';
-import MedicalRecordsSection from '../../components/dashboard/patient/MedicalRecordsSection';
-import ProfileSection from '../../components/dashboard/patient/ProfileSection';
-import PaymentsSection from '../../components/dashboard/patient/PaymentsSection';
-import NotificationsSection from '../../components/dashboard/patient/NotificationsSection';
-import OverviewSection from '../../components/dashboard/patient/OverviewSection';
-import SettingsSection from '../../components/dashboard/patient/SettingsSection';
-import TelemedicineSection from '../../components/dashboard/patient/TelemedicineSection';
-import TestComponent from '../../components/dashboard/patient2/TestComponent';
+import OverviewSection from '../components/dashboard/patient/OverviewSection';
+import AppointmentsSection from '../components/dashboard/patient/AppointmentsSection';
+import TelemedicineSection from '../components/dashboard/patient/TelemedicineSection';
+import MedicalRecordsSection from '../components/dashboard/patient/MedicalRecordsSection';
+import ProfileSection from '../components/dashboard/patient/ProfileSection';
+import NotificationsSection from '../components/dashboard/patient/NotificationsSection';
+import PaymentsSection from '../components/dashboard/patient/PaymentsSection';
+import SettingsSection from '../components/dashboard/patient/SettingsSection';
 
 export default function PatientDashboard() {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
-  const [userData, setUserData] = useState(null);
-
-  useEffect(() => {
-    try {
-      // Get user data from localStorage - use 'user' key to match AuthContext
-      const storedUserData = JSON.parse(localStorage.getItem('user') || '{}');
-      const token = localStorage.getItem('token');
-      
-      console.log('PatientDashboard - Retrieved user data:', storedUserData);
-      console.log('PatientDashboard - Token exists:', !!token);
-
-      if (!token || !storedUserData || !storedUserData.role) {
-        console.log('PatientDashboard - Missing auth data, redirecting to auth');
-        // Clear any existing data and redirect to auth
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/auth');
-        return;
-      }
-      
-      // Allow both 'patient' role and any user to access patient dashboard for now
-      // This helps with debugging - we can tighten security later
-      setUserData(storedUserData);
-      console.log('PatientDashboard - User data set successfully:', storedUserData);
-    } catch (error) {
-      console.error('PatientDashboard - Error loading user data:', error);
-      navigate('/auth');
-    }
-  }, [navigate]);
-
-  const handleLogout = () => {
-    console.log('PatientDashboard - Logging out');
-    // Clear authentication data - use 'user' key to match AuthContext
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/auth');
-  };
+  const [activeSection, setActiveSection] = useState('overview');
+  const [userData] = useState({
+    name: 'Jane Doe',
+    email: 'patient@example.com',
+    id: 'P-12345',
+    role: 'patient'
+  });
 
   const sidebarItems = [
-    { name: 'Overview', icon: ChartBarIcon, id: 'overview' },
-    { name: 'Appointments', icon: CalendarIcon, id: 'appointments' },
-    { name: 'Telemedicine', icon: VideoCameraIcon, id: 'telemedicine' },
-    { name: 'Medical Records', icon: ClipboardIcon, id: 'records' },
-    { name: 'Profile', icon: UserCircleIcon, id: 'profile' },
-    { name: 'Notifications', icon: BellIcon, id: 'notifications', count: 3 },
-    { name: 'Payments', icon: CreditCardIcon, id: 'payments' },
-    { name: 'Settings', icon: Cog6ToothIcon, id: 'settings' },
+    { id: 'overview', name: 'Overview', icon: HomeIcon },
+    { id: 'appointments', name: 'Appointments', icon: CalendarIcon },
+    { id: 'telemedicine', name: 'Telemedicine', icon: VideoCameraIcon },
+    { id: 'records', name: 'Medical Records', icon: ClipboardIcon },
+    { id: 'profile', name: 'Profile', icon: UserCircleIcon },
+    { id: 'notifications', name: 'Notifications', icon: BellIcon, count: 3 },
+    { id: 'payments', name: 'Payments', icon: CreditCardIcon },
+    { id: 'settings', name: 'Settings', icon: Cog6ToothIcon },
   ];
 
-  if (!userData) {
-    return null; // or a loading spinner
-  }
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+  };
+
+  const renderSection = () => {
+    switch (activeSection) {
+      case 'overview':
+        return <OverviewSection userData={userData} />;
+      case 'appointments':
+        return <AppointmentsSection userData={userData} />;
+      case 'telemedicine':
+        return <TelemedicineSection userData={userData} />;
+      case 'records':
+        return <MedicalRecordsSection userData={userData} />;
+      case 'profile':
+        return <ProfileSection userData={userData} />;
+      case 'notifications':
+        return <NotificationsSection userData={userData} />;
+      case 'payments':
+        return <PaymentsSection userData={userData} />;
+      case 'settings':
+        return <SettingsSection userData={userData} />;
+      default:
+        return <OverviewSection userData={userData} />;
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden w-screen max-w-[100vw]">
@@ -93,7 +82,6 @@ export default function PatientDashboard() {
             <p className="text-xs text-gray-500">Patient Portal</p>
           </div>
         </div>
-        
         <div className="px-6 py-4 border-b border-gray-100">
           <div className="flex items-center space-x-3">
             <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
@@ -103,21 +91,20 @@ export default function PatientDashboard() {
             </div>
             <div>
               <h3 className="font-medium text-gray-900">{userData.name}</h3>
-              <p className="text-xs text-gray-500">Patient ID: {userData.id || 'P-12345'}</p>
+              <p className="text-xs text-gray-500">Patient ID: {userData.id}</p>
             </div>
           </div>
         </div>
-        
         <nav className="flex-1 px-2 py-4 space-y-1">
           {sidebarItems.map(item => (
             <button
               key={item.id}
               className={`w-full flex items-center px-4 py-2 rounded-lg text-left transition-colors duration-150 ${
-                activeTab === item.id
+                activeSection === item.id
                   ? 'bg-blue-50 text-blue-700 font-semibold'
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => setActiveSection(item.id)}
             >
               <item.icon className="h-5 w-5 mr-3" />
               {item.name}
@@ -139,7 +126,6 @@ export default function PatientDashboard() {
           </button>
         </div>
       </div>
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-y-auto">
         {/* Top bar */}
@@ -153,25 +139,13 @@ export default function PatientDashboard() {
               <BellIconSolid className="h-6 w-6 text-blue-600" />
               <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full px-1.5 py-0.5 text-xs font-bold">3</span>
             </button>
-            <button>
-              <MagnifyingGlassIcon className="h-6 w-6 text-gray-400" />
-            </button>
           </div>
         </div>
-
         {/* Section Content */}
         <div className="flex-1 p-8 overflow-y-auto">
-          <TestComponent />
-          {activeTab === 'overview' && <OverviewSection userData={userData} />}
-          {activeTab === 'appointments' && <AppointmentsSection userData={userData} />}
-          {activeTab === 'telemedicine' && <TelemedicineSection userData={userData} />}
-          {activeTab === 'records' && <MedicalRecordsSection userData={userData} />}
-          {activeTab === 'profile' && <ProfileSection userData={userData} />}
-          {activeTab === 'notifications' && <NotificationsSection userData={userData} />}
-          {activeTab === 'payments' && <PaymentsSection userData={userData} />}
-          {activeTab === 'settings' && <SettingsSection userData={userData} />}
+          {renderSection()}
         </div>
       </div>
     </div>
   );
-}
+} 
