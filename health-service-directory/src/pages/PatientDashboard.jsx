@@ -19,15 +19,11 @@ import ProfileSection from '../components/dashboard/patient/ProfileSection';
 import NotificationsSection from '../components/dashboard/patient/NotificationsSection';
 import PaymentsSection from '../components/dashboard/patient/PaymentsSection';
 import SettingsSection from '../components/dashboard/patient/SettingsSection';
+import { useAuth } from '../context/AuthContext';
 
 export default function PatientDashboard() {
+  const { user } = useAuth();
   const [activeSection, setActiveSection] = useState('overview');
-  const [userData] = useState({
-    name: 'Jane Doe',
-    email: 'patient@example.com',
-    id: 'P-12345',
-    role: 'patient'
-  });
 
   const sidebarItems = [
     { id: 'overview', name: 'Overview', icon: HomeIcon },
@@ -49,23 +45,23 @@ export default function PatientDashboard() {
   const renderSection = () => {
     switch (activeSection) {
       case 'overview':
-        return <OverviewSection userData={userData} />;
+        return <OverviewSection userData={user} />;
       case 'appointments':
-        return <AppointmentsSection userData={userData} />;
+        return <AppointmentsSection userData={user} />;
       case 'telemedicine':
-        return <TelemedicineSection userData={userData} />;
+        return <TelemedicineSection userData={user} />;
       case 'records':
-        return <MedicalRecordsSection userData={userData} />;
+        return <MedicalRecordsSection userData={user} />;
       case 'profile':
-        return <ProfileSection userData={userData} />;
+        return <ProfileSection userData={user} />;
       case 'notifications':
-        return <NotificationsSection userData={userData} />;
+        return <NotificationsSection userData={user} />;
       case 'payments':
-        return <PaymentsSection userData={userData} />;
+        return <PaymentsSection userData={user} />;
       case 'settings':
-        return <SettingsSection userData={userData} />;
+        return <SettingsSection userData={user} />;
       default:
-        return <OverviewSection userData={userData} />;
+        return <OverviewSection userData={user} />;
     }
   };
 
@@ -86,12 +82,12 @@ export default function PatientDashboard() {
           <div className="flex items-center space-x-3">
             <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
               <span className="text-sm font-medium text-blue-600">
-                {userData.name.split(' ').map(n => n[0]).join('')}
+                {user?.name ? user.name.split(' ').map(n => n[0]).join('') : ''}
               </span>
             </div>
             <div>
-              <h3 className="font-medium text-gray-900">{userData.name}</h3>
-              <p className="text-xs text-gray-500">Patient ID: {userData.id}</p>
+              <h3 className="font-medium text-gray-900">{user?.name || ''}</h3>
+              <p className="text-xs text-gray-500">Patient ID: {user?.patientId || user?.id || ''}</p>
             </div>
           </div>
         </div>

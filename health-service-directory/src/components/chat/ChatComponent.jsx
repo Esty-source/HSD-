@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../context/AuthContext';
 import {
   PaperAirplaneIcon,
@@ -18,24 +17,53 @@ export default function ChatComponent({ consultationId, otherUserId, className =
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  // Mock messages data
+  const mockMessages = [
+    {
+      id: 1,
+      consultation_id: consultationId,
+      sender_id: otherUserId,
+      receiver_id: user?.id,
+      content: 'Hello! How are you feeling today?',
+      message_type: 'text',
+      created_at: new Date(Date.now() - 3600000).toISOString(),
+      is_read: true
+    },
+    {
+      id: 2,
+      consultation_id: consultationId,
+      sender_id: user?.id,
+      receiver_id: otherUserId,
+      content: 'I\'m feeling much better, thank you for asking.',
+      message_type: 'text',
+      created_at: new Date(Date.now() - 1800000).toISOString(),
+      is_read: true
+    },
+    {
+      id: 3,
+      consultation_id: consultationId,
+      sender_id: otherUserId,
+      receiver_id: user?.id,
+      content: 'That\'s great to hear! Any symptoms you\'d like to discuss?',
+      message_type: 'text',
+      created_at: new Date(Date.now() - 900000).toISOString(),
+      is_read: false
+    }
+  ];
+
   // Scroll to bottom of messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Fetch initial messages
+  // Fetch initial messages (mock data)
   useEffect(() => {
     const fetchMessages = async () => {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('messages')
-          .select('*')
-          .eq('consultation_id', consultationId)
-          .order('created_at', { ascending: true });
-
-        if (error) throw error;
-        setMessages(data || []);
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setMessages(mockMessages);
       } catch (err) {
         setError('Failed to load messages');
         console.error('Error fetching messages:', err);
@@ -47,90 +75,71 @@ export default function ChatComponent({ consultationId, otherUserId, className =
     fetchMessages();
   }, [consultationId]);
 
-  // Subscribe to new messages
-  useEffect(() => {
-    const subscription = supabase
-      .channel(`messages:consultation_id=eq.${consultationId}`)
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'messages',
-        filter: `consultation_id=eq.${consultationId}`
-      }, (payload) => {
-        setMessages(current => [...current, payload.new]);
-        scrollToBottom();
-      })
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [consultationId]);
-
   // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Send a new message
+  // Send a new message (mock)
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
     try {
-      const { error } = await supabase
-        .from('messages')
-        .insert([{
-          consultation_id: consultationId,
-          sender_id: user.id,
-          receiver_id: otherUserId,
-          content: newMessage,
-          message_type: 'text'
-        }]);
+      const newMsg = {
+        id: Date.now(),
+        consultation_id: consultationId,
+        sender_id: user?.id,
+        receiver_id: otherUserId,
+        content: newMessage,
+        message_type: 'text',
+        created_at: new Date().toISOString(),
+        is_read: false
+      };
 
-      if (error) throw error;
+      setMessages(prev => [...prev, newMsg]);
       setNewMessage('');
+      
+      // Simulate response after 1-2 seconds
+      setTimeout(() => {
+        const responseMsg = {
+          id: Date.now() + 1,
+          consultation_id: consultationId,
+          sender_id: otherUserId,
+          receiver_id: user?.id,
+          content: 'Thank you for your message. I\'ll get back to you shortly.',
+          message_type: 'text',
+          created_at: new Date().toISOString(),
+          is_read: false
+        };
+        setMessages(prev => [...prev, responseMsg]);
+      }, 1000 + Math.random() * 1000);
     } catch (err) {
       setError('Failed to send message');
       console.error('Error sending message:', err);
     }
   };
 
-  // Handle file upload
+  // Handle file upload (mock)
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
-      // Upload file to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${consultationId}/${fileName}`;
+      // Simulate file upload
+      const newMsg = {
+        id: Date.now(),
+        consultation_id: consultationId,
+        sender_id: user?.id,
+        receiver_id: otherUserId,
+        content: file.name,
+        message_type: file.type.startsWith('image/') ? 'image' : 'file',
+        file_url: URL.createObjectURL(file), // Create local URL for preview
+        created_at: new Date().toISOString(),
+        is_read: false
+      };
 
-      const { error: uploadError, data } = await supabase.storage
-        .from('chat-attachments')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('chat-attachments')
-        .getPublicUrl(filePath);
-
-      // Send message with file
-      const { error: messageError } = await supabase
-        .from('messages')
-        .insert([{
-          consultation_id: consultationId,
-          sender_id: user.id,
-          receiver_id: otherUserId,
-          content: file.name,
-          message_type: file.type.startsWith('image/') ? 'image' : 'file',
-          file_url: publicUrl
-        }]);
-
-      if (messageError) throw messageError;
+      setMessages(prev => [...prev, newMsg]);
     } catch (err) {
       setError('Failed to upload file');
       console.error('Error uploading file:', err);
@@ -186,21 +195,21 @@ export default function ChatComponent({ consultationId, otherUserId, className =
           messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
             >
               <div
                 className={`max-w-[75%] rounded-lg p-3 ${
-                  message.sender_id === user.id
+                  message.sender_id === user?.id
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-900'
                 }`}
               >
                 {renderMessageContent(message)}
                 <div className={`text-xs mt-1 flex items-center justify-end ${
-                  message.sender_id === user.id ? 'text-blue-100' : 'text-gray-500'
+                  message.sender_id === user?.id ? 'text-blue-100' : 'text-gray-500'
                 }`}>
                   {format(new Date(message.created_at), 'HH:mm')}
-                  {message.is_read && message.sender_id === user.id && (
+                  {message.is_read && message.sender_id === user?.id && (
                     <CheckCircleIcon className="h-4 w-4 ml-1" />
                   )}
                 </div>

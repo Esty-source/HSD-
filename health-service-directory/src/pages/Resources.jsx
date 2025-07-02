@@ -14,7 +14,6 @@ import {
   ShieldCheckIcon,
   UserGroupIcon
 } from '@heroicons/react/24/outline';
-import MobileResources from './MobileResources';
 import ResourceModal from '../components/resources/ResourceModal';
 
 // Resource categories

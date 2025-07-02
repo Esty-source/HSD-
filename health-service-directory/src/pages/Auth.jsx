@@ -116,14 +116,12 @@ export default function Auth() {
           throw new Error('Please select whether you are a Patient or Doctor');
         }
 
-        const { success, error, requiresEmailConfirmation } = await signup(
-          data.email,
-          data.password,
-          {
-            fullName: data.name,
-            role: data.role
-          }
-        );
+        const { success, error, requiresEmailConfirmation } = await signup({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          role: data.role
+        });
 
         if (!success || error) {
           throw new Error(error?.message || 'Registration failed. Please try again.');

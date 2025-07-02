@@ -6,7 +6,7 @@ import {
   TrashIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
-// import { supabase } from '../../../lib/supabase';
+// Mock data - no Supabase needed
 
 export default function DoctorsSection() {
   const [doctors, setDoctors] = useState([]);

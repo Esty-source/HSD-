@@ -12,7 +12,7 @@ import {
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 
-export default function ProfileSection() {
+export default function ProfileSection({ userData }) {
   const [isEditing, setIsEditing] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const fileInputRef = useRef(null);
@@ -88,14 +88,14 @@ export default function ProfileSection() {
                   </>
                 )}
               </div>
-              <h3 className="text-xl font-bold text-gray-800">{profile.name}</h3>
+              <h3 className="text-xl font-bold text-gray-800">{userData?.name || profile.name}</h3>
               <p className="text-gray-500">{profile.title}</p>
             </div>
 
             <div className="mt-6 space-y-4">
               <div className="flex items-center space-x-3">
                 <EnvelopeIcon className="h-5 w-5 text-gray-400" />
-                <span className="text-gray-600">{profile.email}</span>
+                <span className="text-gray-600">{userData?.email || profile.email}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <PhoneIcon className="h-5 w-5 text-gray-400" />
@@ -199,11 +199,15 @@ export default function ProfileSection() {
               {isEditing ? (
                 <textarea
                   defaultValue={profile.bio}
-                  rows={4}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={4}
                 />
               ) : (
-                <p className="text-gray-600">{profile.bio}</p>
+                <p className="text-gray-600">
+                  {userData?.name
+                    ? profile.bio.replace('Dr. Sarah Smith', userData.name)
+                    : profile.bio}
+                </p>
               )}
             </div>
           </div>

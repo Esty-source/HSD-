@@ -1,36 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { authAPI } from '../lib/api';
 
 const AuthContext = createContext(null);
-
-// Mock Users Data
-const MOCK_USERS = [
-  {
-    id: 1,
-    email: 'admin@example.com',
-    password: 'admin123',
-    name: 'Admin User',
-    role: 'admin',
-    phone: '+1234567890'
-  },
-  {
-    id: 2,
-    email: 'doctor@example.com',
-    password: 'doctor123',
-    name: 'Dr. John Smith',
-    role: 'doctor',
-    phone: '+1234567891',
-    specialty: 'Cardiology'
-  },
-  {
-    id: 3,
-    email: 'patient@example.com',
-    password: 'patient123',
-    name: 'Jane Doe',
-    role: 'patient',
-    phone: '+1234567892'
-  }
-];
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -45,6 +17,9 @@ export const AuthProvider = ({ children }) => {
       try {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
+        
+        // Verify token with backend
+        verifyToken();
       } catch (error) {
         console.error('Error parsing stored user data:', error);
         localStorage.removeItem('token');
@@ -55,68 +30,55 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  const verifyToken = async () => {
+    try {
+      const response = await authAPI.getProfile();
+      const userData = response.data.user;
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+    }
+  };
+
   const login = async (email, password) => {
     try {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const response = await authAPI.login({ email, password });
+      const { token, user: userData } = response.data;
       
-      // Find user by email and password
-      const foundUser = MOCK_USERS.find(u => 
-        u.email === email && u.password === password
-      );
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
       
-      if (foundUser) {
-        // Remove password from user object
-        const { password, ...userWithoutPassword } = foundUser;
-        
-        // Create mock token
-        const mockToken = `mock-token-${Date.now()}`;
-        
-        localStorage.setItem('token', mockToken);
-        localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-        setUser(userWithoutPassword);
-        toast.success('Logged in successfully!');
-        return { success: true, user: userWithoutPassword };
-      }
-      
-      toast.error('Invalid credentials');
-      return { success: false, error: 'Invalid credentials' };
+      toast.success('Logged in successfully!');
+      return { success: true, user: userData };
 
     } catch (error) {
-      toast.error('An error occurred during login');
-      return { success: false, error: error.message };
+      const errorMessage = error.response?.data?.error || 'Login failed';
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
   const register = async (userData) => {
     try {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const response = await authAPI.register(userData);
+      const { token, user: newUser } = response.data;
       
-      // Check if email already exists
-      if (MOCK_USERS.some(u => u.email === userData.email)) {
-        toast.error('User already exists');
-        return { 
-          success: false, 
-          error: 'User already exists'
-        };
-      }
-      
-      // Create new user with mock ID
-      const newUser = {
-        id: Math.floor(Math.random() * 1000) + 10,
-        ...userData
-      };
-      
-      // Just log the registration - in a real app we would add to database
-      console.log('Registered new user:', newUser);
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(newUser));
+      setUser(newUser);
       
       toast.success('Registration successful!');
-      return { success: true };
+      return { success: true, user: newUser };
 
     } catch (error) {
-      toast.error('An error occurred during registration');
-      return { success: false, error: error.message };
+      const errorMessage = error.response?.data?.error || 'Registration failed';
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -127,12 +89,47 @@ export const AuthProvider = ({ children }) => {
     toast.success('Logged out successfully');
   };
 
+  const updateProfile = async (profileData) => {
+    try {
+      await authAPI.updateProfile(profileData);
+      
+      // Update local user data
+      const updatedUser = { ...user, ...profileData };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      toast.success('Profile updated successfully!');
+      return { success: true };
+
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || 'Profile update failed';
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  const changePassword = async (currentPassword, newPassword) => {
+    try {
+      await authAPI.changePassword({ currentPassword, newPassword });
+      toast.success('Password changed successfully!');
+      return { success: true };
+
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || 'Password change failed';
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
   const value = {
     user,
     loading,
     login,
     register,
+    signup: register, // Alias for backward compatibility
     logout,
+    updateProfile,
+    changePassword,
     isAuthenticated: !!user,
   };
 

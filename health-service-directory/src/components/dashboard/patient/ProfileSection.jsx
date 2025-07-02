@@ -1,61 +1,89 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { UserCircleIcon, IdentificationIcon, HeartIcon, PhoneIcon, ShieldExclamationIcon, PencilIcon, CheckIcon, XMarkIcon, CameraIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import ConfirmationModal from '../../ui/ConfirmationModal';
+import { authAPI } from '../../../lib/api';
 
-export default function ProfileSection() {
+function safeString(val) {
+  return typeof val === 'string' ? val : '';
+}
+function safeArray(val) {
+  return Array.isArray(val) ? val : [];
+}
+
+function PatientProfileSection() {
   const [activeSection, setActiveSection] = useState('personal');
   const [isEditing, setIsEditing] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [originalData, setOriginalData] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
   const fileInputRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
-    // Personal Information
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    phone: '+237612345678',
-    dateOfBirth: '1990-01-01',
-    gender: 'male',
-    address: '123 Main Street, Yaoundé',
-
-    // Medical Information
-    bloodType: 'O+',
-    allergies: ['Penicillin', 'Peanuts'],
-    chronicConditions: ['None'],
-    currentMedications: ['None'],
-
-    // Emergency Contacts
-    emergencyContacts: [
-      {
-        name: 'Jane Doe',
-        relationship: 'Spouse',
-        phone: '+237687654321',
-      }
-    ],
-
-    // Insurance Information
-    insuranceProvider: 'National Health Insurance',
-    policyNumber: 'NH123456789',
-    expiryDate: '2024-12-31',
-    
-    // Preferences
-    preferences: {
-      theme: 'light',
-      language: 'english',
-      notifications: {
-        email: true,
-        sms: true,
-        app: true,
-        appointmentReminders: true,
-        medicationReminders: true,
-        healthTips: true,
-        promotions: false
-      }
-    }
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    dateOfBirth: '',
+    gender: '',
+    address: '',
+    bloodType: '',
+    allergies: [],
+    chronicConditions: [],
+    currentMedications: [],
+    emergencyContacts: [{ name: '', relationship: '', phone: '' }],
+    insuranceProvider: '',
+    policyNumber: '',
+    expiryDate: '',
+    preferences: {}
   });
+
+  // Error boundary
+  if (error) {
+    return <div className="p-6 text-center text-red-600 font-bold">{error}</div>;
+  }
+
+  useEffect(() => {
+    async function fetchProfile() {
+      setLoading(true);
+      try {
+        const res = await authAPI.getProfile();
+        console.log('Profile API response:', res.data); // DEBUG
+        const user = res.data.user;
+        console.log('User object:', user); // DEBUG
+        if (!user) {
+          setError('User profile not found.');
+          setLoading(false);
+          return;
+        }
+        setFormData({
+          firstName: safeString(user?.name?.split(' ')[0]),
+          lastName: safeString(user?.name?.split(' ').slice(1).join(' ')),
+          email: safeString(user.email),
+          phone: safeString(user.phone),
+          dateOfBirth: safeString(user.date_of_birth),
+          gender: safeString(user.gender),
+          address: safeString(user.address),
+          bloodType: safeString(user.blood_type),
+          allergies: safeArray(user.allergies),
+          chronicConditions: safeArray(user.chronic_conditions),
+          currentMedications: safeArray(user.current_medications),
+          emergencyContacts: safeArray(user.emergency_contacts).length > 0 ? safeArray(user.emergency_contacts) : [{ name: '', relationship: '', phone: '' }],
+          insuranceProvider: safeString(user.insurance_info),
+          policyNumber: safeString(user.policy_number),
+          expiryDate: safeString(user.insurance_expiry),
+          preferences: user.preferences || {}
+        });
+        setProfileImage(user.profile_image || null);
+      } catch (err) {
+        setError('Failed to load profile');
+      }
+      setLoading(false);
+    }
+    fetchProfile();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -85,8 +113,7 @@ export default function ProfileSection() {
   };
 
   const startEditing = () => {
-    // Save the original data for cancellation
-    setOriginalData({...formData});
+    setOriginalData({ ...formData });
     setIsEditing(true);
     toast.success('You can now edit your profile', {
       duration: 2000,
@@ -95,7 +122,6 @@ export default function ProfileSection() {
   };
 
   const cancelEditing = () => {
-    // Restore the original data
     if (originalData) {
       setFormData(originalData);
     }
@@ -108,24 +134,44 @@ export default function ProfileSection() {
 
   const handleSubmit = (e) => {
     if (e) e.preventDefault();
-    
-    // Show confirmation modal
     setShowConfirmation(true);
   };
-  
-  const saveChanges = () => {
-    // TODO: API call to update profile
-    setIsEditing(false);
-    setShowConfirmation(false);
-    
-    // In a real app, this would be where you'd send the profile image to a server
-    // and update the user's profile data
-    
-    toast.success('Profile updated successfully!', {
-      duration: 3000,
-      position: 'top-center',
-    });
+
+  const saveChanges = async () => {
+    try {
+      const updatedProfile = {
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
+        phone: formData.phone,
+        date_of_birth: formData.dateOfBirth,
+        gender: formData.gender,
+        address: formData.address,
+        blood_type: formData.bloodType,
+        allergies: formData.allergies,
+        chronic_conditions: formData.chronicConditions,
+        current_medications: formData.currentMedications,
+        emergency_contacts: formData.emergencyContacts,
+        insurance_info: formData.insuranceProvider,
+        policy_number: formData.policyNumber,
+        insurance_expiry: formData.expiryDate,
+        preferences: formData.preferences,
+        profile_image: profileImage
+      };
+      await authAPI.updateProfile(updatedProfile);
+      setIsEditing(false);
+      setShowConfirmation(false);
+      toast.success('Profile updated successfully!', {
+        duration: 3000,
+        position: 'top-center',
+      });
+    } catch (err) {
+      console.error(err); // Debugging: log the error to the console
+      setError('Failed to update profile');
+    }
   };
+
+  if (loading) {
+    return <div className="p-6 text-center">Loading profile...</div>;
+  }
 
   return (
     <div className="w-full">
@@ -138,7 +184,7 @@ export default function ProfileSection() {
             ) : (
               <div className="h-full w-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center">
                 <span className="text-3xl font-bold text-white">
-                  {formData.firstName.charAt(0)}{formData.lastName.charAt(0)}
+                  {(formData.firstName?.charAt(0) || '') + (formData.lastName?.charAt(0) || '')}
                 </span>
               </div>
             )}
@@ -162,7 +208,6 @@ export default function ProfileSection() {
             </div>
           )}
         </div>
-        
         <div className="flex-1">
           {/* Header with Edit Button */}
           <div className="flex justify-between items-center mb-4">
@@ -197,21 +242,14 @@ export default function ProfileSection() {
               </div>
             )}
           </div>
-          
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center text-sm text-gray-600">
-              <PhoneIcon className="h-4 w-4 mr-1 text-blue-500" />
-              <span>{formData.phone}</span>
-            </div>
-            <div className="flex items-center text-sm text-gray-600">
-              <IdentificationIcon className="h-4 w-4 mr-1 text-blue-500" />
-              <span>Patient ID: P-12345</span>
-            </div>
-            <div className="flex items-center text-sm text-gray-600">
-              <HeartIcon className="h-4 w-4 mr-1 text-blue-500" />
-              <span>Blood Type: {formData.bloodType}</span>
-            </div>
-          </div>
+          <ConfirmationModal
+            isOpen={showConfirmation}
+            title="Save Profile Changes?"
+            message="Are you sure you want to save your changes?"
+            onConfirm={saveChanges}
+            onCancel={() => setShowConfirmation(false)}
+            onClose={() => setShowConfirmation(false)}
+          />
         </div>
       </div>
       
@@ -313,7 +351,7 @@ export default function ProfileSection() {
               <input
                 type="text"
                 name="emergencyContactName"
-                value={formData.emergencyContacts[0].name}
+                value={formData.emergencyContacts[0]?.name || ''}
                 onChange={(e) => {
                   const updatedContacts = [...formData.emergencyContacts];
                   updatedContacts[0] = { ...updatedContacts[0], name: e.target.value };
@@ -328,7 +366,7 @@ export default function ProfileSection() {
               <input
                 type="text"
                 name="emergencyContactRelationship"
-                value={formData.emergencyContacts[0].relationship}
+                value={formData.emergencyContacts[0]?.relationship || ''}
                 onChange={(e) => {
                   const updatedContacts = [...formData.emergencyContacts];
                   updatedContacts[0] = { ...updatedContacts[0], relationship: e.target.value };
@@ -343,7 +381,7 @@ export default function ProfileSection() {
               <input
                 type="tel"
                 name="emergencyContactPhone"
-                value={formData.emergencyContacts[0].phone}
+                value={formData.emergencyContacts[0]?.phone || ''}
                 onChange={(e) => {
                   const updatedContacts = [...formData.emergencyContacts];
                   updatedContacts[0] = { ...updatedContacts[0], phone: e.target.value };
@@ -836,17 +874,8 @@ export default function ProfileSection() {
           </div>
         </div>
       )}
-      
-      {/* Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={showConfirmation}
-        onClose={() => setShowConfirmation(false)}
-        onConfirm={saveChanges}
-        title="Save Profile Changes"
-        message="Are you sure you want to save these changes to your profile?"
-        confirmText="Save Changes"
-        type="primary"
-      />
     </div>
   );
 }
+
+export default PatientProfileSection;

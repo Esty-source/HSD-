@@ -8,7 +8,8 @@ const Register = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: ''
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,10 +22,19 @@ const Register = () => {
     if (error) setError('');
   };
 
+  const handleRoleSelect = (role) => {
+    setForm(prev => ({ ...prev, role }));
+    if (error) setError('');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || !form.email.trim() || !form.password || !form.confirmPassword) {
       setError('All fields are required.');
+      return;
+    }
+    if (!form.role) {
+      setError('Please select a role (Patient or Doctor).');
       return;
     }
     if (!/\S+@\S+\.\S+/.test(form.email)) {
@@ -43,7 +53,8 @@ const Register = () => {
     const { success, error: regError } = await register({
       name: form.name,
       email: form.email,
-      password: form.password
+      password: form.password,
+      role: form.role
     });
     setIsSubmitting(false);
     if (success) {
@@ -55,8 +66,8 @@ const Register = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen w-screen max-w-[100vw] flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-200 mx-0 px-0">
-        <div className="bg-white shadow-lg rounded-lg w-full max-w-md mx-0 m-0 p-8 sm:p-8 px-8 py-8 md:p-12 text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-200">
+        <div className="bg-white shadow-lg rounded-lg w-full max-w-md p-8 md:p-12 text-center mt-24">
           <h2 className="text-2xl font-bold text-green-600 mb-2">Account Created!</h2>
           <p className="text-gray-700 mb-6">Your account has been successfully created. You can now log in.</p>
           <button
@@ -71,11 +82,32 @@ const Register = () => {
   }
 
   return (
-    <div className="min-h-screen w-screen max-w-[100vw] flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-200 mx-0 px-0">
-      <div className="bg-white shadow-lg rounded-lg w-full max-w-md mx-0 m-0 p-8 sm:p-8 px-8 py-8 md:p-12">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-200 overflow-x-hidden">
+      <div className="bg-white shadow-lg rounded-lg w-full max-w-md p-8 md:p-12 mt-24 mx-4">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-indigo-700">Sign Up</h2>
           <p className="text-gray-600 mt-2">Create your account</p>
+        </div>
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">I am a:</label>
+          <div className="flex justify-center space-x-4">
+            <button
+              type="button"
+              onClick={() => handleRoleSelect('patient')}
+              className={`flex-1 py-2 px-4 rounded-lg transition-colors ${form.role === 'patient' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              disabled={isSubmitting}
+            >
+              Patient
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRoleSelect('doctor')}
+              className={`flex-1 py-2 px-4 rounded-lg transition-colors ${form.role === 'doctor' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              disabled={isSubmitting}
+            >
+              Doctor
+            </button>
+          </div>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

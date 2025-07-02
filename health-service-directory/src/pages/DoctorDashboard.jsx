@@ -21,14 +21,11 @@ import TelemedicineSection from '../components/dashboard/doctor/TelemedicineSect
 import NotificationsSection from '../components/dashboard/doctor/NotificationsSection';
 import ProfileSection from '../components/dashboard/doctor/ProfileSection';
 import SettingsSection from '../components/dashboard/doctor/SettingsSection';
+import { useAuth } from '../context/AuthContext';
 
 export default function DoctorDashboard() {
+  const { user } = useAuth();
   const [activeSection, setActiveSection] = useState('overview');
-  const [userData] = useState({
-    name: 'Dr. Jane Doe',
-    email: 'dr.jane@example.com',
-    role: 'doctor'
-  });
 
   const sidebarItems = [
     { id: 'overview', name: 'Overview', icon: HomeIcon },
@@ -51,25 +48,25 @@ export default function DoctorDashboard() {
   const renderSection = () => {
     switch (activeSection) {
       case 'overview':
-        return <OverviewSection />;
+        return <OverviewSection userData={user} />;
       case 'appointments':
-        return <AppointmentsSection />;
+        return <AppointmentsSection userData={user} />;
       case 'patients':
-        return <PatientsSection />;
+        return <PatientsSection userData={user} />;
       case 'medical-records':
-        return <MedicalRecordsSection />;
+        return <MedicalRecordsSection userData={user} />;
       case 'prescriptions':
-        return <PrescriptionsSection />;
+        return <PrescriptionsSection userData={user} />;
       case 'telemedicine':
-        return <TelemedicineSection />;
+        return <TelemedicineSection userData={user} />;
       case 'notifications':
-        return <NotificationsSection />;
+        return <NotificationsSection userData={user} />;
       case 'profile':
-        return <ProfileSection />;
+        return <ProfileSection userData={user} />;
       case 'settings':
-        return <SettingsSection />;
+        return <SettingsSection userData={user} />;
       default:
-        return <OverviewSection />;
+        return <OverviewSection userData={user} />;
     }
   };
 
@@ -92,12 +89,12 @@ export default function DoctorDashboard() {
           <div className="flex items-center space-x-3">
             <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
               <span className="text-sm font-medium text-blue-600">
-                {userData.name.split(' ').map(n => n[0]).join('')}
+                {user?.name ? user.name.split(' ').map(n => n[0]).join('') : ''}
               </span>
             </div>
             <div>
-              <h3 className="font-medium text-gray-900">{userData.name}</h3>
-              <p className="text-xs text-gray-500">Doctor</p>
+              <h3 className="font-medium text-gray-900">{user?.name || ''}</h3>
+              <p className="text-xs text-gray-500">{user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Doctor'}</p>
             </div>
           </div>
         </div>
@@ -138,7 +135,7 @@ export default function DoctorDashboard() {
               {sidebarItems.find(item => item.id === activeSection)?.name || 'Dashboard'}
             </h1>
             <p className="text-sm text-gray-500">
-              Welcome, {userData.name}
+              Welcome, {user?.name || ''}
             </p>
           </div>
         </div>
