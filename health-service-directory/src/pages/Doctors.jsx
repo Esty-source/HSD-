@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { doctors } from '../lib/api';
+import { doctorsAPI } from '../lib/api';
 import toast from 'react-hot-toast';
 
 export default function Doctors() {
@@ -12,7 +12,7 @@ export default function Doctors() {
 
   const fetchDoctors = async () => {
     try {
-      const response = await doctors.getAll();
+      const response = await doctorsAPI.getAll();
       setDoctorsList(response.data);
     } catch (error) {
       toast.error('Failed to fetch doctors');

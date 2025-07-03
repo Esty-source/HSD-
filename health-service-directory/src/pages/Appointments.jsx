@@ -17,7 +17,7 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/24/outline';
 import MobileAppointments from './MobileAppointments';
-import { appointments } from '../lib/api';
+import { appointmentsAPI } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
